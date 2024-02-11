@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "rustynum_py_wrapper"
+version = "0.1.0"
+description = "Python wrapper for the RustyNum library bindings"
+authors = ["IgorSusmelj <igor_7779@hotmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+# rustynum_py = { path = "dist/rustynum_py-0.1.0.tar.gz", optional = true }
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+numpy = "^1.21" 
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=62.4", "wheel", "setuptools-rust>=1.5.2"]
+
+[tool.maturin]
+python-source = "python"
+module-name = "rustynum_py_wrapper._rustynum_py"
+name = "rustynum_py"
+bindings = "pyo3"
+features = ["pyo3/extension-module"]

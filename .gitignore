@@ -1,0 +1,8 @@
+/target
+**dist
+**target
+**build
+**.pytest_cache
+**.pyc
+**rustynum.egg-info
+**__pycache__

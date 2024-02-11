@@ -1,0 +1,16 @@
+[package]
+name = "rustynum"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "_rustynum"
+crate-type = ["cdylib"]
+
+
+[dependencies]
+numpy = "0.15"
+pyo3 = { version = "0.15.1", features = ["extension-module"] }
+
+# Adjust the path to point to your rustynum-rs crate relative to the bindings/python directory
+rustynum-rs = { path = "../../rustynum-rs" }

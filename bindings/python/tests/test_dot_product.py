@@ -1,0 +1,54 @@
+# bindings/python/tests/test_dot_product.py
+
+import numpy as np
+import rustynum as rnp
+
+
+def test_dot_product():
+    # Using the generic NumArray class with dtype specified
+    a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
+    b = rnp.NumArray([4.0, 3.0, 2.0, 1.0], dtype="float32")
+    result = a.dot(b)  # Directly using the dot method on the NumArray instance
+    assert np.isclose(result, 20.0, atol=1e-6), "Dot product failed"
+
+
+def test_dot_product_f64():
+    # Similar test but for float64 dtype
+    a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float64")
+    b = rnp.NumArray([4.0, 3.0, 2.0, 1.0], dtype="float64")
+    result = a.dot(b)
+    assert np.isclose(result, 20.0, atol=1e-9), "Dot product for f64 failed"
+
+
+def test_dot_product_f32_random():
+    # Generate two random f32 vectors of size 1000
+    a = np.random.rand(1000).astype(np.float32)
+    b = np.random.rand(1000).astype(np.float32)
+
+    # Create NumArray instances
+    a_py = rnp.NumArray(a.tolist(), dtype="float32")
+    b_py = rnp.NumArray(b.tolist(), dtype="float32")
+
+    # Calculate and compare the dot products
+    result_rust = a_py.dot(b_py)
+    result_numpy = np.dot(a, b)
+    assert np.isclose(
+        result_rust, result_numpy, atol=1e-6
+    ), "Dot product for f32 failed with error"
+
+
+def test_dot_product_f64_random_large():
+    # Generate two random f64 vectors of size 10000
+    a = np.random.rand(10000).astype(np.float64)
+    b = np.random.rand(10000).astype(np.float64)
+
+    # Create NumArray instances
+    a_py = rnp.NumArray(a.tolist(), dtype="float64")
+    b_py = rnp.NumArray(b.tolist(), dtype="float64")
+
+    # Calculate and compare the dot products
+    result_rust = a_py.dot(b_py)
+    result_numpy = np.dot(a, b)
+    assert np.isclose(
+        result_rust, result_numpy, atol=1e-9
+    ), "Dot product for f64 failed with error"
