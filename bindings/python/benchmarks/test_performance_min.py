@@ -9,14 +9,14 @@ def setup_vector(dtype, size=1000):
     return a.tolist()
 
 
-# Function to perform mean using rustynum
-def mean_rustynum(a, dtype):
+# Function to perform min using rustynum
+def min_rustynum(a, dtype):
     a_rnp = rnp.NumArray(a, dtype=dtype)
     return a_rnp.mean()
 
 
-# Function to perform mean using numpy
-def mean_numpy(a, dtype):
+# Function to perform min using numpy
+def min_numpy(a, dtype):
     a_np = np.array(a, dtype=dtype)
     return np.mean(a_np)
 
@@ -25,17 +25,17 @@ def mean_numpy(a, dtype):
 @pytest.mark.parametrize(
     "func,dtype,size",
     [
-        (mean_rustynum, "float32", 1000),
-        (mean_rustynum, "float64", 1000),
-        (mean_numpy, "float32", 1000),
-        (mean_numpy, "float64", 1000),
-        (mean_rustynum, "float32", 10000),
-        (mean_rustynum, "float64", 10000),
-        (mean_numpy, "float32", 10000),
-        (mean_numpy, "float64", 10000),
+        (min_rustynum, "float32", 1000),
+        (min_rustynum, "float64", 1000),
+        (min_numpy, "float32", 1000),
+        (min_numpy, "float64", 1000),
+        (min_rustynum, "float32", 10000),
+        (min_rustynum, "float64", 10000),
+        (min_numpy, "float32", 10000),
+        (min_numpy, "float64", 10000),
     ],
 )
-def test_mean_product(benchmark, func, dtype, size):
+def test_min_product(benchmark, func, dtype, size):
     a = setup_vector(dtype, size)
     group_name = f"{dtype}"
 

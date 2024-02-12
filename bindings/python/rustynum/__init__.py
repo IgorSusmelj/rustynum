@@ -56,6 +56,20 @@ class NumArray:
             else _rustynum.mean_f64(self.inner)
         )
 
+    def min(self):
+        return (
+            _rustynum.min_f32(self.inner)
+            if self.dtype == "float32"
+            else _rustynum.min_f64(self.inner)
+        )
+
+    def max(self):
+        return (
+            _rustynum.max_f32(self.inner)
+            if self.dtype == "float32"
+            else _rustynum.max_f64(self.inner)
+        )
+
     def __imul__(self, scalar):
         self.inner.__imul__(scalar)
         return self
@@ -80,9 +94,29 @@ def dot_f32(a, b):
 
 
 def mean_f32(a):
-    # Ensure both inputs are NumArray instances with dtype='float32'
+    # Ensure input is NumArray instance with dtype='float32'
     if isinstance(a, NumArray) and a.dtype == "float32":
         return a.mean()
+    else:
+        raise TypeError(
+            "Both arguments must be NumArray instances with dtype='float32'."
+        )
+
+
+def min_f32(a):
+    # Ensure input is NumArray instance with dtype='float32'
+    if isinstance(a, NumArray) and a.dtype == "float32":
+        return a.min()
+    else:
+        raise TypeError(
+            "Both arguments must be NumArray instances with dtype='float32'."
+        )
+
+
+def max_f32(a):
+    # Ensure input is NumArray instance with dtype='float32'
+    if isinstance(a, NumArray) and a.dtype == "float32":
+        return a.max()
     else:
         raise TypeError(
             "Both arguments must be NumArray instances with dtype='float32'."
@@ -105,9 +139,29 @@ def dot_f64(a, b):
 
 
 def mean_f64(a):
-    # Ensure both inputs are NumArray instances with dtype='float64'
+    # Ensure input is NumArray instance with dtype='float32'
     if isinstance(a, NumArray) and a.dtype == "float64":
         return a.mean()
+    else:
+        raise TypeError(
+            "Both arguments must be NumArray instances with dtype='float64'."
+        )
+
+
+def min_f64(a):
+    # Ensure input is NumArray instance with dtype='float32'
+    if isinstance(a, NumArray) and a.dtype == "float64":
+        return a.min()
+    else:
+        raise TypeError(
+            "Both arguments must be NumArray instances with dtype='float64'."
+        )
+
+
+def max_f64(a):
+    # Ensure input is NumArray instance with dtype='float32'
+    if isinstance(a, NumArray) and a.dtype == "float64":
+        return a.max()
     else:
         raise TypeError(
             "Both arguments must be NumArray instances with dtype='float64'."
