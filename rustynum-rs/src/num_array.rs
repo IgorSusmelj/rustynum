@@ -38,6 +38,12 @@ impl NumArray32 {
         let norm_other = other.normalize();
         norm_self.dot(&norm_other)
     }
+
+    pub fn slice(&self, start: usize, end: usize) -> Self {
+        Self {
+            data: self.data[start..end].to_vec(),
+        }
+    }
 }
 
 impl NumArray64 {
@@ -67,6 +73,12 @@ impl NumArray64 {
         let norm_self = self.normalize();
         let norm_other = other.normalize();
         norm_self.dot(&norm_other)
+    }
+
+    pub fn slice(&self, start: usize, end: usize) -> Self {
+        Self {
+            data: self.data[start..end].to_vec(),
+        }
     }
 }
 
@@ -110,5 +122,21 @@ mod tests {
         let a = NumArray64::new((&[1.0, 2.0, 3.0, 4.0]).to_vec());
         let b = NumArray64::new((&[4.0, 3.0, 2.0, 1.0]).to_vec());
         assert_eq!(a.dot(&b), 20.0);
+    }
+
+    #[test]
+    fn test_slice_num_array32() {
+        let original = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let sliced = original.slice(2, 5); // Should contain elements [3.0, 4.0, 5.0]
+
+        assert_eq!(sliced.get_data(), &vec![3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn test_slice_num_array64() {
+        let original = NumArray64::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let sliced = original.slice(1, 4); // Should contain elements [2.0, 3.0, 4.0]
+
+        assert_eq!(sliced.get_data(), &vec![2.0, 3.0, 4.0]);
     }
 }
