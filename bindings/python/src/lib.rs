@@ -32,6 +32,12 @@ impl PyNumArray32 {
         let list = PyList::new(py, self.inner.get_data());
         list.into()
     }
+
+    fn slice(&self, start: usize, end: usize) -> PyResult<PyNumArray32> {
+        Ok(PyNumArray32 {
+            inner: self.inner.slice(start, end),
+        })
+    }
 }
 
 #[pymethods]
@@ -52,6 +58,12 @@ impl PyNumArray64 {
         let list = PyList::new(py, self.inner.get_data());
         list.into()
     }
+
+    fn slice(&self, start: usize, end: usize) -> PyResult<PyNumArray64> {
+        Ok(PyNumArray64 {
+            inner: self.inner.slice(start, end),
+        })
+    }
 }
 
 #[pyfunction]
@@ -60,8 +72,18 @@ fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<f32> {
 }
 
 #[pyfunction]
+fn mean_f32(a: &PyNumArray32) -> PyResult<f32> {
+    Ok(a.inner.mean())
+}
+
+#[pyfunction]
 fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<f64> {
     Ok(a.inner.dot(&b.inner))
+}
+
+#[pyfunction]
+fn mean_f64(a: &PyNumArray64) -> PyResult<f64> {
+    Ok(a.inner.mean())
 }
 
 #[pymodule]
@@ -69,7 +91,9 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArray32>()?;
     m.add_class::<PyNumArray64>()?; // Ensure PyNumArray64 is also registered
     m.add_function(wrap_pyfunction!(dot_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
 
     Ok(())
 }
