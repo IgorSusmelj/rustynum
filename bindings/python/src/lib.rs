@@ -77,6 +77,16 @@ fn mean_f32(a: &PyNumArray32) -> PyResult<f32> {
 }
 
 #[pyfunction]
+fn min_f32(a: &PyNumArray32) -> PyResult<f32> {
+    Ok(a.inner.min())
+}
+
+#[pyfunction]
+fn max_f32(a: &PyNumArray32) -> PyResult<f32> {
+    Ok(a.inner.max())
+}
+
+#[pyfunction]
 fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<f64> {
     Ok(a.inner.dot(&b.inner))
 }
@@ -86,14 +96,28 @@ fn mean_f64(a: &PyNumArray64) -> PyResult<f64> {
     Ok(a.inner.mean())
 }
 
+#[pyfunction]
+fn min_f64(a: &PyNumArray64) -> PyResult<f64> {
+    Ok(a.inner.min())
+}
+
+#[pyfunction]
+fn max_f64(a: &PyNumArray64) -> PyResult<f64> {
+    Ok(a.inner.max())
+}
+
 #[pymodule]
 fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArray32>()?;
     m.add_class::<PyNumArray64>()?; // Ensure PyNumArray64 is also registered
     m.add_function(wrap_pyfunction!(dot_f32, m)?)?;
-    m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(mean_f32, m)?)?;    
+    m.add_function(wrap_pyfunction!(min_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(max_f32, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
-
+    m.add_function(wrap_pyfunction!(mean_f64, m)?)?;    
+    m.add_function(wrap_pyfunction!(min_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(max_f64, m)?)?;
+    
     Ok(())
 }
