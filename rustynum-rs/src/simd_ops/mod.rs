@@ -7,7 +7,7 @@ const LANES_64: usize = 8;
 
 pub trait SimdOps<T> {
     fn dot_product(a: &[T], b: &[T]) -> T;
-    // Define other SIMD operations as needed
+    fn sum(a: &[T]) -> T;
 }
 
 impl SimdOps<f32> for f32x16 {
@@ -28,6 +28,24 @@ impl SimdOps<f32> for f32x16 {
             scalar_sum += a[i] * b[i];
         }
     
+        scalar_sum
+    }
+
+    fn sum(a: &[f32]) -> f32 {
+        let mut sum = f32x16::splat(0.0);
+        let chunks = a.len() / LANES_32; 
+
+        for i in 0..chunks {
+            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..]);
+            sum += simd_chunk;
+        }
+
+        let mut scalar_sum = sum.reduce_sum();
+        // Sum any remaining elements that didn't fit into a SIMD chunk
+        for i in (chunks * LANES_32)..a.len() {
+            scalar_sum += a[i];
+        }
+
         scalar_sum
     }
 }
@@ -54,5 +72,23 @@ impl SimdOps<f64> for f64x8 {
         });
     
         sums.reduce_sum()
+    }
+
+    fn sum(a: &[f64]) -> f64 {
+        let mut sum = f64x8::splat(0.0);
+        let chunks = a.len() / LANES_64; 
+
+        for i in 0..chunks {
+            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..]);
+            sum += simd_chunk;
+        }
+
+        let mut scalar_sum = sum.reduce_sum();
+        // Sum any remaining elements that didn't fit into a SIMD chunk
+        for i in (chunks * LANES_64)..a.len() {
+            scalar_sum += a[i];
+        }
+
+        scalar_sum
     }
 }

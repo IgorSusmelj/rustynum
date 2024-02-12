@@ -15,7 +15,7 @@ pub struct NumArray<T, Ops> {
 
 impl<T, Ops> NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy,
+    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
     Ops: SimdOps<T>,
 {
     pub fn new(data: Vec<T>) -> Self {
@@ -31,6 +31,12 @@ where
 
     pub fn dot(&self, other: &Self) -> T {
         Ops::dot_product(&self.data, &other.data)
+    }
+
+    pub fn mean(&self) -> T {
+        let sum: T = Ops::sum(&self.data);
+        let count = T::from_u32(self.data.len() as u32);
+        sum / count
     }
 
     pub fn normalize(&self) -> Self {
@@ -64,6 +70,23 @@ where
     }
 }
 
+pub trait FromU32 {
+    fn from_u32(value: u32) -> Self;
+}
+
+// Implement the trait for f32
+impl FromU32 for f32 {
+    fn from_u32(value: u32) -> Self {
+        value as f32
+    }
+}
+
+// Implement the trait for f64
+impl FromU32 for f64 {
+    fn from_u32(value: u32) -> Self {
+        value as f64
+    }
+}
 
 pub trait NumOps: Sized + Add<Output = Self> + Mul<Output = Self> + Sub<Output = Self> + Div<Output = Self> {
     fn sqrt(self) -> Self;
@@ -98,4 +121,16 @@ mod tests {
         let b = NumArray64::new(vec![4.0, 3.0, 2.0, 1.0]);
         assert_eq!(a.dot(&b), 20.0);
     }
+
+    #[test]
+    fn test_mean_f32() {
+        let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(a.mean(), 2.5);
+    }
+
+    #[test]
+    fn test_mean_f64() {
+        let a = NumArray64::new(vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(a.mean(), 2.5);
+    }   
 }
