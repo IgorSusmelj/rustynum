@@ -1,7 +1,6 @@
 use std::simd::f32x16;
 use std::simd::f64x8;
 use std::simd::num::SimdFloat;
-use std::simd::StdFloat;
 
 const LANES_32: usize = 16;
 const LANES_64: usize = 8;
