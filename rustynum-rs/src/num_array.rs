@@ -4,6 +4,7 @@ use std::simd::{f32x16, f64x8};
 use std::marker::PhantomData;
 
 use crate::simd_ops::SimdOps;
+use crate::traits::{FromU32, NumOps};
 
 pub type NumArray32 = NumArray<f32, f32x16>;
 pub type NumArray64 = NumArray<f64, f64x8>;
@@ -39,6 +40,14 @@ where
         sum / count
     }
 
+    pub fn min(&self) -> T {
+        Ops::min(&self.data)
+    }
+
+    pub fn max(&self) -> T {
+        Ops::max(&self.data)
+    }
+
     pub fn normalize(&self) -> Self {
         let norm: T = self.data.iter().map(|&x| x * x).sum::<T>().sqrt();
         let normalized_data = self.data.iter().map(|&x| x / norm).collect();
@@ -70,39 +79,6 @@ where
     }
 }
 
-pub trait FromU32 {
-    fn from_u32(value: u32) -> Self;
-}
-
-// Implement the trait for f32
-impl FromU32 for f32 {
-    fn from_u32(value: u32) -> Self {
-        value as f32
-    }
-}
-
-// Implement the trait for f64
-impl FromU32 for f64 {
-    fn from_u32(value: u32) -> Self {
-        value as f64
-    }
-}
-
-pub trait NumOps: Sized + Add<Output = Self> + Mul<Output = Self> + Sub<Output = Self> + Div<Output = Self> {
-    fn sqrt(self) -> Self;
-}
-
-impl NumOps for f32 {
-    fn sqrt(self) -> Self {
-        f32::sqrt(self)
-    }
-}
-
-impl NumOps for f64 {
-    fn sqrt(self) -> Self {
-        f64::sqrt(self)
-    }
-}
 
 #[cfg(test)]
 mod tests {
