@@ -90,6 +90,54 @@ class NumArray:
                 )
             )
 
+    def __mul__(self, other):
+        if isinstance(other, NumArray):
+            if self.dtype != other.dtype:
+                raise ValueError("dtype mismatch between arrays")
+            # Use mul_array method from bindings for NumArray multiplication
+            return NumArray(self.inner.mul_array(other.inner), dtype=self.dtype)
+        elif isinstance(other, (int, float)):
+            # Use mul_scalar method from bindings for scalar multiplication
+            return NumArray(self.inner.mul_scalar(other), dtype=self.dtype)
+        else:
+            raise TypeError(
+                "Unsupported operand type for *: 'NumArray' and '{}'".format(
+                    type(other).__name__
+                )
+            )
+
+    def __sub__(self, other):
+        if isinstance(other, NumArray):
+            if self.dtype != other.dtype:
+                raise ValueError("dtype mismatch between arrays")
+            # Use sub_array method from bindings for NumArray subtraction
+            return NumArray(self.inner.sub_array(other.inner), dtype=self.dtype)
+        elif isinstance(other, (int, float)):
+            # Use sub_scalar method from bindings for scalar subtraction
+            return NumArray(self.inner.sub_scalar(other), dtype=self.dtype)
+        else:
+            raise TypeError(
+                "Unsupported operand type for -: 'NumArray' and '{}'".format(
+                    type(other).__name__
+                )
+            )
+
+    def __truediv__(self, other):
+        if isinstance(other, NumArray):
+            if self.dtype != other.dtype:
+                raise ValueError("dtype mismatch between arrays")
+            # Use div_array method from bindings for NumArray division
+            return NumArray(self.inner.div_array(other.inner), dtype=self.dtype)
+        elif isinstance(other, (int, float)):
+            # Use div_scalar method from bindings for scalar division
+            return NumArray(self.inner.div_scalar(other), dtype=self.dtype)
+        else:
+            raise TypeError(
+                "Unsupported operand type for /: 'NumArray' and '{}'".format(
+                    type(other).__name__
+                )
+            )
+
     def tolist(self):
         return self.inner.tolist()
 
