@@ -55,7 +55,6 @@ Ops: SimdOps<T>,
         Self::new(normalized_data)
     }
     
-
     pub fn slice(&self, start: usize, end: usize) -> Self {
         Self::new(self.data[start..end].to_vec())
     }

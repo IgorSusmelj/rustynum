@@ -5,18 +5,30 @@ from typing import Any, List, Union
 
 class NumArray:
     def __init__(
-        self, data: Union[List[float], "NumArray"], dtype: Union[None, str] = None
+        self,
+        data: Union[List[float], List[int], "NumArray"],
+        dtype: Union[None, str] = None,
     ) -> None:
         """
         Initializes a NumArray object with the given data and data type.
 
         Parameters:
             data: List of numerical data or existing NumArray.
-            dtype: Data type of the numerical data ('float32' or 'float64'). If None, dtype is inferred.
+            dtype: Data type of the numerical data ('int32', 'int64', 'float32' or 'float64'). If None, dtype is inferred.
         """
         # Infer dtype if not provided
         if dtype is None:
-            dtype = "float32" if all(isinstance(x, float) for x in data) else "float64"
+            # handle case where data is a NumArray
+            if isinstance(data, NumArray):
+                dtype = data.dtype
+            # handle case where data is a list of integers
+            elif all(isinstance(x, int) for x in data):
+                dtype = "int32" if all(x < 2**31 for x in data) else "int64"
+            # handle case where data is a list of floats
+            else:
+                dtype = (
+                    "float32" if all(isinstance(x, float) for x in data) else "float64"
+                )
 
         self.dtype = dtype
 
