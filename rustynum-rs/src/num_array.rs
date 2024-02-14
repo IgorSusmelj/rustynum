@@ -186,6 +186,41 @@ mod tests {
     }
 
     #[test]
+    fn test_simd_add_scalar_with_remainder() {
+        let data = (0..18).map(|x| x as f32).collect::<Vec<_>>(); // Length not divisible by 16 (assuming f32x16)
+        let num_array = NumArray::<f32, f32x16>::new(data);
+        let scalar = 1.0f32;
+
+        let result = num_array + scalar;
+
+        // Check that the result has the correct length
+        assert_eq!(result.data.len(), 18);
+
+        // Check that each element in the result has been correctly incremented by the scalar
+        for (i, &val) in result.data.iter().enumerate() {
+            assert_eq!(val, i as f32 + scalar);
+        }
+    }
+
+    #[test]
+    fn test_simd_add_arrays_with_remainder() {
+        let data_a = (0..18).map(|x| x as f32).collect::<Vec<_>>(); // Length not divisible by 16
+        let data_b = (0..18).map(|x| 2.0 * x as f32).collect::<Vec<_>>();
+        let num_array_a = NumArray::<f32, f32x16>::new(data_a);
+        let num_array_b = NumArray::<f32, f32x16>::new(data_b);
+
+        let result = num_array_a + num_array_b;
+
+        // Check that the result has the correct length
+        assert_eq!(result.data.len(), 18);
+
+        // Check that each element in the result is the sum of elements from the original arrays
+        for (i, &val) in result.data.iter().enumerate() {
+            assert_eq!(val, i as f32 + 2.0 * i as f32);
+        }
+    }
+
+    #[test]
     fn test_dot_product_f32() {
         let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
         let b = NumArray32::new(vec![4.0, 3.0, 2.0, 1.0]);
