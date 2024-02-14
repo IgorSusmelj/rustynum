@@ -25,3 +25,17 @@ def test_add_scalar_and_mean():
     result = a + 1.0
     mean = result.mean()
     assert np.isclose(mean, 3.5, atol=1e-6), "Addition of scalar and mean failed"
+
+
+def test_multiple_additions():
+    result = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
+    result_numpy = np.array([1.0, 2.0, 3.0, 4.0], dtype="float32")
+
+    for _ in range(10):
+        result = result + 1.0
+        result_numpy = result_numpy + 1.0
+
+    result = result + rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
+    result_numpy = result_numpy + np.array([1.0, 2.0, 3.0, 4.0], dtype="float32")
+
+    assert result.tolist() == result_numpy.tolist(), "Multiple additions failed"
