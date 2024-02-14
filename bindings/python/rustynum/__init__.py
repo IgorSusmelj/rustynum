@@ -74,6 +74,22 @@ class NumArray:
         self.inner.__imul__(scalar)
         return self
 
+    def __add__(self, other):
+        if isinstance(other, NumArray):
+            if self.dtype != other.dtype:
+                raise ValueError("dtype mismatch between arrays")
+            # Use add_array method from bindings for NumArray addition
+            return NumArray(self.inner.add_array(other.inner), dtype=self.dtype)
+        elif isinstance(other, (int, float)):
+            # Use add_scalar method from bindings for scalar addition
+            return NumArray(self.inner.add_scalar(other), dtype=self.dtype)
+        else:
+            raise TypeError(
+                "Unsupported operand type for +: 'NumArray' and '{}'".format(
+                    type(other).__name__
+                )
+            )
+
     def tolist(self):
         return self.inner.tolist()
 

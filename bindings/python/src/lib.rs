@@ -28,6 +28,22 @@ impl PyNumArray32 {
         Ok(())
     }
 
+    // Implement addition with a scalar value
+    fn add_scalar(&self, scalar: f32) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let result = &self.inner + scalar; // Leveraging Rust's Add implementation
+            Ok(result.get_data().to_object(py)) // Convert Vec<f32> to Python list
+        })
+    }
+
+    // Implement addition with another NumArray
+    fn add_array(&self, other: PyRef<PyNumArray32>) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let result = &self.inner + &other.inner; // Leveraging Rust's Add implementation
+            Ok(result.get_data().to_object(py)) // Convert Vec<f32> to Python list
+        })
+    }
+
     fn tolist(&self, py: Python) -> PyObject {
         let list = PyList::new(py, self.inner.get_data());
         list.into()
@@ -52,6 +68,22 @@ impl PyNumArray64 {
     fn __imul__(&mut self, scalar: f64) -> PyResult<()> {
         ///self.inner = self.inner.scale(scalar);
         Ok(())
+    }
+
+    // Implement addition with a scalar value
+    fn add_scalar(&self, scalar: f64) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let result = &self.inner + scalar; // Leveraging Rust's Add implementation
+            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+        })
+    }
+
+    // Implement addition with another NumArray
+    fn add_array(&self, other: PyRef<PyNumArray64>) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let result = &self.inner + &other.inner; // Leveraging Rust's Add implementation
+            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+        })
     }
 
     fn tolist(&self, py: Python) -> PyObject {
@@ -118,6 +150,6 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(mean_f64, m)?)?;    
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
     m.add_function(wrap_pyfunction!(max_f64, m)?)?;
-    
+
     Ok(())
 }

@@ -1,7 +1,20 @@
-# bindings/python/tests/test_dot_product.py
-
 import numpy as np
 import rustynum as rnp
+
+
+# test addition of scalar to NumArray
+def test_add_scalar():
+    a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
+    result = a + 1.0
+    assert result.tolist() == [2.0, 3.0, 4.0, 5.0], "Addition of scalar failed"
+
+
+# test addition of NumArray to NumArray
+def test_add_array():
+    a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
+    b = rnp.NumArray([4.0, 3.0, 2.0, 1.0], dtype="float32")
+    result = a + b
+    assert result.tolist() == [5.0, 5.0, 5.0, 5.0], "Addition of NumArray failed"
 
 
 def test_slicing_f32():

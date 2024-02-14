@@ -18,18 +18,18 @@ impl FromU32 for f64 {
   }
 }
 
-pub trait NumOps: Sized + Add<Output = Self> + Mul<Output = Self> + Sub<Output = Self> + Div<Output = Self> {
+pub trait NumOps: Sized + Add<Output = Self> + Mul<Output = Self> + Sub<Output = Self> + Div<Output = Self> + Copy {
   fn sqrt(self) -> Self;
+  fn zero() -> Self;
 }
 
+
 impl NumOps for f32 {
-  fn sqrt(self) -> Self {
-      f32::sqrt(self)
-  }
+  fn sqrt(self) -> Self { self.sqrt() }
+  fn zero() -> Self { 0.0 }
 }
 
 impl NumOps for f64 {
-  fn sqrt(self) -> Self {
-      f64::sqrt(self)
-  }
+  fn sqrt(self) -> Self { self.sqrt() }
+  fn zero() -> Self { 0.0 }
 }
