@@ -6,5 +6,5 @@ mod num_array;
 mod simd_ops;
 mod traits;
 
-pub use num_array::NumArray32;
-pub use num_array::NumArray64;
+pub use num_array::num_array::NumArray32;
+pub use num_array::num_array::NumArray64;
