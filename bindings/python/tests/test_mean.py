@@ -8,7 +8,7 @@ def test_mean_f32_small():
     a = [1.0, 2.0, 3.0, 4.0]
     a_py = rnp.NumArray(a, dtype="float32")
     result_rusty_1 = a_py.mean()
-    result_rusty_2 = rnp.mean_f32(a_py)
+    result_rusty_2 = rnp.mean(a_py)
     result_numpy = np.mean(a)
 
     assert np.isclose(

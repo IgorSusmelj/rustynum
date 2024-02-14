@@ -1,9 +1,19 @@
 # rustynum_py_wrapper/__init__.py
 from . import _rustynum
+from typing import Any, List, Union
 
 
 class NumArray:
-    def __init__(self, data, dtype=None):
+    def __init__(
+        self, data: Union[List[float], "NumArray"], dtype: Union[None, str] = None
+    ) -> None:
+        """
+        Initializes a NumArray object with the given data and data type.
+
+        Parameters:
+            data: List of numerical data or existing NumArray.
+            dtype: Data type of the numerical data ('float32' or 'float64'). If None, dtype is inferred.
+        """
         # Infer dtype if not provided
         if dtype is None:
             dtype = "float32" if all(isinstance(x, float) for x in data) else "float64"
@@ -12,13 +22,13 @@ class NumArray:
 
         # Initialize inner Rust object based on dtype
         if dtype == "float32":
-            self.inner = (
+            self.inner: "NumArray" = (
                 _rustynum.PyNumArray32(data)
                 if not isinstance(data, NumArray)
                 else data.inner
             )
         elif dtype == "float64":
-            self.inner = (
+            self.inner: "NumArray" = (
                 _rustynum.PyNumArray64(data)
                 if not isinstance(data, NumArray)
                 else data.inner
@@ -26,21 +36,33 @@ class NumArray:
         else:
             raise ValueError(f"Unsupported dtype: {dtype}")
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, slice]) -> Union[List[float], "NumArray"]:
+        """
+        Gets the item(s) at the specified index or slice.
+
+        Parameters:
+            key: Index or slice for the item(s) to get.
+
+        Returns:
+            Single item or a new NumArray with the sliced data.
+        """
         if isinstance(key, slice):
-            # Convert Python slice to Rust start and end indices
             start, stop, _ = key.indices(len(self.tolist()))
-
-            # Call the slice method and convert result to Python list
             sliced_data = self.inner.slice(start, stop).tolist()
-
-            # Create a new NumArray instance with the sliced data
             return NumArray(sliced_data, dtype=self.dtype)
         else:
-            # Handle single index access
             return self.tolist()[key]
 
-    def dot(self, other):
+    def dot(self, other: "NumArray") -> float:
+        """
+        Computes the dot product with another NumArray.
+
+        Parameters:
+            other: Another NumArray to compute the dot product with.
+
+        Returns:
+            The dot product as a float.
+        """
         if self.dtype != other.dtype:
             raise ValueError("dtype mismatch between arrays")
         return (
@@ -49,32 +71,59 @@ class NumArray:
             else _rustynum.dot_f64(self.inner, other.inner)
         )
 
-    def mean(self):
+    def mean(self) -> float:
+        """
+        Computes the mean of the NumArray.
+
+        Returns:
+            The mean of the NumArray as a float.
+        """
         return (
             _rustynum.mean_f32(self.inner)
             if self.dtype == "float32"
             else _rustynum.mean_f64(self.inner)
         )
 
-    def min(self):
+    def min(self) -> float:
+        """
+        Finds the minimum value in the NumArray.
+
+        Returns:
+            The minimum value as a float.
+        """
         return (
             _rustynum.min_f32(self.inner)
             if self.dtype == "float32"
             else _rustynum.min_f64(self.inner)
         )
 
-    def max(self):
+    def max(self) -> float:
+        """
+        Finds the maximum value in the NumArray.
+
+        Returns:
+            The maximum value as a float.
+        """
         return (
             _rustynum.max_f32(self.inner)
             if self.dtype == "float32"
             else _rustynum.max_f64(self.inner)
         )
 
-    def __imul__(self, scalar):
+    def __imul__(self, scalar: float) -> "NumArray":
+        """
+        In-place multiplication by a scalar.
+        """
         self.inner.__imul__(scalar)
         return self
 
-    def __add__(self, other):
+    def __add__(self, other: Union["NumArray", float]) -> "NumArray":
+        """
+        Adds another NumArray or a scalar to the NumArray.
+
+        Returns:
+            A new NumArray with the result of the addition.
+        """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
@@ -90,7 +139,13 @@ class NumArray:
                 )
             )
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union["NumArray", float]) -> "NumArray":
+        """
+        Multiplies the NumArray by another NumArray or a scalar.
+
+        Returns:
+            A new NumArray with the result of the multiplication.
+        """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
@@ -106,7 +161,13 @@ class NumArray:
                 )
             )
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union["NumArray", float]) -> "NumArray":
+        """
+        Subtracts another NumArray or a scalar from the NumArray.
+
+        Returns:
+            A new NumArray with the result of the subtraction.
+        """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
@@ -122,7 +183,13 @@ class NumArray:
                 )
             )
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Union["NumArray", float]) -> "NumArray":
+        """
+        Divides the NumArray by another NumArray or a scalar.
+
+        Returns:
+            A new NumArray with the result of the division.
+        """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
@@ -138,95 +205,47 @@ class NumArray:
                 )
             )
 
-    def tolist(self):
+    def tolist(self) -> List[float]:
         return self.inner.tolist()
 
 
-def dot_f32(a, b):
-    # Ensure both inputs are NumArray instances with dtype='float32'
-    if (
-        isinstance(a, NumArray)
-        and isinstance(b, NumArray)
-        and a.dtype == "float32"
-        and b.dtype == "float32"
-    ):
-        return a.dot(b)
-    else:
-        raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float32'."
-        )
-
-
-def mean_f32(a):
-    # Ensure input is NumArray instance with dtype='float32'
-    if isinstance(a, NumArray) and a.dtype == "float32":
+def mean(a: "NumArray") -> float:
+    if isinstance(a, NumArray):
         return a.mean()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").mean()
     else:
         raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float32'."
+            "Unsupported operand type for mean: '{}'".format(type(a).__name__)
         )
 
 
-def min_f32(a):
-    # Ensure input is NumArray instance with dtype='float32'
-    if isinstance(a, NumArray) and a.dtype == "float32":
+def min(a: "NumArray") -> float:
+    if isinstance(a, NumArray):
         return a.min()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").min()
     else:
         raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float32'."
+            "Unsupported operand type for min: '{}'".format(type(a).__name__)
         )
 
 
-def max_f32(a):
-    # Ensure input is NumArray instance with dtype='float32'
-    if isinstance(a, NumArray) and a.dtype == "float32":
+def max(a: "NumArray") -> float:
+    if isinstance(a, NumArray):
         return a.max()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").max()
     else:
         raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float32'."
+            "Unsupported operand type for max: '{}'".format(type(a).__name__)
         )
 
 
-def dot_f64(a, b):
-    # Ensure both inputs are NumArray instances with dtype='float64'
-    if (
-        isinstance(a, NumArray)
-        and isinstance(b, NumArray)
-        and a.dtype == "float64"
-        and b.dtype == "float64"
-    ):
+def dot(a: "NumArray", b: "NumArray") -> float:
+    if isinstance(a, NumArray) and isinstance(b, NumArray):
         return a.dot(b)
+    elif isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return NumArray([a], dtype="float32").dot(NumArray([b], dtype="float32"))
     else:
-        raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float64'."
-        )
-
-
-def mean_f64(a):
-    # Ensure input is NumArray instance with dtype='float32'
-    if isinstance(a, NumArray) and a.dtype == "float64":
-        return a.mean()
-    else:
-        raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float64'."
-        )
-
-
-def min_f64(a):
-    # Ensure input is NumArray instance with dtype='float32'
-    if isinstance(a, NumArray) and a.dtype == "float64":
-        return a.min()
-    else:
-        raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float64'."
-        )
-
-
-def max_f64(a):
-    # Ensure input is NumArray instance with dtype='float32'
-    if isinstance(a, NumArray) and a.dtype == "float64":
-        return a.max()
-    else:
-        raise TypeError(
-            "Both arguments must be NumArray instances with dtype='float64'."
-        )
+        raise TypeError("Both arguments must be NumArray instances.")
