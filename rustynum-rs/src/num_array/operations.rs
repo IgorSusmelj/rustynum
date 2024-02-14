@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use super::num_array::{NumArray, NumArray32, NumArray64};
 use crate::simd_ops::SimdOps;
 use crate::traits::{FromU32, NumOps};
