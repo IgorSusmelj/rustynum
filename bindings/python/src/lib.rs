@@ -1,8 +1,7 @@
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
 use pyo3::types::PyList; // Ensure PyList is imported
+use pyo3::wrap_pyfunction;
 use rustynum_rs::{NumArray32, NumArray64};
-
 
 #[pyclass]
 struct PyNumArray32 {
@@ -225,11 +224,11 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArray32>()?;
     m.add_class::<PyNumArray64>()?; // Ensure PyNumArray64 is also registered
     m.add_function(wrap_pyfunction!(dot_f32, m)?)?;
-    m.add_function(wrap_pyfunction!(mean_f32, m)?)?;    
+    m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(mean_f64, m)?)?;    
+    m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
     m.add_function(wrap_pyfunction!(max_f64, m)?)?;
 

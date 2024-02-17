@@ -1,4 +1,4 @@
-use rustynum_rs::NumArray32;
+use rustynum_rs::{NumArray32, NumArray64};
 
 #[test]
 fn test_num_array_creation_and_dot_product() {
@@ -26,5 +26,59 @@ fn test_num_array_creation_and_dot_product() {
     assert_eq!(
         result_small, 32.0,
         "The dot product of the two smaller arrays should be 32.0"
+    );
+}
+
+
+#[test]
+fn test_complex_operations() {
+    let size = 1000; // Choose a size for the vectors
+    let constant = 2.5f64;
+    
+    // Generate two large NumArray instances
+    let data1: Vec<f64> = (0..size).map(|x| x as f64).collect();
+
+    let step = size as f64 / (size - 1) as f64; // Correct step calculation
+    let data2: Vec<f64> = (0..size).map(|x| size as f64 - x as f64 * step).collect();
+    
+    let array1 = NumArray64::from(data1.clone());
+    let array2 = NumArray64::from(data2.clone());
+
+    // Perform addition of two NumArrays
+    let added = &array1 + &array2;
+    println!("Added (Rust): {:?}", &added.get_data()[..10]); // Print first 10 elements
+
+    // Subtract the mean from the added array
+    let mean = added.mean();
+    let subtracted_mean = &added - mean;
+    println!("Subtracted Mean (Rust): {:?}", &subtracted_mean.get_data()[..10]); // Print first 10 elements
+
+    // Divide by a constant value
+    let divided = &subtracted_mean / constant;
+    println!("Divided (Rust): {:?}", &divided.get_data()[..10]); // Print first 10 elements
+
+    // Multiply with another NumArray (using the original array1 for simplicity)
+    let multiplied = &divided * &array1;
+    println!("Multiplied (Rust): {:?}", &multiplied.get_data()[..10]); // Print first 10 elements
+
+    // Perform a dot product with the initial input (array2)
+    let dot_product_result = multiplied.dot(&array2);
+    println!("Dot Product Result (Rust): {:?}", dot_product_result);
+    // Print arrray2
+    println!("Array2 (Rust): {:?}", &array2.get_data()[..10]); // Print first 10 elements
+
+    // Expected result calculation using ndarray or manual calculation
+    // Placeholder for expected result
+    let expected_result = 0.000012200523883620917; // Calculate the expected result
+
+    let tolerance = 1e-1; // Define a suitable tolerance for your scenario
+    let actual_error = (dot_product_result - expected_result).abs();
+    assert!(
+        actual_error <= tolerance,
+        "The complex operation result does not match the expected value. \
+        Expected: {}, Actual: {}, Error: {}",
+        expected_result,
+        dot_product_result,
+        actual_error
     );
 }

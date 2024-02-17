@@ -19,6 +19,7 @@ where
     }
 }
 
+
 impl<'a, T, Ops> Add<T> for &'a NumArray<T, Ops>
 where
     T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
