@@ -29,9 +29,9 @@ def test_mean_f32_random():
 
     # Calculate and compare the mean
     result_rust = a_py.mean()
-    result_numpy = np.mean(a)
+    result_numpy = a.mean()
     assert np.isclose(
-        result_rust, result_numpy, atol=1e-6
+        result_rust, result_numpy, atol=1e-9
     ), "Mean for f32 failed with error"
 
 
@@ -44,7 +44,8 @@ def test_mean_f64_random_large():
 
     # Calculate and compare the mean
     result_rust = a_py.mean()
-    result_numpy = np.mean(a)
+    result_numpy = a.mean()
+
     assert np.isclose(
-        result_rust, result_numpy, atol=1e-9
-    ), "Dot product for f64 failed with error"
+        result_rust, result_numpy, atol=1e-12
+    ), "Mean for f64 failed with error"

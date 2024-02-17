@@ -9,7 +9,9 @@ def test_dot_product():
     a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
     b = rnp.NumArray([4.0, 3.0, 2.0, 1.0], dtype="float32")
     result = a.dot(b)  # Directly using the dot method on the NumArray instance
-    assert np.isclose(result, 20.0, atol=1e-6), "Dot product failed"
+    result2 = rnp.dot(a, b)  # Using the dot function from the module
+    assert np.isclose(result, 20.0, atol=1e-9), "Dot product failed"
+    assert np.isclose(result2, 20.0, atol=1e-9), "Dot product failed"
 
 
 def test_dot_product_f64():
@@ -17,7 +19,9 @@ def test_dot_product_f64():
     a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float64")
     b = rnp.NumArray([4.0, 3.0, 2.0, 1.0], dtype="float64")
     result = a.dot(b)
-    assert np.isclose(result, 20.0, atol=1e-9), "Dot product for f64 failed"
+    result2 = rnp.dot(a, b)
+    assert np.isclose(result, 20.0, atol=1e-12), "Dot product for f64 failed"
+    assert np.isclose(result2, 20.0, atol=1e-12), "Dot product for f64 failed"
 
 
 def test_dot_product_f32_random():
@@ -33,7 +37,7 @@ def test_dot_product_f32_random():
     result_rust = a_py.dot(b_py)
     result_numpy = np.dot(a, b)
     assert np.isclose(
-        result_rust, result_numpy, atol=1e-6
+        result_rust, result_numpy, atol=1e-9
     ), "Dot product for f32 failed with error"
 
 
@@ -50,5 +54,5 @@ def test_dot_product_f64_random_large():
     result_rust = a_py.dot(b_py)
     result_numpy = np.dot(a, b)
     assert np.isclose(
-        result_rust, result_numpy, atol=1e-9
+        result_rust, result_numpy, atol=1e-12
     ), "Dot product for f64 failed with error"
