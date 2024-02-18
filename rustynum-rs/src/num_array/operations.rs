@@ -2,13 +2,20 @@
 use super::num_array::{NumArray, NumArray32, NumArray64};
 use crate::simd_ops::SimdOps;
 use crate::traits::{FromU32, NumOps};
-use std::ops::{Add, Div, Mul, Sub};
 use std::iter::Sum;
-
+use std::ops::{Add, Div, Mul, Sub};
 
 impl<T, Ops> Add<T> for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -19,10 +26,17 @@ where
     }
 }
 
-
 impl<'a, T, Ops> Add<T> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -33,37 +47,69 @@ where
     }
 }
 
-
 impl<T, Ops> Add for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let result_data: Vec<T> = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x + y).collect();
+        let result_data: Vec<T> = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x + y)
+            .collect();
         Self::new(result_data)
     }
 }
 
 impl<'a, 'b, T, Ops> Add<&'b NumArray<T, Ops>> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
 
     fn add(self, rhs: &'b NumArray<T, Ops>) -> Self::Output {
-        let result_data = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x + y).collect::<Vec<T>>();
+        let result_data = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x + y)
+            .collect::<Vec<T>>();
         NumArray::new(result_data)
     }
 }
 
-
 impl<T, Ops> Sub<T> for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -76,7 +122,15 @@ where
 
 impl<'a, T, Ops> Sub<T> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -87,38 +141,69 @@ where
     }
 }
 
-
 impl<T, Ops> Sub for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let result_data: Vec<T> = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x - y).collect();
+        let result_data: Vec<T> = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x - y)
+            .collect();
         Self::new(result_data)
     }
 }
 
 impl<'a, 'b, T, Ops> Sub<&'b NumArray<T, Ops>> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
 
     fn sub(self, rhs: &'b NumArray<T, Ops>) -> Self::Output {
-        let result_data = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x - y).collect::<Vec<T>>();
+        let result_data = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x - y)
+            .collect::<Vec<T>>();
         NumArray::new(result_data)
     }
 }
 
-
-
 impl<T, Ops> Mul<T> for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -131,7 +216,15 @@ where
 
 impl<'a, T, Ops> Mul<T> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -142,37 +235,69 @@ where
     }
 }
 
-
 impl<T, Ops> Mul for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        let result_data: Vec<T> = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x * y).collect();
+        let result_data: Vec<T> = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x * y)
+            .collect();
         Self::new(result_data)
     }
 }
 
 impl<'a, 'b, T, Ops> Mul<&'b NumArray<T, Ops>> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
 
     fn mul(self, rhs: &'b NumArray<T, Ops>) -> Self::Output {
-        let result_data = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x * y).collect::<Vec<T>>();
+        let result_data = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x * y)
+            .collect::<Vec<T>>();
         NumArray::new(result_data)
     }
 }
 
-
 impl<T, Ops> Div<T> for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -185,7 +310,15 @@ where
 
 impl<'a, T, Ops> Div<T> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -196,33 +329,57 @@ where
     }
 }
 
-
 impl<T, Ops> Div for NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        let result_data: Vec<T> = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x / y).collect();
+        let result_data: Vec<T> = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x / y)
+            .collect();
         Self::new(result_data)
     }
 }
 
 impl<'a, 'b, T, Ops> Div<&'b NumArray<T, Ops>> for &'a NumArray<T, Ops>
 where
-    T: Clone + Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Div<Output = T> + Sum<T> + NumOps + Copy + FromU32,
+    T: Clone
+        + Mul<Output = T>
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Div<Output = T>
+        + Sum<T>
+        + NumOps
+        + Copy
+        + FromU32,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
 
     fn div(self, rhs: &'b NumArray<T, Ops>) -> Self::Output {
-        let result_data = self.get_data().iter().zip(rhs.get_data().iter()).map(|(&x, &y)| x / y).collect::<Vec<T>>();
+        let result_data = self
+            .get_data()
+            .iter()
+            .zip(rhs.get_data().iter())
+            .map(|(&x, &y)| x / y)
+            .collect::<Vec<T>>();
         NumArray::new(result_data)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -280,6 +437,7 @@ mod tests {
     fn test_add_arrays_with_remainder() {
         let data_a = (0..18).map(|x| x as f32).collect::<Vec<_>>(); // Length not divisible by 16
         let data_b = (0..18).map(|x| 2.0 * x as f32).collect::<Vec<_>>();
+
         let num_array_a = NumArray32::new(data_a);
         let num_array_b = NumArray32::new(data_b);
 
@@ -293,5 +451,4 @@ mod tests {
             assert_eq!(val, i as f32 + 2.0 * i as f32);
         }
     }
-
-  }
+}
