@@ -1,7 +1,9 @@
 #[allow(unused_imports)]
 use super::num_array::{NumArray, NumArray32, NumArray64};
 use crate::simd_ops::SimdOps;
-use crate::traits::{FromU32, NumOps};
+use crate::traits::{FromU32, FromUsize, NumOps};
+use std::fmt::Debug;
+
 use std::iter::Sum;
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -15,7 +17,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -36,8 +40,10 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
-    Ops: SimdOps<T>, // Ensure Ops is appropriate for T
+        + FromU32
+        + FromUsize
+        + Debug,
+        Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
 
@@ -57,8 +63,10 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
-    Ops: SimdOps<T>,
+        + FromU32
+        + FromUsize
+        + Debug,
+        Ops: SimdOps<T>,
 {
     type Output = Self;
 
@@ -83,7 +91,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
@@ -109,7 +119,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -130,7 +142,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -151,7 +165,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -177,7 +193,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
@@ -203,7 +221,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -224,7 +244,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -245,7 +267,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -271,7 +295,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;
@@ -297,7 +323,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -318,7 +346,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
@@ -339,7 +369,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = Self;
@@ -365,7 +397,9 @@ where
         + Sum<T>
         + NumOps
         + Copy
-        + FromU32,
+        + FromU32
+        + FromUsize
+        + Debug,
     Ops: SimdOps<T>,
 {
     type Output = NumArray<T, Ops>;

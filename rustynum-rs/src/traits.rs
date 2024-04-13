@@ -28,6 +28,38 @@ impl FromU32 for i64 {
     }
 }
 
+
+pub trait FromUsize {
+    fn from_usize(value: usize) -> Self;
+}
+
+impl FromUsize for f32 {
+    fn from_usize(value: usize) -> Self {
+        value as f32
+    }
+}
+
+impl FromUsize for f64 {
+    fn from_usize(value: usize) -> Self {
+        value as f64
+    }
+}
+
+impl FromUsize for i32 {
+    // Ensure that the usize value fits into i32
+    fn from_usize(value: usize) -> Self {
+        value.try_into().expect("usize value is too large for i32")
+    }
+}
+
+impl FromUsize for i64 {
+    fn from_usize(value: usize) -> Self {
+        value as i64
+    }
+}
+
+
+
 pub trait NumOps:
     Sized + Add<Output = Self> + Mul<Output = Self> + Sub<Output = Self> + Div<Output = Self> + Copy
 {
