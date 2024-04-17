@@ -16,37 +16,39 @@ class NumArray:
             data: List of numerical data or existing NumArray.
             dtype: Data type of the numerical data ('int32', 'int64', 'float32' or 'float64'). If None, dtype is inferred.
         """
-        # Infer dtype if not provided
-        if dtype is None:
-            # handle case where data is a NumArray
-            if isinstance(data, NumArray):
-                dtype = data.dtype
-            # handle case where data is a list of integers
-            elif all(isinstance(x, int) for x in data):
-                dtype = "int32" if all(x < 2**31 for x in data) else "int64"
-            # handle case where data is a list of floats
-            else:
-                dtype = (
-                    "float32" if all(isinstance(x, float) for x in data) else "float64"
-                )
 
-        self.dtype = dtype
-
-        # Initialize inner Rust object based on dtype
-        if dtype == "float32":
-            self.inner: "NumArray" = (
-                _rustynum.PyNumArray32(data)
-                if not isinstance(data, NumArray)
-                else data.inner
-            )
-        elif dtype == "float64":
-            self.inner: "NumArray" = (
-                _rustynum.PyNumArray64(data)
-                if not isinstance(data, NumArray)
-                else data.inner
+        if isinstance(data, NumArray):
+            self.inner = (
+                data.inner
+            )  # Use the existing PyNumArray32 or PyNumArray64 object
+            self.dtype = data.dtype  # Use the existing dtype
+        elif isinstance(data, (_rustynum.PyNumArray32, _rustynum.PyNumArray64)):
+            # Directly assign the Rust object if it's already a PyNumArray32 or PyNumArray64
+            self.inner = data
+            self.dtype = (
+                "float32" if isinstance(data, _rustynum.PyNumArray32) else "float64"
             )
         else:
-            raise ValueError(f"Unsupported dtype: {dtype}")
+            if dtype is None:
+                if all(isinstance(x, int) for x in data):
+                    dtype = "int32" if all(x < 2**31 for x in data) else "int64"
+                elif all(isinstance(x, float) for x in data):
+                    dtype = "float32"  # Assume float32 for floating-point numbers
+                else:
+                    raise ValueError("Data type could not be inferred from data.")
+
+            self.dtype = dtype
+
+            if dtype == "float32":
+                self.inner = _rustynum.PyNumArray32(
+                    data
+                )  # Create a new Rust NumArray32 object
+            elif dtype == "float64":
+                self.inner = _rustynum.PyNumArray64(
+                    data
+                )  # Create a new Rust NumArray64 object
+            else:
+                raise ValueError(f"Unsupported dtype: {dtype}")
 
     def __getitem__(self, key: Union[int, slice]) -> Union[List[float], "NumArray"]:
         """
@@ -64,6 +66,32 @@ class NumArray:
             return NumArray(sliced_data, dtype=self.dtype)
         else:
             return self.tolist()[key]
+
+    def __str__(self) -> str:
+        return str(self.tolist())
+
+    def __repr__(self) -> str:
+        return f"NumArray(data={self.tolist()}, dtype={self.dtype})"
+
+    def item(self):
+        if len(self.tolist()) == 1:
+            return self.tolist()[0]
+        else:
+            raise ValueError("Can only convert an array of size 1 to a Python scalar")
+
+    def reshape(self, shape: List[int]) -> "NumArray":
+        """
+        Reshapes the NumArray to the specified shape.
+
+        Parameters:
+            shape: New shape for the NumArray.
+
+        Returns:
+            A new NumArray with the reshaped data.
+        """
+        # Ensure reshape returns a new NumArray instance
+        reshaped_inner = self.inner.reshape(shape)
+        return NumArray(reshaped_inner, dtype=self.dtype)
 
     def dot(self, other: "NumArray") -> float:
         """
@@ -83,18 +111,26 @@ class NumArray:
             else _rustynum.dot_f64(self.inner, other.inner)
         )
 
-    def mean(self) -> float:
+    def mean(
+        self, axes: Union[None, int, List[int]] = None
+    ) -> Union["NumArray", float]:
         """
-        Computes the mean of the NumArray.
+        Computes the mean of the NumArray along specified axes.
+
+        Parameters:
+            axes: Optional; Axis or axes along which to compute the mean. If None, the mean
+                  of all elements is computed as a scalar.
 
         Returns:
-            The mean of the NumArray as a float.
+            A new NumArray with the mean values along the specified axes, or a scalar if no axes are given.
         """
-        return (
-            _rustynum.mean_f32(self.inner)
+        axes = [axes] if isinstance(axes, int) else axes
+        result = (
+            _rustynum.mean_f32(self.inner, axes)
             if self.dtype == "float32"
-            else _rustynum.mean_f64(self.inner)
+            else _rustynum.mean_f64(self.inner, axes)
         )
+        return NumArray(result, dtype=self.dtype)
 
     def min(self) -> float:
         """

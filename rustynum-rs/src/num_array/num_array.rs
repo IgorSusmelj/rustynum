@@ -65,15 +65,15 @@ where
         &self.shape
     }
 
-    pub fn reshape(&mut self, new_shape: Vec<usize>) {
+    pub fn reshape(&self, new_shape: &Vec<usize>) -> Self {
         let new_size: usize = new_shape.iter().product();
         assert_eq!(
             new_size,
             self.data.len(),
             "New shape must be compatible with data size."
         );
-        self.shape = new_shape;
-        self.strides = Self::compute_strides(&self.shape);
+
+        NumArray::new_with_shape(self.data.clone(), new_shape.clone())
     }
 
     pub fn compute_strides(shape: &[usize]) -> Vec<usize> {
@@ -91,10 +91,16 @@ where
         Ops::dot_product(&self.data, &other.data)
     }
 
-    pub fn mean(&self) -> T {
+    pub fn mean(&self) -> NumArray<T, Ops> {
         let sum: T = Ops::sum(&self.data);
         let count = T::from_u32(self.data.len() as u32);
-        sum / count
+        let mean = sum / count;
+        NumArray::new(vec![mean])
+    }
+
+    pub fn item(&self) -> T {
+        assert_eq!(self.data.len(), 1, "Array must have exactly one element.");
+        self.data[0]
     }
 
     pub fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
@@ -117,36 +123,43 @@ where
         reduced_index
     }
 
-    pub fn mean_axes(&self, axes: &[usize]) -> NumArray<T, Ops> {
-        for &axis in axes {
-            assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
-        }
-    
-        let mut reduced_shape = self.shape.clone();
-        let mut total_elements_to_reduce = 1;
-
-        for &axis in axes {
-            total_elements_to_reduce *= self.shape[axis];
-            reduced_shape[axis] = 1;  // Marking this axis for reduction
-        }
+    pub fn mean_axes(&self, axes: Option<&[usize]>) -> NumArray<T, Ops> {
+        match axes {
+            Some(axes) => {
+            for &axis in axes {
+                assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
+            }
         
-        let reduced_size: usize = reduced_shape.iter().product();
-        let mut reduced_data = vec![T::from_u32(0); reduced_size];
-    
-        // Process each element in the data
-        for (i, &val) in self.data.iter().enumerate() {
-            let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
-            reduced_data[reduced_idx] = reduced_data[reduced_idx] + val;
+            let mut reduced_shape = self.shape.clone();
+            let mut total_elements_to_reduce = 1;
+
+            for &axis in axes {
+                total_elements_to_reduce *= self.shape[axis];
+                reduced_shape[axis] = 1;  // Marking this axis for reduction
+            }
+            
+            let reduced_size: usize = reduced_shape.iter().product();
+            let mut reduced_data = vec![T::from_u32(0); reduced_size];
+        
+            // Process each element in the data
+            for (i, &val) in self.data.iter().enumerate() {
+                let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
+                reduced_data[reduced_idx] = reduced_data[reduced_idx] + val;
+            }
+        
+            // Divide each element in reduced_data by the number of elements that contributed to it
+            for val in reduced_data.iter_mut() {
+                *val = *val / T::from_usize(total_elements_to_reduce);
+            }
+        
+            NumArray::new_with_shape(reduced_data, reduced_shape)
+            },
+            None => {
+                self.mean()
+            }
         }
-    
-        // Divide each element in reduced_data by the number of elements that contributed to it
-        for val in reduced_data.iter_mut() {
-            *val = *val / T::from_usize(total_elements_to_reduce);
-        }
-    
-        NumArray::new_with_shape(reduced_data, reduced_shape)
     }
-    
+
     pub fn min(&self) -> T {
         Ops::min(&self.data)
     }
@@ -267,19 +280,19 @@ mod tests {
     fn test_reshape_successfully() {
         let mut array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
         let new_shape = vec![2, 3]; // New shape compatible with the size of data (2*3 = 6)
-        array.reshape(new_shape.clone());
-        assert_eq!(array.shape(), new_shape.as_slice());
+        let reshaped_array = array.reshape(&new_shape.clone());
+        assert_eq!(reshaped_array.shape(), new_shape.as_slice());
     }
 
     #[test]
     fn test_reshape_and_strides() {
         let mut array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
         let new_shape = vec![2, 4]; // Reshape to a 2x4 matrix
-        array.reshape(new_shape.clone());
-        assert_eq!(array.shape(), new_shape.as_slice());
+        let reshaped_array = array.reshape(&new_shape.clone());
+        assert_eq!(reshaped_array.shape(), new_shape.as_slice());
         // Check strides for a 2x4 matrix
         let expected_strides = vec![4, 1]; // Moving to the next row jumps 4 elements, column jump is 1
-        assert_eq!(array.strides, expected_strides);
+        assert_eq!(reshaped_array.strides, expected_strides);
     }
 
     #[test]
@@ -299,13 +312,13 @@ mod tests {
     #[test]
     fn test_mean_f32() {
         let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
-        assert_eq!(a.mean(), 2.5);
+        assert_eq!(a.mean().item(), 2.5);
     }
 
     #[test]
     fn test_mean_f64() {
         let a = NumArray64::new(vec![1.0, 2.0, 3.0, 4.0]);
-        assert_eq!(a.mean(), 2.5);
+        assert_eq!(a.mean().item(), 2.5);
     }
 
     #[test]
@@ -396,7 +409,7 @@ fn test_calculate_reduced_index_complex_3d_complex() {
     fn test_mean_axes_1d() {
         let data = vec![1.0, 2.0, 3.0, 4.0];
         let array = NumArray32::new_with_shape(data, vec![4]);
-        let mean_array = array.mean_axes(&[0]);
+        let mean_array = array.mean_axes(Some(&[0]));
         assert_eq!(mean_array.get_data(), &vec![2.5]);
     }
 
@@ -404,7 +417,7 @@ fn test_calculate_reduced_index_complex_3d_complex() {
     fn test_mean_axes_2d() {
         let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
         let array = NumArray32::new_with_shape(data, vec![2, 3]);
-        let mean_array = array.mean_axes(&[1]);
+        let mean_array = array.mean_axes(Some(&[1]));
 
         assert_eq!(mean_array.shape(), &[2,1]);
         assert_eq!(mean_array.get_data(), &vec![2.0, 5.0]); // Mean along the second axis (columns)
@@ -415,7 +428,7 @@ fn test_calculate_reduced_index_complex_3d_complex() {
         let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
         let array = NumArray32::new_with_shape(data, vec![2, 3]);
         // Compute mean across columns (axis 1)
-        let mean_array = array.mean_axes(&[1]);
+        let mean_array = array.mean_axes(Some(&[1]));
         assert_eq!(mean_array.get_data(), &vec![2.0, 5.0]); // Mean along the second axis (columns)
     }
 
@@ -424,7 +437,7 @@ fn test_calculate_reduced_index_complex_3d_complex() {
         let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
         let array = NumArray32::new_with_shape(data, vec![2, 2, 3]);
         // Compute mean across the last two axes (1 and 2)
-        let mean_array = array.mean_axes(&[1, 2]);
+        let mean_array = array.mean_axes(Some(&[1, 2]));
         assert_eq!(mean_array.get_data(), &vec![3.5, 9.5]);
     }
 
@@ -433,7 +446,7 @@ fn test_calculate_reduced_index_complex_3d_complex() {
         let data = vec![1.0, 2.0, 3.0, 4.0];
         let array = NumArray32::new_with_shape(data, vec![4]);
         // Attempt to compute mean across an invalid axis
-        let result = std::panic::catch_unwind(|| array.mean_axes(&[1]));
+        let result = std::panic::catch_unwind(|| array.mean_axes(Some(&[1])));
         assert!(result.is_err(), "Should panic due to invalid axis");
     }
 

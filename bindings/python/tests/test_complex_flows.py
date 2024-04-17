@@ -23,7 +23,7 @@ def test_add_array_and_slice():
 def test_add_scalar_and_mean():
     a = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
     result = a + 1.0
-    mean = result.mean()
+    mean = result.mean().item()
     assert np.isclose(mean, 3.5, atol=1e-6), "Addition of scalar and mean failed"
 
 

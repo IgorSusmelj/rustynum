@@ -47,7 +47,7 @@ fn test_complex_operations() {
     let added = &array1 + &array2;
 
     // Subtract the mean from the added array
-    let mean = added.mean();
+    let mean = added.mean().item();
     let subtracted_mean = &added - mean;
 
     // Divide by a constant value

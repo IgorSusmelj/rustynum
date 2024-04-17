@@ -85,6 +85,25 @@ impl PyNumArray32 {
         })
     }
 
+    fn mean_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArray32> {
+        Python::with_gil(|py| {
+            let result = match axes {
+                Some(axes_list) => {
+                    let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+                    self.inner.mean_axes(Some(&axes_vec))  // Now correctly passing a slice wrapped in Some
+                }
+                None => {
+                    self.inner.mean()
+                }
+            };
+            Ok(
+                PyNumArray32 {
+                    inner: result
+                }
+            )
+        })
+    }
+
     fn tolist(&self, py: Python) -> PyObject {
         let list = PyList::new(py, self.inner.get_data());
         list.into()
@@ -93,6 +112,12 @@ impl PyNumArray32 {
     fn slice(&self, start: usize, end: usize) -> PyResult<PyNumArray32> {
         Ok(PyNumArray32 {
             inner: self.inner.slice(start, end),
+        })
+    }
+
+    fn reshape(&self, shape: Vec<usize>) -> PyResult<PyNumArray32> {
+        Ok(PyNumArray32 {
+            inner: self.inner.reshape(&shape),
         })
     }
 }
@@ -167,6 +192,25 @@ impl PyNumArray64 {
         })
     }
 
+    fn mean_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArray64> {
+        Python::with_gil(|py| {
+            let result = match axes {
+                Some(axes_list) => {
+                    let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+                    self.inner.mean_axes(Some(&axes_vec))  // Now correctly passing a slice wrapped in Some
+                }
+                None => {
+                    self.inner.mean_axes(None)
+                }
+            };
+            Ok(
+                PyNumArray64 {
+                    inner: result
+                }
+            )
+        })
+    }
+
     fn tolist(&self, py: Python) -> PyObject {
         let list = PyList::new(py, self.inner.get_data());
         list.into()
@@ -177,6 +221,12 @@ impl PyNumArray64 {
             inner: self.inner.slice(start, end),
         })
     }
+
+    fn reshape(&self, shape: Vec<usize>) -> PyResult<PyNumArray64> {
+        Ok(PyNumArray64 {
+            inner: self.inner.reshape(&shape),
+        })
+    }
 }
 
 #[pyfunction]
@@ -185,8 +235,19 @@ fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<f32> {
 }
 
 #[pyfunction]
-fn mean_f32(a: &PyNumArray32) -> PyResult<f32> {
-    Ok(a.inner.mean())
+fn mean_f32(a: &PyNumArray32, axes: Option<&PyList>) -> PyResult<PyNumArray32>  {
+    Python::with_gil(|py| {
+        let result = match axes {
+            Some(axes_list) => {
+                let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+                a.inner.mean_axes(Some(&axes_vec))
+            },
+            None => a.inner.mean_axes(None), // Handle the case where no axes are provided
+        };
+        Ok(PyNumArray32 {
+            inner: result
+        }) // Convert the result data to a Python object
+    })
 }
 
 #[pyfunction]
@@ -205,8 +266,17 @@ fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<f64> {
 }
 
 #[pyfunction]
-fn mean_f64(a: &PyNumArray64) -> PyResult<f64> {
-    Ok(a.inner.mean())
+fn mean_f64(a: &PyNumArray64, axes: Option<&PyList>) -> PyResult<Py<PyAny>> {
+    Python::with_gil(|py| {
+        let result = match axes {
+            Some(axes_list) => {
+                let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+                a.inner.mean_axes(Some(&axes_vec))
+            },
+            None => a.inner.mean_axes(None), // Handle the case where no axes are provided
+        };
+        Ok(result.get_data().to_object(py)) // Convert the result data to a Python object
+    })
 }
 
 #[pyfunction]
