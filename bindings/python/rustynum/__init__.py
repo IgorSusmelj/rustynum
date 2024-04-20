@@ -1,6 +1,6 @@
 # rustynum_py_wrapper/__init__.py
 from . import _rustynum
-from typing import Any, List, Union
+from typing import Any, List, Sequence, Union
 
 
 class NumArray:
@@ -112,7 +112,7 @@ class NumArray:
         )
 
     def mean(
-        self, axes: Union[None, int, List[int]] = None
+        self, axes: Union[None, int, Sequence[int]] = None
     ) -> Union["NumArray", float]:
         """
         Computes the mean of the NumArray along specified axes.
