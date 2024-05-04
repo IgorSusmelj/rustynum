@@ -43,7 +43,7 @@ where
         + FromU32
         + FromUsize
         + Debug,
-        Ops: SimdOps<T>, // Ensure Ops is appropriate for T
+    Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
     type Output = NumArray<T, Ops>;
 
@@ -66,7 +66,7 @@ where
         + FromU32
         + FromUsize
         + Debug,
-        Ops: SimdOps<T>,
+    Ops: SimdOps<T>,
 {
     type Output = Self;
 

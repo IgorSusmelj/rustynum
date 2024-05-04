@@ -10,6 +10,7 @@
 
 pub mod num_array;
 pub mod simd_ops;
+
 pub mod traits;
 
 pub use num_array::num_array::NumArray32;
