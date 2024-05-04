@@ -60,6 +60,12 @@ Run using
 cargo test
 ```
 
+### Create Docs
+
+```
+cargo doc --open
+```
+
 ### Run Benchmarks
 
 Run using
