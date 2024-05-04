@@ -260,7 +260,7 @@ where
             let mut stride = 1;
             let mut accumulated_strides = 1; // To handle collapsed dimensions correctly
 
-            for (i, (&original_dim, &reduced_dim)) in self.shape.iter().zip(reduction_shape.iter()).rev().enumerate() {
+            for (_i, (&original_dim, &reduced_dim)) in self.shape.iter().zip(reduction_shape.iter()).rev().enumerate() {
                 let index_in_dim = (index / stride) % original_dim;
                 
                 if reduced_dim != 1 {
@@ -527,7 +527,7 @@ mod tests {
 
     #[test]
     fn test_reshape_successfully() {
-        let mut array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
         let new_shape = vec![2, 3]; // New shape compatible with the size of data (2*3 = 6)
         let reshaped_array = array.reshape(&new_shape.clone());
         assert_eq!(reshaped_array.shape(), new_shape.as_slice());
@@ -535,7 +535,7 @@ mod tests {
 
     #[test]
     fn test_reshape_and_strides() {
-        let mut array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        let array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
         let new_shape = vec![2, 4]; // Reshape to a 2x4 matrix
         let reshaped_array = array.reshape(&new_shape.clone());
         assert_eq!(reshaped_array.shape(), new_shape.as_slice());
