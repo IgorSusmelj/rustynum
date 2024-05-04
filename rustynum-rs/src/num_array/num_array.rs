@@ -1,3 +1,29 @@
+//! # Numerical Array Module
+//!
+//! This module provides the `NumArray` data structure for handling numerical data with SIMD operations.
+//! The `NumArray` supports common mathematical operations, data manipulation, and transformation methods,
+//! designed to efficiently leverage SIMD capabilities for high-performance numerical computing.
+//!
+//! ## Features
+//!
+//! - Generic numerical array implementation.
+//! - Support for SIMD optimized operations.
+//! - Basic arithmetic, statistical, and algebraic functions.
+//! - Flexible data reshaping and manipulation.
+//!
+//! ## Usage
+//!
+//! The `NumArray` can be used directly with type aliases `NumArray32` and `NumArray64` for `f32` and `f64`
+//! data types respectively, simplifying the usage in applications requiring high performance computation.
+//!
+//! ```rust
+//! use rustynum_rs::NumArray32;
+//!
+//! let mut array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+//! let mean_value = array.mean().item();
+//! println!("Mean value: {}", mean_value);
+//! ```
+
 use std::iter::Sum;
 use std::marker::PhantomData;
 use std::ops::{Add, Div, Mul, Sub};
@@ -10,6 +36,17 @@ use crate::traits::{FromU32, FromUsize, NumOps};
 pub type NumArray32 = NumArray<f32, f32x16>;
 pub type NumArray64 = NumArray<f64, f64x8>;
 
+/// A generic numerical array with SIMD operations support.
+///
+/// # Parameters
+/// * `T` - The type of elements stored in the array.
+/// * `Ops` - The SIMD operations associated with type `T`.
+///
+/// # Example
+/// ```
+/// use rustynum_rs::NumArray32;
+/// let array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+/// ```
 pub struct NumArray<T, Ops> 
 where
     T: Debug
@@ -35,167 +72,349 @@ where
         + Debug,
     Ops: SimdOps<T>,
 {
-    // Existing new method that requires shape to be specified
-    pub fn new_with_shape(data: Vec<T>, shape: Vec<usize>) -> Self {
-        let strides = Self::compute_strides(&shape);
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
-    pub fn new(data: Vec<T>) -> Self {
-        let shape = vec![data.len()]; // Infer shape as 1D
-        let strides = vec![1]; // For a 1D array, stride is always 1
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
-    pub fn get_data(&self) -> &Vec<T> {
-        &self.data
-    }
-
-    pub fn shape(&self) -> &[usize] {
-        &self.shape
-    }
-
-    pub fn reshape(&self, new_shape: &Vec<usize>) -> Self {
-        let new_size: usize = new_shape.iter().product();
-        assert_eq!(
-            new_size,
-            self.data.len(),
-            "New shape must be compatible with data size."
-        );
-
-        NumArray::new_with_shape(self.data.clone(), new_shape.clone())
-    }
-
-    pub fn compute_strides(shape: &[usize]) -> Vec<usize> {
-        let mut strides = Vec::with_capacity(shape.len());
-        let mut stride = 1;
-        for &dim in shape.iter().rev() {
-            strides.push(stride);
-            stride *= dim;
-        }
-        strides.reverse();
-        strides
-    }
-
-    pub fn dot(&self, other: &Self) -> T {
-        Ops::dot_product(&self.data, &other.data)
-    }
-
-    pub fn mean(&self) -> NumArray<T, Ops> {
-        let sum: T = Ops::sum(&self.data);
-        let count = T::from_u32(self.data.len() as u32);
-        let mean = sum / count;
-        NumArray::new(vec![mean])
-    }
-
-    pub fn item(&self) -> T {
-        assert_eq!(self.data.len(), 1, "Array must have exactly one element.");
-        self.data[0]
-    }
-
-    pub fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
-        let mut reduced_index = 0;
-        let mut stride = 1;
-        let mut accumulated_strides = 1; // To handle collapsed dimensions correctly
-
-        for (i, (&original_dim, &reduced_dim)) in self.shape.iter().zip(reduction_shape.iter()).rev().enumerate() {
-            let index_in_dim = (index / stride) % original_dim;
-            
-            if reduced_dim != 1 {
-                reduced_index += index_in_dim * accumulated_strides;
-                accumulated_strides *= original_dim;  // Update only when not collapsing
-            }
-
-            stride *= original_dim;  // Always update stride to traverse dimensions
-
-        }
-
-        reduced_index
-    }
-
-    pub fn mean_axes(&self, axes: Option<&[usize]>) -> NumArray<T, Ops> {
-        match axes {
-            Some(axes) => {
-            for &axis in axes {
-                assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
-            }
-        
-            let mut reduced_shape = self.shape.clone();
-            let mut total_elements_to_reduce = 1;
-
-            for &axis in axes {
-                total_elements_to_reduce *= self.shape[axis];
-                reduced_shape[axis] = 1;  // Marking this axis for reduction
-            }
-            
-            let reduced_size: usize = reduced_shape.iter().product();
-            let mut reduced_data = vec![T::from_u32(0); reduced_size];
-        
-            // Process each element in the data
-            for (i, &val) in self.data.iter().enumerate() {
-                let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
-                reduced_data[reduced_idx] = reduced_data[reduced_idx] + val;
-            }
-        
-            // Divide each element in reduced_data by the number of elements that contributed to it
-            for val in reduced_data.iter_mut() {
-                *val = *val / T::from_usize(total_elements_to_reduce);
-            }
-        
-            NumArray::new_with_shape(reduced_data, reduced_shape)
-            },
-            None => {
-                self.mean()
+        /// Creates a new array from the given data and a specific shape.
+        ///
+        /// # Parameters
+        /// * `data` - The vector of elements.
+        /// * `shape` - A vector of dimensions defining the shape of the array.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        /// let array = NumArray32::new_with_shape(data, vec![2, 3]);
+        /// ```
+        pub fn new_with_shape(data: Vec<T>, shape: Vec<usize>) -> Self {
+            let strides = Self::compute_strides(&shape);
+            Self {
+                data,
+                shape,
+                strides,
+                _ops: PhantomData,
             }
         }
-    }
 
-    pub fn min(&self) -> T {
-        Ops::min(&self.data)
-    }
-
-    pub fn max(&self) -> T {
-        Ops::max(&self.data)
-    }
-
-    pub fn normalize(&self) -> Self {
-        let norm_squared: T = self.data.iter().fold(T::from_u32(0), |acc, &x| acc + x * x);
-        let norm = norm_squared.sqrt();
-        let normalized_data = self.data.iter().map(|&x| x / norm).collect();
-        Self {
-            data: normalized_data,
-            shape: self.shape.clone(),
-            strides: self.strides.clone(),
-            _ops: PhantomData,
+        /// Creates a new 1D array from the given data.
+        ///
+        /// # Parameters
+        /// * `data` - The vector of elements.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance with shape inferred as 1D.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        /// let array = NumArray32::new(data);
+        /// ```
+        pub fn new(data: Vec<T>) -> Self {
+            let shape = vec![data.len()]; // Infer shape as 1D
+            let strides = vec![1]; // For a 1D array, stride is always 1
+            Self {
+                data,
+                shape,
+                strides,
+                _ops: PhantomData,
+            }
         }
-    }
 
-    pub fn slice(&self, start: usize, end: usize) -> Self {
-        assert!(start <= end, "Start index must not exceed end index.");
-        assert!(
-            end <= self.data.len(),
-            "End index must not exceed data length."
-        );
-        let slice_length = end - start;
-        // For a simple 1D slice, the shape is just the length of the slice
-        let new_shape = vec![slice_length];
-        let sliced_data = self.data[start..end].to_vec();
-        Self {
-            data: sliced_data,
-            shape: new_shape,
-            // Strides for a 1D slice default to {1} since it's a linear slice
-            strides: vec![1],
-            _ops: PhantomData,
+        /// Retrieves a reference to the underlying data vector.
+        ///
+        /// # Returns
+        /// A reference to the data vector.
+        pub fn get_data(&self) -> &Vec<T> {
+            &self.data
+        }
+
+        /// Retrieves the shape of the array.
+        ///
+        /// # Returns
+        /// A reference to the shape vector.
+        pub fn shape(&self) -> &[usize] {
+            &self.shape
+        }
+
+        /// Reshapes the array to a new shape.
+        ///
+        /// # Parameters
+        /// * `new_shape` - A vector of dimensions defining the new shape of the array.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance with the specified shape.
+        ///
+        /// # Panics
+        /// Panics if the new shape is not compatible with the data size.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        /// let array = NumArray32::new_with_shape(data, vec![2, 3]);
+        /// let reshaped_array = array.reshape(&vec![3, 2]);
+        /// println!("Reshaped array: {:?}", reshaped_array.get_data());
+        /// ```
+        pub fn reshape(&self, new_shape: &Vec<usize>) -> Self {
+            let new_size: usize = new_shape.iter().product();
+            assert_eq!(
+                new_size,
+                self.data.len(),
+                "New shape must be compatible with data size."
+            );
+
+            NumArray::new_with_shape(self.data.clone(), new_shape.clone())
+        }
+
+        /// Computes the strides for the given shape.
+        ///
+        /// # Parameters
+        /// * `shape` - A reference to the shape vector.
+        ///
+        /// # Returns
+        /// A vector of strides.
+        pub fn compute_strides(shape: &[usize]) -> Vec<usize> {
+            let mut strides = Vec::with_capacity(shape.len());
+            let mut stride = 1;
+            for &dim in shape.iter().rev() {
+                strides.push(stride);
+                stride *= dim;
+            }
+            strides.reverse();
+            strides
+        }
+
+        /// Computes the dot product of two arrays.
+        ///
+        /// # Parameters
+        /// * `other` - A reference to the other `NumArray` instance.
+        ///
+        /// # Returns
+        /// The dot product of the two arrays.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        /// let b = NumArray32::new(vec![4.0, 3.0, 2.0, 1.0]);
+        /// let dot_product = a.dot(&b);
+        /// println!("Dot product: {}", dot_product);
+        /// ```
+        pub fn dot(&self, other: &Self) -> T {
+            Ops::dot_product(&self.data, &other.data)
+        }
+
+        /// Computes the mean of the array.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance containing the mean value.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0, 2.0, 3.0, 4.0];
+        /// let array = NumArray32::new(data);
+        /// let mean_array = array.mean();
+        /// println!("Mean array: {:?}", mean_array.get_data());
+        /// ```
+        pub fn mean(&self) -> NumArray<T, Ops> {
+            let sum: T = Ops::sum(&self.data);
+            let count = T::from_u32(self.data.len() as u32);
+            let mean = sum / count;
+            NumArray::new(vec![mean])
+        }
+
+        /// Retrieves the single element of the array.
+        ///
+        /// # Returns
+        /// The single element of the array.
+        ///
+        /// # Panics
+        /// Panics if the array does not have exactly one element.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0];
+        /// let array = NumArray32::new(data);
+        /// let item = array.item();
+        /// println!("Item: {}", item);
+        /// ```
+        pub fn item(&self) -> T {
+            assert_eq!(self.data.len(), 1, "Array must have exactly one element.");
+            self.data[0]
+        }
+
+        /// Calculates the reduced index for a given index and reduction shape.
+        ///
+        /// # Parameters
+        /// * `index` - The original index.
+        /// * `reduction_shape` - A reference to the reduction shape vector.
+        ///
+        /// # Returns
+        /// The reduced index.
+        pub fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
+            let mut reduced_index = 0;
+            let mut stride = 1;
+            let mut accumulated_strides = 1; // To handle collapsed dimensions correctly
+
+            for (i, (&original_dim, &reduced_dim)) in self.shape.iter().zip(reduction_shape.iter()).rev().enumerate() {
+                let index_in_dim = (index / stride) % original_dim;
+                
+                if reduced_dim != 1 {
+                    reduced_index += index_in_dim * accumulated_strides;
+                    accumulated_strides *= original_dim;  // Update only when not collapsing
+                }
+
+                stride *= original_dim;  // Always update stride to traverse dimensions
+
+            }
+
+            reduced_index
+        }
+
+        /// Computes the mean along the specified axes.
+        ///
+        /// # Parameters
+        /// * `axes` - An optional reference to a vector of axes to compute the mean along.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance containing the mean values along the specified axes.
+        ///
+        /// # Panics
+        /// Panics if any of the specified axes is out of bounds.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        /// let array = NumArray32::new_with_shape(data, vec![2, 3]);
+        /// let mean_array = array.mean_axes(Some(&[1]));
+        /// println!("Mean array: {:?}", mean_array.get_data());
+        /// ```
+        pub fn mean_axes(&self, axes: Option<&[usize]>) -> NumArray<T, Ops> {
+            match axes {
+                Some(axes) => {
+                    for &axis in axes {
+                        assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
+                    }
+                
+                    let mut reduced_shape = self.shape.clone();
+                    let mut total_elements_to_reduce = 1;
+
+                    for &axis in axes {
+                        total_elements_to_reduce *= self.shape[axis];
+                        reduced_shape[axis] = 1;  // Marking this axis for reduction
+                    }
+                    
+                    let reduced_size: usize = reduced_shape.iter().product();
+                    let mut reduced_data = vec![T::from_u32(0); reduced_size];
+                
+                    // Process each element in the data
+                    for (i, &val) in self.data.iter().enumerate() {
+                        let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
+                        reduced_data[reduced_idx] = reduced_data[reduced_idx] + val;
+                    }
+                
+                    // Divide each element in reduced_data by the number of elements that contributed to it
+                    for val in reduced_data.iter_mut() {
+                        *val = *val / T::from_usize(total_elements_to_reduce);
+                    }
+                
+                    NumArray::new_with_shape(reduced_data, reduced_shape)
+                },
+                None => {
+                    self.mean()
+                }
+            }
+        }
+
+        /// Computes the minimum value in the array.
+        ///
+        /// # Returns
+        /// The minimum value in the array.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        /// let min_value = array.min();
+        /// println!("Min value: {}", min_value);
+        /// ```
+        pub fn min(&self) -> T {
+            Ops::min(&self.data)
+        }
+
+        /// Computes the maximum value in the array.
+        ///
+        /// # Returns
+        /// The maximum value in the array.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        /// let max_value = array.max();
+        /// println!("Max value: {}", max_value);
+        /// ```
+        pub fn max(&self) -> T {
+            Ops::max(&self.data)
+        }
+
+        /// Normalizes the array.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance with normalized data.
+        pub fn normalize(&self) -> Self {
+            let norm_squared: T = self.data.iter().fold(T::from_u32(0), |acc, &x| acc + x * x);
+            let norm = norm_squared.sqrt();
+            let normalized_data = self.data.iter().map(|&x| x / norm).collect();
+            Self {
+                data: normalized_data,
+                shape: self.shape.clone(),
+                strides: self.strides.clone(),
+                _ops: PhantomData,
+            }
+        }
+
+        /// Creates a slice of the array.
+        ///
+        /// # Parameters
+        /// * `start` - The start index of the slice.
+        /// * `end` - The end index of the slice.
+        ///
+        /// # Returns
+        /// A new `NumArray` instance representing the slice.
+        ///
+        /// # Panics
+        /// Panics if the start index exceeds the end index or if the end index exceeds the data length.
+        /// 
+        /// # Example
+        /// ```
+        /// use rustynum_rs::NumArray32;
+        /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        /// let array = NumArray32::new(data);
+        /// let sliced_array = array.slice(1, 4);
+        /// println!("Sliced array: {:?}", sliced_array.get_data());
+        /// ```
+        pub fn slice(&self, start: usize, end: usize) -> Self {
+            assert!(start <= end, "Start index must not exceed end index.");
+            assert!(
+                end <= self.data.len(),
+                "End index must not exceed data length."
+            );
+            let slice_length = end - start;
+            // For a simple 1D slice, the shape is just the length of the slice
+            let new_shape = vec![slice_length];
+            let sliced_data = self.data[start..end].to_vec();
+            Self {
+                data: sliced_data,
+                shape: new_shape,
+                // Strides for a 1D slice default to {1} since it's a linear slice
+                strides: vec![1],
+                _ops: PhantomData,
         }
     }
 }
@@ -213,6 +432,17 @@ where
         + Debug,
     Ops: SimdOps<T> + Default, // Ensure Ops can be defaulted or appropriately initialized
 {
+    /// Constructs a new `NumArray` from the given data.
+    ///
+    /// The shape of the array is assumed to be 1-dimensional based on the length of the data.
+    ///
+    /// # Arguments
+    ///
+    /// * `data` - The data to initialize the array with.
+    ///
+    /// # Returns
+    ///
+    /// A new `NumArray` with the given data.
     fn from(data: Vec<T>) -> Self {
         let shape = vec![data.len()]; // Assume 1D shape based on the length of the data
         Self {
@@ -229,6 +459,16 @@ where
     T: Clone
     + Debug,
 {
+    /// Returns a new `NumArray` that is a clone of the current instance.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    ///
+    /// let arr1 = NumArray32::new(vec![1.0, 2.0, 3.0]);
+    /// let arr2 = arr1.clone();
+    /// ```
     fn clone(&self) -> Self {
         NumArray {
             data: self.data.clone(),
@@ -253,6 +493,15 @@ where
         + Debug,
     Ops: SimdOps<T> + Default,
 {
+    /// Creates a new `NumArray` from a slice of data.
+    ///
+    /// # Arguments
+    ///
+    /// * `data` - The slice of data to create the `NumArray` from.
+    ///
+    /// # Returns
+    ///
+    /// A new `NumArray` with the provided data.
     fn from(data: &'a [T]) -> Self {
         let shape = vec![data.to_vec().len()]; // Assume 1D shape based on the length of the data
         Self {
