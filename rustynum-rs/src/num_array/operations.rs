@@ -19,6 +19,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -42,6 +43,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
@@ -65,6 +67,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -93,6 +96,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -121,6 +125,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -144,6 +149,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
@@ -167,6 +173,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -195,6 +202,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -223,6 +231,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -246,6 +255,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
@@ -269,6 +279,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -297,6 +308,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -325,6 +337,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -348,6 +361,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>, // Ensure Ops is appropriate for T
 {
@@ -371,6 +385,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -399,6 +414,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {

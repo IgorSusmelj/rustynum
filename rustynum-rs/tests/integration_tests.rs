@@ -11,7 +11,8 @@ fn test_num_array_creation_and_dot_product() {
 
     // Check that the dot product result is as expected.
     assert_eq!(
-        result, 20.0,
+        result.get_data(),
+        &[20.0],
         "The dot product of the two arrays should be 20.0"
     );
 
@@ -24,7 +25,8 @@ fn test_num_array_creation_and_dot_product() {
 
     // Check that the dot product result is as expected for the smaller arrays.
     assert_eq!(
-        result_small, 32.0,
+        result_small.get_data(),
+        &[32.0],
         "The dot product of the two smaller arrays should be 32.0"
     );
 }
@@ -57,7 +59,7 @@ fn test_complex_operations() {
     let multiplied = &divided * &array1;
 
     // Perform a dot product with the initial input (array2)
-    let dot_product_result = multiplied.dot(&array2);
+    let dot_product_result = multiplied.dot(&array2).item();
     // Print arrray2
 
     // Expected result calculation using ndarray or manual calculation

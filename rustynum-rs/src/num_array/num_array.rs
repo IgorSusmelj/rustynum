@@ -30,6 +30,7 @@ use std::marker::PhantomData;
 use std::ops::{Add, Div, Mul, Sub};
 use std::simd::{f32x16, f64x8};
 
+use crate::num_array::linalg::matrix_multiply;
 use crate::simd_ops::SimdOps;
 use crate::traits::{FromU32, FromUsize, NumOps};
 
@@ -112,6 +113,7 @@ where
         + Copy
         + FromU32
         + FromUsize
+        + Default
         + Debug,
     Ops: SimdOps<T>,
 {
@@ -196,24 +198,47 @@ where
         strides
     }
 
-    /// Computes the dot product of two arrays.
+    /// Computes the dot product of two arrays, which can be vectors or matrices.
     ///
     /// # Parameters
     /// * `other` - A reference to the other `NumArray` instance.
     ///
     /// # Returns
-    /// The dot product of the two arrays.
+    /// The dot product of the two arrays, which could be a scalar or an array depending on the inputs.
+    ///
+    /// # Panics
+    /// Panics if the dimensions do not align for the dot product or matrix multiplication rules.
     ///
     /// # Example
     /// ```
     /// use rustynum_rs::NumArray32;
     /// let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
     /// let b = NumArray32::new(vec![4.0, 3.0, 2.0, 1.0]);
-    /// let dot_product = a.dot(&b);
+    /// let dot_product = a.dot(&b).item();
     /// println!("Dot product: {}", dot_product);
     /// ```
-    pub fn dot(&self, other: &Self) -> T {
-        Ops::dot_product(&self.data, &other.data)
+    pub fn dot(&self, other: &Self) -> NumArray<T, Ops> {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+
+        // Ensure the dimensions are compatible for dot product or matrix multiplication
+        assert!(
+            self_shape.last() == Some(&other_shape[0]),
+            "Dimensions must align for dot product or matrix multiplication"
+        );
+
+        if self_shape.len() == 1 && other_shape.len() == 1 {
+            // Vector dot product
+            assert_eq!(
+                self_shape[0], other_shape[0],
+                "Vectors must be of the same length for dot product."
+            );
+            let dot_product = Ops::dot_product(&self.data, &other.data);
+            NumArray::new(vec![dot_product])
+        } else {
+            // Matrix-vector or matrix-matrix multiplication
+            matrix_multiply(self, other)
+        }
     }
 
     /// Computes the mean of the array.
@@ -430,6 +455,40 @@ where
             _ops: PhantomData,
         }
     }
+
+    /// Extracts a slice representing a row from the matrix.
+    ///
+    /// # Parameters
+    /// * `row` - The row index to extract.
+    ///
+    /// # Returns
+    /// A slice representing the row from the matrix.
+    ///
+    /// # Panics
+    /// Panics if the array is not 2D or if the row index is out of bounds.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    /// let array = NumArray32::new_with_shape(data, vec![2, 3]);
+    /// let row_slice = array.row_slice(1);
+    /// println!("Row slice: {:?}", row_slice);
+    /// ```
+    pub fn row_slice(&self, row: usize) -> &[T] {
+        assert_eq!(self.shape().len(), 2, "Only 2D arrays are supported.");
+        let start = row * self.shape()[1];
+        let end = start + self.shape()[1];
+        &self.data[start..end]
+    }
+
+    /// Extracts a slice representing a column from the matrix (more complex due to non-contiguity).
+    pub fn column_slice(&self, col: usize) -> Vec<T> {
+        assert_eq!(self.shape().len(), 2, "Only 2D arrays are supported.");
+        (0..self.shape()[0])
+            .map(|i| self.data[i * self.shape()[1] + col])
+            .collect()
+    }
 }
 
 impl<T, Ops> From<Vec<T>> for NumArray<T, Ops>
@@ -636,14 +695,43 @@ mod tests {
     fn test_dot_product_f32() {
         let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
         let b = NumArray32::new(vec![4.0, 3.0, 2.0, 1.0]);
-        assert_eq!(a.dot(&b), 20.0);
+        assert_eq!(a.dot(&b).get_data(), &[20.0]);
     }
 
     #[test]
     fn test_dot_product_f64() {
         let a = NumArray64::new(vec![1.0, 2.0, 3.0, 4.0]);
         let b = NumArray64::new(vec![4.0, 3.0, 2.0, 1.0]);
-        assert_eq!(a.dot(&b), 20.0);
+        assert_eq!(a.dot(&b).get_data(), &[20.0]);
+    }
+
+    #[test]
+    #[should_panic(expected = "Dimensions must align for dot product or matrix multiplication")]
+    fn test_vector_dot_product_dimension_mismatch() {
+        let a = NumArray32::new(vec![1.0, 2.0, 3.0]);
+        let b = NumArray32::new(vec![1.0, 2.0]);
+        a.dot(&b);
+    }
+
+    #[test]
+    fn test_matrix_vector_multiply_correct() {
+        let matrix = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let vector = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3]);
+        let result = matrix.dot(&vector);
+        assert_eq!(result.get_data(), &[14.0, 32.0]);
+    }
+
+    #[test]
+    fn test_matrix_matrix_multiply_correct() {
+        let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        let b = NumArray32::new_with_shape(vec![2.0, 0.0, 1.0, 3.0], vec![2, 2]);
+        let result = a.dot(&b);
+        // Expected result of multiplication:
+        // [1*2 + 2*1, 1*0 + 2*3]
+        // [3*2 + 4*1, 3*0 + 4*3]
+        // [2 + 2, 0 + 6]
+        // [6 + 4, 0 + 12]
+        assert_eq!(result.get_data(), &[4.0, 6.0, 10.0, 12.0]);
     }
 
     #[test]
@@ -858,5 +946,21 @@ mod tests {
         let mut array = NumArray32::new_with_shape(vec![10.0, 20.0, 30.0, 40.0], vec![2, 2]);
         // Attempt to set with incorrect number of dimensions
         array.set(&[1], 50.0);
+    }
+
+    #[test]
+    fn test_row_slice() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let array = NumArray32::new_with_shape(data, vec![2, 3]);
+        let row_slice = array.row_slice(1);
+        assert_eq!(row_slice, &[4.0, 5.0, 6.0]);
+    }
+
+    #[test]
+    fn test_column_slice() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let array = NumArray32::new_with_shape(data, vec![2, 3]);
+        let column_slice = array.column_slice(1);
+        assert_eq!(column_slice, vec![2.0, 5.0]);
     }
 }
