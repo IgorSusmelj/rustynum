@@ -51,6 +51,9 @@ def test_mean_f32_axes():
     result_numpy_axis0 = np.mean(a, axis=0)
     result_numpy_axis1 = np.mean(a, axis=1)
 
+    print(result_rusty_axis0.tolist(), result_numpy_axis0)
+    print(result_rusty_axis1.tolist(), result_numpy_axis1)
+
     # Check if the means are close
     assert np.allclose(
         result_rusty_axis0.tolist(), result_numpy_axis0, atol=1e-6

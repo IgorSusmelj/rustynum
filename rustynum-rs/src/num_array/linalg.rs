@@ -47,7 +47,11 @@ where
         1
     };
 
-    let mut result = NumArray::new(vec![T::default(); rows * cols]);
+    let mut result = if rhs.shape().len() > 1 {
+        NumArray::new_with_shape(vec![T::default(); rows * cols], vec![rows, cols])
+    } else {
+        NumArray::new(vec![T::default(); rows])
+    };
 
     for j in 0..cols {
         let rhs_col = if rhs.shape().len() > 1 {
@@ -60,9 +64,11 @@ where
 
             let sum = Ops::dot_product(lhs_row, &rhs_col);
 
-            // Compute index for flat storage in result
-            let index = i * cols + j;
-            result.set(&[index], sum); // Make sure indexing respects flat storage
+            if rhs.shape().len() > 1 {
+                result.set(&[i, j], sum);
+            } else {
+                result.set(&[i], sum);
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::PyList; // Ensure PyList is imported
+use pyo3::types::{PyList, PyTuple}; // Ensure PyList is imported
 use pyo3::wrap_pyfunction;
 use rustynum_rs::{NumArray32, NumArray64};
 
@@ -90,17 +90,11 @@ impl PyNumArray32 {
             let result = match axes {
                 Some(axes_list) => {
                     let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-                    self.inner.mean_axes(Some(&axes_vec))  // Now correctly passing a slice wrapped in Some
+                    self.inner.mean_axes(Some(&axes_vec)) // Now correctly passing a slice wrapped in Some
                 }
-                None => {
-                    self.inner.mean()
-                }
+                None => self.inner.mean(),
             };
-            Ok(
-                PyNumArray32 {
-                    inner: result
-                }
-            )
+            Ok(PyNumArray32 { inner: result })
         })
     }
 
@@ -112,6 +106,13 @@ impl PyNumArray32 {
     fn slice(&self, start: usize, end: usize) -> PyResult<PyNumArray32> {
         Ok(PyNumArray32 {
             inner: self.inner.slice(start, end),
+        })
+    }
+
+    fn shape(&self) -> PyResult<PyObject> {
+        Python::with_gil(|py| {
+            let shape_vec = self.inner.shape();
+            Ok(PyTuple::new(py, shape_vec.iter()).to_object(py))
         })
     }
 
@@ -197,17 +198,11 @@ impl PyNumArray64 {
             let result = match axes {
                 Some(axes_list) => {
                     let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-                    self.inner.mean_axes(Some(&axes_vec))  // Now correctly passing a slice wrapped in Some
+                    self.inner.mean_axes(Some(&axes_vec)) // Now correctly passing a slice wrapped in Some
                 }
-                None => {
-                    self.inner.mean_axes(None)
-                }
+                None => self.inner.mean_axes(None),
             };
-            Ok(
-                PyNumArray64 {
-                    inner: result
-                }
-            )
+            Ok(PyNumArray64 { inner: result })
         })
     }
 
@@ -222,6 +217,13 @@ impl PyNumArray64 {
         })
     }
 
+    fn shape(&self) -> PyResult<PyObject> {
+        Python::with_gil(|py| {
+            let shape_vec = self.inner.shape();
+            Ok(PyTuple::new(py, shape_vec.iter()).to_object(py))
+        })
+    }
+
     fn reshape(&self, shape: Vec<usize>) -> PyResult<PyNumArray64> {
         Ok(PyNumArray64 {
             inner: self.inner.reshape(&shape),
@@ -230,23 +232,24 @@ impl PyNumArray64 {
 }
 
 #[pyfunction]
-fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<f32> {
-    Ok(a.inner.dot(&b.inner))
+fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<PyNumArray32> {
+    Python::with_gil(|py| {
+        let result = a.inner.dot(&b.inner);
+        Ok(PyNumArray32 { inner: result })
+    })
 }
 
 #[pyfunction]
-fn mean_f32(a: &PyNumArray32, axes: Option<&PyList>) -> PyResult<PyNumArray32>  {
+fn mean_f32(a: &PyNumArray32, axes: Option<&PyList>) -> PyResult<PyNumArray32> {
     Python::with_gil(|py| {
         let result = match axes {
             Some(axes_list) => {
                 let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
                 a.inner.mean_axes(Some(&axes_vec))
-            },
+            }
             None => a.inner.mean_axes(None), // Handle the case where no axes are provided
         };
-        Ok(PyNumArray32 {
-            inner: result
-        }) // Convert the result data to a Python object
+        Ok(PyNumArray32 { inner: result }) // Convert the result data to a Python object
     })
 }
 
@@ -261,8 +264,11 @@ fn max_f32(a: &PyNumArray32) -> PyResult<f32> {
 }
 
 #[pyfunction]
-fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<f64> {
-    Ok(a.inner.dot(&b.inner))
+fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<PyNumArray64> {
+    Python::with_gil(|py| {
+        let result = a.inner.dot(&b.inner);
+        Ok(PyNumArray64 { inner: result })
+    })
 }
 
 #[pyfunction]
@@ -272,7 +278,7 @@ fn mean_f64(a: &PyNumArray64, axes: Option<&PyList>) -> PyResult<Py<PyAny>> {
             Some(axes_list) => {
                 let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
                 a.inner.mean_axes(Some(&axes_vec))
-            },
+            }
             None => a.inner.mean_axes(None), // Handle the case where no axes are provided
         };
         Ok(result.get_data().to_object(py)) // Convert the result data to a Python object

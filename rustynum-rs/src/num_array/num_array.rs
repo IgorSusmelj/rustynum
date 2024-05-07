@@ -147,7 +147,7 @@ where
     /// # Returns
     /// A reference to the data vector.
     pub fn get_data(&self) -> &Vec<T> {
-        &self.data
+        return &self.data;
     }
 
     /// Reshapes the array to a new shape.
@@ -315,6 +315,18 @@ where
         reduced_index
     }
 
+    fn squeeze(&self) -> NumArray<T, Ops> {
+        let mut new_shape = self.shape.clone();
+        let mut new_data = self.data.clone();
+
+        let mut new_shape = new_shape
+            .into_iter()
+            .filter(|&x| x != 1)
+            .collect::<Vec<_>>();
+
+        NumArray::new_with_shape(self.data.clone(), new_shape)
+    }
+
     /// Computes the mean along the specified axes.
     ///
     /// # Parameters
@@ -362,7 +374,11 @@ where
                 for val in reduced_data.iter_mut() {
                     *val = *val / T::from_usize(total_elements_to_reduce);
                 }
-
+                // let's squeeze the reduced shape
+                reduced_shape = reduced_shape
+                    .into_iter()
+                    .filter(|&x| x != 1)
+                    .collect::<Vec<_>>();
                 NumArray::new_with_shape(reduced_data, reduced_shape)
             }
             None => self.mean(),
@@ -731,6 +747,7 @@ mod tests {
         // [3*2 + 4*1, 3*0 + 4*3]
         // [2 + 2, 0 + 6]
         // [6 + 4, 0 + 12]
+        assert_eq!(result.shape(), &[2, 2]);
         assert_eq!(result.get_data(), &[4.0, 6.0, 10.0, 12.0]);
     }
 
@@ -857,7 +874,7 @@ mod tests {
         let array = NumArray32::new_with_shape(data, vec![2, 3]);
         let mean_array = array.mean_axes(Some(&[1]));
 
-        assert_eq!(mean_array.shape(), &[2, 1]);
+        assert_eq!(mean_array.shape(), &[2]);
         assert_eq!(mean_array.get_data(), &vec![2.0, 5.0]); // Mean along the second axis (columns)
     }
 

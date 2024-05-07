@@ -50,6 +50,15 @@ class NumArray:
             else:
                 raise ValueError(f"Unsupported dtype: {dtype}")
 
+    @property
+    def shape(self) -> List[int]:
+        """
+        Returns the shape of the array as a tuple, similar to numpy.ndarray.shape.
+        """
+        # Assuming that the inner Rust object has a method to get the shape
+        # You may need to implement this method in Rust if it doesn't exist
+        return self.inner.shape()
+
     def __getitem__(self, key: Union[int, slice]) -> Union[List[float], "NumArray"]:
         """
         Gets the item(s) at the specified index or slice.
@@ -93,23 +102,27 @@ class NumArray:
         reshaped_inner = self.inner.reshape(shape)
         return NumArray(reshaped_inner, dtype=self.dtype)
 
-    def dot(self, other: "NumArray") -> float:
+    def dot(self, other: "NumArray") -> "NumArray":
         """
-        Computes the dot product with another NumArray.
+        Computes the dot product or matrix multiplication with another NumArray.
 
         Parameters:
             other: Another NumArray to compute the dot product with.
 
         Returns:
-            The dot product as a float.
+            A new NumArray containing the result of the dot product or matrix multiplication.
         """
         if self.dtype != other.dtype:
             raise ValueError("dtype mismatch between arrays")
-        return (
-            _rustynum.dot_f32(self.inner, other.inner)
-            if self.dtype == "float32"
-            else _rustynum.dot_f64(self.inner, other.inner)
-        )
+
+        if self.dtype == "float32":
+            result = _rustynum.dot_f32(self.inner, other.inner)
+        elif self.dtype == "float64":
+            result = _rustynum.dot_f64(self.inner, other.inner)
+        else:
+            raise ValueError("Unsupported dtype for dot product")
+
+        return NumArray(result, dtype=self.dtype)
 
     def mean(
         self, axes: Union[None, int, Sequence[int]] = None
@@ -253,8 +266,16 @@ class NumArray:
                 )
             )
 
-    def tolist(self) -> List[float]:
-        return self.inner.tolist()
+    def tolist(self) -> Union[List[float], List[List[float]]]:
+        flat_list = self.inner.tolist()
+        shape = self.shape
+        if len(shape) == 1:
+            return flat_list  # Already a 1D list, no changes needed
+        elif len(shape) == 2:
+            # Reshape flat list into a list of lists (2D)
+            return [
+                flat_list[i * shape[1] : (i + 1) * shape[1]] for i in range(shape[0])
+            ]
 
 
 def mean(a: "NumArray") -> float:
@@ -290,10 +311,11 @@ def max(a: "NumArray") -> float:
         )
 
 
-def dot(a: "NumArray", b: "NumArray") -> float:
+def dot(a: "NumArray", b: "NumArray") -> Union[float, "NumArray"]:
     if isinstance(a, NumArray) and isinstance(b, NumArray):
         return a.dot(b)
     elif isinstance(a, (int, float)) and isinstance(b, (int, float)):
-        return NumArray([a], dtype="float32").dot(NumArray([b], dtype="float32"))
+        out = NumArray([a], dtype="float32").dot(NumArray([b], dtype="float32"))
+        return NumArray([out], dtype="float32").item()
     else:
         raise TypeError("Both arguments must be NumArray instances.")
