@@ -78,7 +78,7 @@ jobs:
 
       - name: Build Wheels (ARM64)
         run: |
-          cibuildwheel --output-dir wheelhouse
+          cibuildwheel --output-dir wheelhouse --project-dir ./bindings/python
         env:
           CIBW_BUILD: "cp${{ matrix.python-version }}-*"
           CIBW_ARCHS: "aarch64"
