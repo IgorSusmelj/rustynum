@@ -2,7 +2,7 @@
 name = "rustynum_py_wrapper"
 version = "0.1.0"
 description = "Python wrapper for the RustyNum library bindings"
-authors = ["IgorSusmelj <isusmelj@gmail.co>"]
+authors = ["IgorSusmelj <isusmelj@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 

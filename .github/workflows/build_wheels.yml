@@ -84,7 +84,7 @@ jobs:
           CIBW_ARCHS: "aarch64"
           CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && pip install setuptools setuptools_rust wheel"
           CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
-        working-directory: bindings/python
+        working-directory: .
 
       - uses: actions/upload-artifact@v3
         with:
