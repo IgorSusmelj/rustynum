@@ -77,14 +77,28 @@ jobs:
         run: python -m pip install cibuildwheel==2.16.5
 
       - name: Build Wheels (ARM64)
-        run: |
-          cibuildwheel --output-dir wheelhouse --project-dir ./bindings/python
-        env:
-          CIBW_BUILD: "cp${{ matrix.python-version }}-*"
-          CIBW_ARCHS: "aarch64"
-          CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && pip install setuptools setuptools_rust wheel"
-          CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
-        working-directory: .
+        uses: pypa/cibuildwheel@v2.16.5
+        with:
+          output-dir: wheelhouse
+          package-dir: ./bindings/python
+          before-build: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+            pip install setuptools setuptools_rust wheel
+          build: cp${{ matrix.python-version }}-*
+          archs: aarch64
+          environment-linux: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
+
+
+      # - name: Build Wheels (ARM64)
+      #   run: |
+      #     cibuildwheel --output-dir wheelhouse --project-dir ./bindings/python
+      #   env:
+      #     CIBW_BUILD: "cp${{ matrix.python-version }}-*"
+      #     CIBW_ARCHS: "aarch64"
+      #     CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && pip install setuptools setuptools_rust wheel"
+      #     CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
+      #   working-directory: .
 
       - uses: actions/upload-artifact@v3
         with:
