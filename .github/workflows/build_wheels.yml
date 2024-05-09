@@ -140,7 +140,7 @@ jobs:
 
   upload_to_pypi:
     name: Upload to PyPI
-    needs: [build_wheels, build_wheels_aarch64, build_sdist]
+    needs: [build_wheels, build_wheels_aarch64, build_wheels_linux, build_sdist]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
