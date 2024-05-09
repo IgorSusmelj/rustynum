@@ -29,11 +29,11 @@ jobs:
           pip install setuptools wheel setuptools_rust
         working-directory: bindings/python
 
-      - name: Install Rust
+      - name: Install Rust nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          default: true
+          toolchain: nightly-2024-05-04
+          override: true
 
       - name: Build Wheels
         run: |
@@ -75,8 +75,8 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          default: true
+          toolchain: nightly-2024-05-04
+          override: true
 
       - name: Build Wheels (ARM64)
         run: |
