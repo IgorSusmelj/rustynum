@@ -6,7 +6,7 @@ setup(
     version="0.1.0",
     description="Python wrapper for the RustyNum library bindings",
     author="IgorSusmelj",
-    author_email="igor@lightly.ai",
+    author_email="isusmelj@gmail.com",
     license="MIT",
     rust_extensions=[
         RustExtension(
