@@ -1,0 +1,101 @@
+name: Build and Upload Wheels to PyPI
+
+on: [push, pull_request, workflow_dispatch]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build_wheels:
+    name: py${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [38, 39, 310, 311, 312]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pypa/cibuildwheel@v2.16.5
+        env:
+          CIBW_BUILD: "cp${{ matrix.python-version}}-*"
+          CIBW_BEFORE_BUILD: "cd bindings/python && python setup.py build"
+          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
+          CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheelhouse
+          path: ./wheelhouse/*.whl
+
+  build_wheels_aarch64:
+    name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [38, 39, 310, 311, 312]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          CIBW_BUILD: "cp${{ matrix.python-version}}-*"
+          CIBW_ARCHS: aarch64
+          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
+          CIBW_BEFORE_BUILD: "cd bindings/python && python setup.py build"
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheelhouse
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: "3.9"
+      - name: Build sdist
+        run: |
+          pip install --upgrade build
+          cd bindings/python
+          python -m build --sdist
+      - uses: actions/upload-artifact@v3
+        with:
+          name: sdist
+          path: ./dist/*.tar.gz
+
+  upload_to_pypi:
+    name: Upload to PyPI
+    needs: [build_wheels, build_wheels_aarch64, build_sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install twine
+        run: pip install twine
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
+      - name: Upload Distribution to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
