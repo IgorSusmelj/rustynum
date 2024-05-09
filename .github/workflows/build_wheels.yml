@@ -90,7 +90,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: wheelhouse
-          path: bindings/python/dist/*.whl
+          path: wheelhouse/*.whl
 
   build_sdist:
     name: sdist
