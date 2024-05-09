@@ -40,13 +40,6 @@ jobs:
           python setup.py bdist_wheel
         working-directory: bindings/python
 
-      - name: Repair Wheels with Auditwheel (Only on Linux)
-        if: runner.os == 'Linux'
-        run: |
-          pip install auditwheel
-          auditwheel repair bindings/python/dist/*.whl --plat manylinux2014_x86_64 -w bindings/python/dist/
-        working-directory: ${{ github.workspace }}
-
       - uses: actions/upload-artifact@v3
         with:
           name: wheelhouse
@@ -90,13 +83,26 @@ jobs:
           source $HOME/.cargo/env
           rustup default nightly-2024-05-04
 
-      - name: Build and repair wheels
+      # - name: Build and repair wheels
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install setuptools wheel setuptools_rust
+      #     python setup.py bdist_wheel
+      #     auditwheel repair dist/*.whl --plat manylinux2014_x86_64 -w dist/
+      #   working-directory: bindings/python
+        
+      - name: Build Wheels
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel setuptools_rust
           python setup.py bdist_wheel
-          auditwheel repair dist/*.whl --plat manylinux2014_x86_64 -w dist/
         working-directory: bindings/python
+
+      - name: Repair Wheels with Auditwheel (Only on Linux)
+        if: runner.os == 'Linux'
+        run: |
+          pip install auditwheel
+          auditwheel repair bindings/python/dist/*.whl --plat manylinux2014_x86_64 -w bindings/python/dist/
+        working-directory: .
+
 
       - uses: actions/upload-artifact@v3
         with:
