@@ -3,7 +3,7 @@ from setuptools_rust import Binding, RustExtension
 
 setup(
     name="rustynum",
-    version="0.1.1",
+    version="0.1.1.dev0",
     description="Python wrapper for the RustyNum library bindings",
     author="IgorSusmelj",
     author_email="isusmelj@gmail.com",

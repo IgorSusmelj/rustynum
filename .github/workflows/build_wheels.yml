@@ -18,32 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel setuptools_rust
-        working-directory: bindings/python
-
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2024-05-04
-          override: true
-
       - name: Build Wheels
-        run: |
-          python setup.py bdist_wheel
-        working-directory: bindings/python
+        uses: pypa/cibuildwheel@v2.16.5
+        with:
+          output-dir: wheelhouse
+          package-dir: ./bindings/python
+        env:
+          CIBW_BUILD: "cp${{ matrix.python-version }}-*"
+          CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && rustup default nightly-2024-05-04 && rustup target add aarch64-unknown-linux-gnu && pip install setuptools setuptools_rust wheel"
 
       - uses: actions/upload-artifact@v3
         with:
           name: wheelhouse
-          path: bindings/python/dist/*.whl
+          path: wheelhouse/*.whl
 
   build_wheels_aarch64:
     name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
@@ -60,21 +47,6 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2024-05-04
-          override: true
-          target: aarch64-unknown-linux-gnu
-
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.16.5
 
       - name: Build Wheels (ARM64)
         uses: pypa/cibuildwheel@v2.16.5
