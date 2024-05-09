@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -44,20 +44,6 @@ jobs:
         with:
           name: wheelhouse
           path: bindings/python/dist/*.whl
-
-      # - name: Build Wheels
-      #   uses: pypa/cibuildwheel@v2.16.5
-      #   with:
-      #     output-dir: wheelhouse
-      #     package-dir: ./bindings/python
-      #   env:
-      #     CIBW_BUILD: "cp${{ matrix.python-version }}-*"
-      #     CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && rustup default nightly-2024-05-04 && rustup target add aarch64-unknown-linux-gnu && pip install setuptools setuptools_rust wheel"
-
-      # - uses: actions/upload-artifact@v3
-      #   with:
-      #     name: wheelhouse
-      #     path: wheelhouse/*.whl
 
   build_wheels_linux:
     name: py${{ matrix.python-version }} on ${{ matrix.os }} (x64)
