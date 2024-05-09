@@ -60,8 +60,8 @@ jobs:
       #     path: wheelhouse/*.whl
 
   build_wheels_linux:
-    name: Build wheels on Linux for Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    name: py${{ matrix.python-version }} on ${{ matrix.os }} (x64)
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -77,7 +77,7 @@ jobs:
           package-dir: ./bindings/python
         env:
           CIBW_BUILD: "cp${{ matrix.python-version }}-*"
-          CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && rustup default nightly-2024-05-04 && pip install setuptools setuptools_rust wheel"
+          CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && rustup default nightly-2024-05-04 && rustup target add x86_64-unknown-linux-gnu && pip install setuptools setuptools_rust wheel"
           CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
 
       - uses: actions/upload-artifact@v3
