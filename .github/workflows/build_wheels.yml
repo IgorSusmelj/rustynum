@@ -120,9 +120,11 @@ jobs:
         run: pip install twine
       - uses: actions/download-artifact@v3
         with:
-          path: dist
+          path: ./artifacts
+      - name: List files in the artifact directory
+        run: ls -R ./artifacts
       - name: Upload Distribution to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        run: twine upload ./artifacts/*
