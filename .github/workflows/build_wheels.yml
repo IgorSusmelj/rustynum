@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
-        python-version: [38, 39, 310, 311, 312]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [38, 39, 310, 311, 312]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
@@ -80,7 +80,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [38, 39, 310, 311, 312]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
