@@ -43,17 +43,22 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
+
           CIBW_BEFORE_BUILD_LINUX: |
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source $HOME/.cargo/env
             rustup default nightly-2024-05-04
             pip install setuptools setuptools_rust wheel
           CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin"
+
           CIBW_BEFORE_BUILD_MACOS: |
+            rustup default nightly-2024-05-04
             rustup target add aarch64-apple-darwin
             pip install setuptools setuptools_rust wheel
           CIBW_ENVIRONMENT_MACOS: PATH="$PATH:$HOME/.cargo/bin"
 
+          CIBW_BEFORE_BUILD_WINDOWS: |
+            rustup default nightly-2024-05-04
       - uses: actions/upload-artifact@v3
         with:
           name: wheelhouse
