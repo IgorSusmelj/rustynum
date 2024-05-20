@@ -17,7 +17,7 @@ def add_rustynum(a, b, dtype):
     return a_rnp + b_rnp
 
 
-# Function to perform dot product using numpy
+# Function to perform addition using numpy
 def add_numpy(a, b, dtype):
     a_np = np.array(a, dtype=dtype)
     b_np = np.array(b, dtype=dtype)
