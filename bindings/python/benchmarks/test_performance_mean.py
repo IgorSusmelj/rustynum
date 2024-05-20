@@ -35,7 +35,7 @@ def mean_numpy(a, dtype):
         (mean_numpy, "float64", 10000),
     ],
 )
-def test_mean_product(benchmark, func, dtype, size):
+def test_mean(benchmark, func, dtype, size):
     a = setup_vector(dtype, size)
     group_name = f"{dtype}"
 

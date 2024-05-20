@@ -35,7 +35,7 @@ def min_numpy(a, dtype):
         (min_numpy, "float64", 10000),
     ],
 )
-def test_min_product(benchmark, func, dtype, size):
+def test_min(benchmark, func, dtype, size):
     a = setup_vector(dtype, size)
     group_name = f"{dtype}"
 
