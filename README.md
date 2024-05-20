@@ -1,12 +1,12 @@
 # RustyNum
 
-RustyNum is a high-performance numerical computation library written in Rust, designed to be a fast alternative to Numpy by leveraging Rust's powerful SIMD (Single Instruction, Multiple Data) capabilities through the nightly `portable_simd` feature.
+RustyNum is a high-performance numerical computation library written in Rust, created to demonstrate the potential of Rust's SIMD (Single Instruction, Multiple Data) capabilities using the nightly `portable_simd` feature, and serving as a fast alternative to Numpy.
 
 ## Key Features
 
-- **High Performance:** Utilizes Rust's `portable_simd` for accelerated numerical operations across various hardware platforms.
+- **High Performance:** Utilizes Rust's `portable_simd` for accelerated numerical operations across various hardware platforms, achieving up to 2.86x faster computations for certain operations compared to Numpy.
 - **Python Bindings:** Seamless integration with Python, providing a familiar Numpy-like interface.
-- **Lightweight:** Minimal dependencies, ensuring a small footprint and easy deployment. Rustynum wheels are only 300kBytes (50x smaller than Numpy wheels).
+- **Lightweight:** Minimal dependencies (no external crates are used), ensuring a small footprint and easy deployment. Rustynum Python wheels are only 300kBytes (50x smaller than Numpy wheels).
 
 ## Installation
 
