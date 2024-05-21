@@ -29,6 +29,7 @@ where
         + Div<Output = T>
         + Sum<T>
         + Default
+        + PartialOrd
         + FromU32
         + FromUsize
         + NumOps
