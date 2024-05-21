@@ -278,6 +278,44 @@ class NumArray:
             ]
 
 
+def zeros(shape: List[int], dtype: str = "float32") -> "NumArray":
+    """
+    Creates a NumArray of zeros with the specified shape and dtype.
+
+    Parameters:
+        shape: Shape of the NumArray.
+        dtype: Data type of the NumArray ('float32' or 'float64').
+
+    Returns:
+        A new NumArray filled with zeros.
+    """
+    if dtype == "float32":
+        return NumArray(_rustynum.zeros_f32(shape), dtype=dtype)
+    elif dtype == "float64":
+        return NumArray(_rustynum.zeros_f64(shape), dtype=dtype)
+    else:
+        raise ValueError(f"Unsupported dtype: {dtype}")
+
+
+def ones(shape: List[int], dtype: str = "float32") -> "NumArray":
+    """
+    Creates a NumArray of ones with the specified shape and dtype.
+
+    Parameters:
+        shape: Shape of the NumArray.
+        dtype: Data type of the NumArray ('float32' or 'float64').
+
+    Returns:
+        A new NumArray filled with ones.
+    """
+    if dtype == "float32":
+        return NumArray(_rustynum.ones_f32(shape), dtype=dtype)
+    elif dtype == "float64":
+        return NumArray(_rustynum.ones_f64(shape), dtype=dtype)
+    else:
+        raise ValueError(f"Unsupported dtype: {dtype}")
+
+
 def mean(a: "NumArray") -> float:
     if isinstance(a, NumArray):
         return a.mean()

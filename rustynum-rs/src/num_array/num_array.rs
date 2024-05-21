@@ -142,6 +142,58 @@ where
         }
     }
 
+    /// Creates a new array filled with zeros.
+    ///
+    /// # Parameters
+    /// * `shape` - A vector of dimensions defining the shape of the array.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance filled with zeros.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    /// let zeros_array = NumArray32::zeros(vec![2, 3]);
+    /// println!("Zeros array: {:?}", zeros_array.get_data());
+    /// ```
+    pub fn zeros(shape: Vec<usize>) -> Self {
+        let size = shape.iter().product();
+        let data = vec![T::default(); size];
+        let strides = Self::compute_strides(&shape);
+        Self {
+            data,
+            shape,
+            strides,
+            _ops: PhantomData,
+        }
+    }
+
+    /// Creates a new array filled with ones.
+    ///
+    /// # Parameters
+    /// * `shape` - A vector of dimensions defining the shape of the array.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance filled with ones.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    /// let ones_array = NumArray32::ones(vec![2, 3]);
+    /// println!("Ones array: {:?}", ones_array.get_data());
+    /// ```
+    pub fn ones(shape: Vec<usize>) -> Self {
+        let size = shape.iter().product();
+        let data = vec![T::from_usize(1); size];
+        let strides = Self::compute_strides(&shape);
+        Self {
+            data,
+            shape,
+            strides,
+            _ops: PhantomData,
+        }
+    }
+
     /// Retrieves a reference to the underlying data vector.
     ///
     /// # Returns
@@ -686,6 +738,22 @@ mod tests {
         let array = NumArray32::new(data.clone()); // Using NumArray32 for simplicity
         let expected_shape = vec![4]; // Expected shape for a 1D array with 4 elements
         assert_eq!(array.shape(), expected_shape.as_slice());
+    }
+
+    #[test]
+    fn test_zeros_array() {
+        let shape = vec![2, 3]; // 2x3 matrix
+        let zeros_array = NumArray32::zeros(shape.clone());
+        assert_eq!(zeros_array.shape(), shape.as_slice());
+        assert_eq!(zeros_array.get_data(), &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_ones_array() {
+        let shape = vec![2, 3]; // 2x3 matrix
+        let ones_array = NumArray32::ones(shape.clone());
+        assert_eq!(ones_array.shape(), shape.as_slice());
+        assert_eq!(ones_array.get_data(), &[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
     }
 
     #[test]
