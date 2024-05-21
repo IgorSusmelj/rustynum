@@ -256,6 +256,22 @@ fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<PyNumArray32> {
 }
 
 #[pyfunction]
+fn arange_f32(start: f32, end: f32, step: f32) -> PyResult<PyNumArray32> {
+    Python::with_gil(|py| {
+        let result = NumArray32::arange(start, end, step);
+        Ok(PyNumArray32 { inner: result })
+    })
+}
+
+#[pyfunction]
+fn linspace_f32(start: f32, end: f32, num: usize) -> PyResult<PyNumArray32> {
+    Python::with_gil(|py| {
+        let result = NumArray32::linspace(start, end, num);
+        Ok(PyNumArray32 { inner: result })
+    })
+}
+
+#[pyfunction]
 fn mean_f32(a: &PyNumArray32, axes: Option<&PyList>) -> PyResult<PyNumArray32> {
     Python::with_gil(|py| {
         let result = match axes {
@@ -304,6 +320,22 @@ fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<PyNumArray64> {
 }
 
 #[pyfunction]
+fn arange_f64(start: f64, end: f64, step: f64) -> PyResult<PyNumArray64> {
+    Python::with_gil(|py| {
+        let result = NumArray64::arange(start, end, step);
+        Ok(PyNumArray64 { inner: result })
+    })
+}
+
+#[pyfunction]
+fn linspace_f64(start: f64, end: f64, num: usize) -> PyResult<PyNumArray64> {
+    Python::with_gil(|py| {
+        let result = NumArray64::linspace(start, end, num);
+        Ok(PyNumArray64 { inner: result })
+    })
+}
+
+#[pyfunction]
 fn mean_f64(a: &PyNumArray64, axes: Option<&PyList>) -> PyResult<Py<PyAny>> {
     Python::with_gil(|py| {
         let result = match axes {
@@ -334,6 +366,8 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(zeros_f32, m)?)?;
     m.add_function(wrap_pyfunction!(ones_f32, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(arange_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(linspace_f32, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
@@ -341,6 +375,8 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(zeros_f64, m)?)?;
     m.add_function(wrap_pyfunction!(ones_f64, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(arange_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(linspace_f64, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
     m.add_function(wrap_pyfunction!(max_f64, m)?)?;

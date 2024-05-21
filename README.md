@@ -71,19 +71,21 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 
 ### Supported Operations
 
-| Operation        | NumPy Equivalent    | Rustynum Equivalent |
-| ---------------- | ------------------- | ------------------- |
-| Zeros Array      | `np.zeros((2, 3))`  | `rnp.zeros((2, 3))` |
-| Ones Array       | `np.ones((2, 3))`   | `rnp.ones((2, 3))`  |
-| Mean             | `np.mean(a)`        | `rnp.mean(a)`       |
-| Min              | `np.min(a)`         | `rnp.min(a)`        |
-| Max              | `np.max(a)`         | `rnp.max(a)`        |
-| Dot Product      | `np.dot(a, b)`      | `rnp.dot(a, b)`     |
-| Reshape          | `a.reshape((2, 3))` | `a.reshape([2, 3])` |
-| Element-wise Add | `a + b`             | `a + b`             |
-| Element-wise Sub | `a - b`             | `a - b`             |
-| Element-wise Mul | `a * b`             | `a * b`             |
-| Element-wise Div | `a / b`             | `a / b`             |
+| Operation        | NumPy Equivalent                | Rustynum Equivalent              |
+| ---------------- | ------------------------------- | -------------------------------- |
+| Zeros Array      | `np.zeros((2, 3))`              | `rnp.zeros((2, 3))`              |
+| Ones Array       | `np.ones((2, 3))`               | `rnp.ones((2, 3))`               |
+| Arange           | `np.arange(start, stop, step)`  | `rnp.arange(start, stop, step)`  |
+| Linspace         | `np.linspace(start, stop, num)` | `rnp.linspace(start, stop, num)` |
+| Mean             | `np.mean(a)`                    | `rnp.mean(a)`                    |
+| Min              | `np.min(a)`                     | `rnp.min(a)`                     |
+| Max              | `np.max(a)`                     | `rnp.max(a)`                     |
+| Dot Product      | `np.dot(a, b)`                  | `rnp.dot(a, b)`                  |
+| Reshape          | `a.reshape((2, 3))`             | `a.reshape([2, 3])`              |
+| Element-wise Add | `a + b`                         | `a + b`                          |
+| Element-wise Sub | `a - b`                         | `a - b`                          |
+| Element-wise Mul | `a * b`                         | `a * b`                          |
+| Element-wise Div | `a / b`                         | `a / b`                          |
 
 ### 1-Dimensional Arrays
 

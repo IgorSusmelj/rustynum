@@ -316,6 +316,50 @@ def ones(shape: List[int], dtype: str = "float32") -> "NumArray":
         raise ValueError(f"Unsupported dtype: {dtype}")
 
 
+def arange(
+    start: float, stop: float, step: float, dtype: str = "float32"
+) -> "NumArray":
+    """
+    Creates a NumArray with evenly spaced values within a given interval.
+
+    Parameters:
+        start: Start of the interval.
+        stop: End of the interval.
+        step: Spacing between values.
+        dtype: Data type of the NumArray ('float32' or 'float64').
+
+    Returns:
+        A new NumArray with evenly spaced values.
+    """
+    if dtype == "float32":
+        return NumArray(_rustynum.arange_f32(start, stop, step), dtype=dtype)
+    elif dtype == "float64":
+        return NumArray(_rustynum.arange_f64(start, stop, step), dtype=dtype)
+    else:
+        raise ValueError(f"Unsupported dtype: {dtype}")
+
+
+def linspace(start: float, stop: float, num: int, dtype: str = "float32") -> "NumArray":
+    """
+    Creates a NumArray with evenly spaced values within a given interval.
+
+    Parameters:
+        start: Start of the interval.
+        stop: End of the interval.
+        num: Number of samples to generate.
+        dtype: Data type of the NumArray ('float32' or 'float64').
+
+    Returns:
+        A new NumArray with evenly spaced values.
+    """
+    if dtype == "float32":
+        return NumArray(_rustynum.linspace_f32(start, stop, num), dtype=dtype)
+    elif dtype == "float64":
+        return NumArray(_rustynum.linspace_f64(start, stop, num), dtype=dtype)
+    else:
+        raise ValueError(f"Unsupported dtype: {dtype}")
+
+
 def mean(a: "NumArray") -> float:
     if isinstance(a, NumArray):
         return a.mean()

@@ -17,6 +17,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -41,6 +42,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -65,6 +67,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -94,6 +97,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -123,6 +127,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -147,6 +152,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -171,6 +177,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -200,6 +207,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -229,6 +237,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -253,6 +262,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -277,6 +287,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -306,6 +317,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -335,6 +347,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -359,6 +372,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -383,6 +397,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -412,6 +427,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default

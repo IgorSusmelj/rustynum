@@ -111,6 +111,7 @@ where
         + Sum<T>
         + NumOps
         + Copy
+        + PartialOrd
         + FromU32
         + FromUsize
         + Default
@@ -290,6 +291,78 @@ where
         } else {
             // Matrix-vector or matrix-matrix multiplication
             matrix_multiply(self, other)
+        }
+    }
+
+    /// Creates a new 1D array with linearly spaced values between `start` and `stop`.
+    ///
+    /// # Parameters
+    /// * `start` - The start value of the sequence.
+    /// * `stop` - The end value of the sequence.
+    /// * `num` - The number of values to generate.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance with the specified linear space.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    /// let linspace_array = NumArray32::linspace(0.0, 1.0, 5);
+    /// println!("Linspace array: {:?}", linspace_array.get_data());
+    /// ```
+    pub fn linspace(start: T, stop: T, num: usize) -> Self {
+        assert!(num > 1, "num must be greater than 1 for linspace.");
+        let step = (stop - start) / T::from_usize(num - 1);
+        let mut data = Vec::with_capacity(num);
+        let mut current = start;
+        for _ in 0..num {
+            data.push(current);
+            current = current + step;
+        }
+        let shape = vec![num];
+        let strides = vec![1];
+        Self {
+            data,
+            shape,
+            strides,
+            _ops: PhantomData,
+        }
+    }
+
+    /// Creates a new 1D array with values starting from `start` to `stop` with a given `step`.
+    ///
+    /// # Parameters
+    /// * `start` - The start value of the sequence.
+    /// * `stop` - The end value of the sequence.
+    /// * `step` - The step value between each pair of consecutive values.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance with the specified range.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    /// let arange_array = NumArray32::arange(0.0, 1.0, 0.2);
+    /// println!("Arange array: {:?}", arange_array.get_data());
+    /// ```
+    pub fn arange(start: T, stop: T, step: T) -> Self {
+        assert!(
+            step > T::default(),
+            "step must be greater than 0 for arange."
+        );
+        let mut data = Vec::new();
+        let mut current = start;
+        while current < stop {
+            data.push(current);
+            current = current + step;
+        }
+        let shape = vec![data.len()];
+        let strides = vec![1];
+        Self {
+            data,
+            shape,
+            strides,
+            _ops: PhantomData,
         }
     }
 
@@ -817,6 +890,18 @@ mod tests {
         // [6 + 4, 0 + 12]
         assert_eq!(result.shape(), &[2, 2]);
         assert_eq!(result.get_data(), &[4.0, 6.0, 10.0, 12.0]);
+    }
+
+    #[test]
+    fn test_arange() {
+        let arange_array = NumArray32::arange(0.0, 1.0, 0.2);
+        assert_eq!(arange_array.get_data(), &[0.0, 0.2, 0.4, 0.6, 0.8]);
+    }
+
+    #[test]
+    fn test_linspace() {
+        let linspace_array = NumArray32::linspace(0.0, 1.0, 5);
+        assert_eq!(linspace_array.get_data(), &[0.0, 0.25, 0.5, 0.75, 1.0]);
     }
 
     #[test]
