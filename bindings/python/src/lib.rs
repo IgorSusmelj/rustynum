@@ -232,6 +232,22 @@ impl PyNumArray64 {
 }
 
 #[pyfunction]
+fn zeros_f32(shape: Vec<usize>) -> PyResult<PyNumArray32> {
+    Python::with_gil(|py| {
+        let result = NumArray32::zeros(shape);
+        Ok(PyNumArray32 { inner: result })
+    })
+}
+
+#[pyfunction]
+fn ones_f32(shape: Vec<usize>) -> PyResult<PyNumArray32> {
+    Python::with_gil(|py| {
+        let result = NumArray32::ones(shape);
+        Ok(PyNumArray32 { inner: result })
+    })
+}
+
+#[pyfunction]
 fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<PyNumArray32> {
     Python::with_gil(|py| {
         let result = a.inner.dot(&b.inner);
@@ -261,6 +277,22 @@ fn min_f32(a: &PyNumArray32) -> PyResult<f32> {
 #[pyfunction]
 fn max_f32(a: &PyNumArray32) -> PyResult<f32> {
     Ok(a.inner.max())
+}
+
+#[pyfunction]
+fn zeros_f64(shape: Vec<usize>) -> PyResult<PyNumArray64> {
+    Python::with_gil(|py| {
+        let result = NumArray64::zeros(shape);
+        Ok(PyNumArray64 { inner: result })
+    })
+}
+
+#[pyfunction]
+fn ones_f64(shape: Vec<usize>) -> PyResult<PyNumArray64> {
+    Python::with_gil(|py| {
+        let result = NumArray64::ones(shape);
+        Ok(PyNumArray64 { inner: result })
+    })
 }
 
 #[pyfunction]
@@ -299,10 +331,15 @@ fn max_f64(a: &PyNumArray64) -> PyResult<f64> {
 fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArray32>()?;
     m.add_class::<PyNumArray64>()?; // Ensure PyNumArray64 is also registered
+    m.add_function(wrap_pyfunction!(zeros_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(ones_f32, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f32, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
+
+    m.add_function(wrap_pyfunction!(zeros_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(ones_f64, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f64, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
