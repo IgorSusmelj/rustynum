@@ -42,30 +42,35 @@ where
     );
 
     let rows = lhs.shape()[0];
-    let cols = if rhs.shape().len() > 1 {
-        rhs.shape()[1]
+    let rhs_is_matrix = rhs.shape().len() > 1;
+    let cols = if rhs_is_matrix { rhs.shape()[1] } else { 1 };
+
+    // Transpose the right-hand side matrix if it is indeed a matrix (not a vector)
+    let rhs_transposed = if rhs_is_matrix {
+        rhs.transpose()
     } else {
-        1
+        rhs.clone()
     };
 
-    let mut result = if rhs.shape().len() > 1 {
+    let mut result = if rhs_is_matrix {
         NumArray::new_with_shape(vec![T::default(); rows * cols], vec![rows, cols])
     } else {
         NumArray::new(vec![T::default(); rows])
     };
 
     for j in 0..cols {
-        let rhs_col = if rhs.shape().len() > 1 {
-            rhs.column_slice(j)
+        let rhs_col = if rhs_is_matrix {
+            rhs_transposed.row_slice(j) // Use row_slice since rhs is transposed
         } else {
-            rhs.get_data().to_vec()
+            &rhs.get_data().to_vec()
         };
+
         for i in 0..rows {
             let lhs_row = lhs.row_slice(i);
 
             let sum = Ops::dot_product(lhs_row, &rhs_col);
 
-            if rhs.shape().len() > 1 {
+            if rhs_is_matrix {
                 result.set(&[i, j], sum);
             } else {
                 result.set(&[i], sum);

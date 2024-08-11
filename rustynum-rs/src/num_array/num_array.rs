@@ -195,6 +195,29 @@ where
         }
     }
 
+    /// Transposes a 2D matrix from row-major to column-major format.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance that is the transpose of the original matrix.
+    pub fn transpose(&self) -> Self {
+        assert!(
+            self.shape.len() == 2,
+            "Transpose is only valid for 2D matrices."
+        );
+
+        let rows = self.shape[0];
+        let cols = self.shape[1];
+        let mut transposed_data = vec![T::default(); rows * cols];
+
+        for i in 0..rows {
+            for j in 0..cols {
+                transposed_data[j * rows + i] = self.data[i * cols + j];
+            }
+        }
+
+        NumArray::new_with_shape(transposed_data, vec![cols, rows])
+    }
+
     /// Retrieves a reference to the underlying data vector.
     ///
     /// # Returns
@@ -617,9 +640,10 @@ where
     /// println!("Row slice: {:?}", row_slice);
     /// ```
     pub fn row_slice(&self, row: usize) -> &[T] {
-        assert_eq!(self.shape().len(), 2, "Only 2D arrays are supported.");
-        let start = row * self.shape()[1];
-        let end = start + self.shape()[1];
+        let shape = self.shape();
+        assert_eq!(shape.len(), 2, "Only 2D arrays are supported.");
+        let start = row * shape[1];
+        let end = start + shape[1];
         &self.data[start..end]
     }
 
@@ -827,6 +851,34 @@ mod tests {
         let ones_array = NumArray32::ones(shape.clone());
         assert_eq!(ones_array.shape(), shape.as_slice());
         assert_eq!(ones_array.get_data(), &[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn test_matrix_transpose() {
+        let matrix = NumArray32::new_with_shape(
+            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+            vec![3, 3],
+        );
+
+        let transposed = matrix.transpose();
+
+        let expected_data = vec![1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0];
+
+        assert_eq!(transposed.shape(), &[3, 3]);
+        assert_eq!(transposed.get_data(), &expected_data);
+    }
+
+    #[test]
+    fn test_non_square_matrix_transpose() {
+        let matrix =
+            NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], vec![2, 4]);
+
+        let transposed = matrix.transpose();
+
+        let expected_data = vec![1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0];
+
+        assert_eq!(transposed.shape(), &[4, 2]);
+        assert_eq!(transposed.get_data(), &expected_data);
     }
 
     #[test]
