@@ -9,8 +9,8 @@ edition = "2021"
 
 [dev-dependencies]
 criterion = "0.3"
-ndarray = "0.15.3" 
-nalgebra = "0.29.0"
+ndarray = "0.16.1" 
+nalgebra = "0.33.0"
 
 [[bench]]
 name = "array_benchmarks"
