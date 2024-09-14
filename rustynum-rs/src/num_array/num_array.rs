@@ -222,6 +222,7 @@ where
     ///
     /// # Returns
     /// A reference to the data vector.
+    #[inline]
     pub fn get_data(&self) -> &Vec<T> {
         return &self.data;
     }
@@ -801,6 +802,7 @@ where
     /// let mut array = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
     /// array.set(&[1], 5.0);
     /// ```
+    #[inline]
     pub fn set(&mut self, indices: &[usize], value: T) {
         assert!(
             indices.len() == self.shape.len(),
