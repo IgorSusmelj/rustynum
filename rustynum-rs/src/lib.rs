@@ -8,6 +8,7 @@
 #![feature(slice_as_chunks)]
 #![feature(portable_simd)]
 
+mod helpers;
 pub mod num_array;
 pub mod simd_ops;
 

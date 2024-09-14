@@ -1,3 +1,4 @@
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyTuple}; // Ensure PyList is imported
 use pyo3::wrap_pyfunction;
@@ -16,10 +17,12 @@ struct PyNumArray64 {
 #[pymethods]
 impl PyNumArray32 {
     #[new]
-    fn new(data: Vec<f32>) -> Self {
-        PyNumArray32 {
-            inner: NumArray32::new(data),
-        }
+    fn new(data: Vec<f32>, shape: Option<Vec<usize>>) -> Self {
+        let inner = match shape {
+            Some(s) => NumArray32::new_with_shape(data, s),
+            None => NumArray32::new(data),
+        };
+        PyNumArray32 { inner }
     }
 
     fn __imul__(&mut self, scalar: f32) -> PyResult<()> {
@@ -126,10 +129,12 @@ impl PyNumArray32 {
 #[pymethods]
 impl PyNumArray64 {
     #[new]
-    fn new(data: Vec<f64>) -> Self {
-        PyNumArray64 {
-            inner: NumArray64::new(data),
-        }
+    fn new(data: Vec<f64>, shape: Option<Vec<usize>>) -> Self {
+        let inner = match shape {
+            Some(s) => NumArray64::new_with_shape(data, s),
+            None => NumArray64::new(data),
+        };
+        PyNumArray64 { inner }
     }
 
     fn __imul__(&mut self, scalar: f64) -> PyResult<()> {
@@ -248,6 +253,19 @@ fn ones_f32(shape: Vec<usize>) -> PyResult<PyNumArray32> {
 }
 
 #[pyfunction]
+fn matmul_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<PyNumArray32> {
+    Python::with_gil(|py| {
+        // Ensure both arrays are matrices for matrix multiplication
+        assert!(
+            a.inner.shape().len() == 2 && b.inner.shape().len() == 2,
+            "Both NumArray32 instances must be 2D for matrix multiplication."
+        );
+        let result = a.inner.dot(&b.inner);
+        Ok(PyNumArray32 { inner: result })
+    })
+}
+
+#[pyfunction]
 fn dot_f32(a: &PyNumArray32, b: &PyNumArray32) -> PyResult<PyNumArray32> {
     Python::with_gil(|py| {
         let result = a.inner.dot(&b.inner);
@@ -312,6 +330,19 @@ fn ones_f64(shape: Vec<usize>) -> PyResult<PyNumArray64> {
 }
 
 #[pyfunction]
+fn matmul_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<PyNumArray64> {
+    Python::with_gil(|py| {
+        // Ensure both arrays are matrices for matrix multiplication
+        assert!(
+            a.inner.shape().len() == 2 && b.inner.shape().len() == 2,
+            "Both NumArray64 instances must be 2D for matrix multiplication."
+        );
+        let result = a.inner.dot(&b.inner);
+        Ok(PyNumArray64 { inner: result })
+    })
+}
+
+#[pyfunction]
 fn dot_f64(a: &PyNumArray64, b: &PyNumArray64) -> PyResult<PyNumArray64> {
     Python::with_gil(|py| {
         let result = a.inner.dot(&b.inner);
@@ -365,6 +396,7 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArray64>()?; // Ensure PyNumArray64 is also registered
     m.add_function(wrap_pyfunction!(zeros_f32, m)?)?;
     m.add_function(wrap_pyfunction!(ones_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(matmul_f32, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f32, m)?)?;
     m.add_function(wrap_pyfunction!(arange_f32, m)?)?;
     m.add_function(wrap_pyfunction!(linspace_f32, m)?)?;
@@ -374,6 +406,7 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(zeros_f64, m)?)?;
     m.add_function(wrap_pyfunction!(ones_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(matmul_f64, m)?)?;
     m.add_function(wrap_pyfunction!(dot_f64, m)?)?;
     m.add_function(wrap_pyfunction!(arange_f64, m)?)?;
     m.add_function(wrap_pyfunction!(linspace_f64, m)?)?;
