@@ -1,19 +1,20 @@
 # rustynum_py_wrapper/__init__.py
 from . import _rustynum
 from typing import Any, List, Sequence, Union
+import itertools
 
 
 class NumArray:
     def __init__(
         self,
-        data: Union[List[float], List[int], "NumArray"],
+        data: Union[List[Any], "NumArray"],
         dtype: Union[None, str] = None,
     ) -> None:
         """
         Initializes a NumArray object with the given data and data type.
 
         Parameters:
-            data: List of numerical data or existing NumArray.
+            data: Nested list of numerical data or existing NumArray.
             dtype: Data type of the numerical data ('int32', 'int64', 'float32' or 'float64'). If None, dtype is inferred.
         """
 
@@ -29,26 +30,108 @@ class NumArray:
                 "float32" if isinstance(data, _rustynum.PyNumArray32) else "float64"
             )
         else:
-            if dtype is None:
-                if all(isinstance(x, int) for x in data):
-                    dtype = "int32" if all(x < 2**31 for x in data) else "int64"
-                elif all(isinstance(x, float) for x in data):
-                    dtype = "float32"  # Assume float32 for floating-point numbers
+            # Determine if data is nested (e.g., list of lists)
+            if self._is_nested_list(data):
+                shape = self._infer_shape(data)
+                flat_data = self._flatten(data)
+                if dtype is None:
+                    # Infer dtype from data types
+                    dtype = self._infer_dtype_from_data(flat_data)
+                self.dtype = dtype
+
+                if dtype == "float32":
+                    self.inner = _rustynum.PyNumArray32(flat_data, shape)
+                elif dtype == "float64":
+                    self.inner = _rustynum.PyNumArray64(flat_data, shape)
                 else:
-                    raise ValueError("Data type could not be inferred from data.")
-
-            self.dtype = dtype
-
-            if dtype == "float32":
-                self.inner = _rustynum.PyNumArray32(
-                    data
-                )  # Create a new Rust NumArray32 object
-            elif dtype == "float64":
-                self.inner = _rustynum.PyNumArray64(
-                    data
-                )  # Create a new Rust NumArray64 object
+                    raise ValueError(f"Unsupported dtype: {dtype}")
             else:
-                raise ValueError(f"Unsupported dtype: {dtype}")
+                # Flat list
+                if dtype is None:
+                    if all(isinstance(x, int) for x in data):
+                        dtype = "int32" if all(x < 2**31 for x in data) else "int64"
+                    elif all(isinstance(x, float) for x in data):
+                        dtype = "float32"  # Assume float32 for floating-point numbers
+                    else:
+                        raise ValueError("Data type could not be inferred from data.")
+
+                self.dtype = dtype
+
+                if dtype == "float32":
+                    self.inner = _rustynum.PyNumArray32(data)
+                elif dtype == "float64":
+                    self.inner = _rustynum.PyNumArray64(data)
+                else:
+                    raise ValueError(f"Unsupported dtype: {dtype}")
+
+    @staticmethod
+    def _is_nested_list(data: Any) -> bool:
+        """
+        Determines if the provided data is a nested list (e.g., list of lists).
+
+        Parameters:
+            data: The data to check.
+
+        Returns:
+            True if data is a nested list, False otherwise.
+        """
+        if not isinstance(data, list):
+            return False
+        return any(isinstance(elem, list) for elem in data)
+
+    @staticmethod
+    def _infer_shape(data: List[Any]) -> List[int]:
+        """
+        Infers the shape of a nested list.
+
+        Parameters:
+            data: The nested list.
+
+        Returns:
+            A list representing the shape.
+        """
+        shape = []
+        while isinstance(data, list):
+            shape.append(len(data))
+            if len(data) == 0:
+                break
+            data = data[0]
+        return shape
+
+    @staticmethod
+    def _flatten(data: List[Any]) -> List[float]:
+        """
+        Flattens a nested list into a single flat list.
+
+        Parameters:
+            data: The nested list.
+
+        Returns:
+            A flat list containing all elements.
+        """
+        if not isinstance(data, list):
+            return [data]
+        return list(
+            itertools.chain.from_iterable(NumArray._flatten(item) for item in data)
+        )
+
+    @staticmethod
+    def _infer_dtype_from_data(data: List[Any]) -> str:
+        """
+        Infers the dtype from the data.
+
+        Parameters:
+            data: The flat list of data.
+
+        Returns:
+            A string representing the dtype.
+        """
+        if all(isinstance(x, int) for x in data):
+            return "int32" if all(x < 2**31 for x in data) else "int64"
+        elif all(isinstance(x, float) for x in data):
+            return "float32"  # Default to float32
+        else:
+            raise ValueError("Mixed or unsupported data types in data.")
 
     @property
     def shape(self) -> List[int]:
@@ -82,6 +165,30 @@ class NumArray:
     def __repr__(self) -> str:
         return f"NumArray(data={self.tolist()}, dtype={self.dtype})"
 
+    def __matmul__(self, other: "NumArray") -> "NumArray":
+        """
+        Implements the @ operator for matrix multiplication.
+
+        Parameters:
+            other: Another NumArray to compute the matrix multiplication with.
+
+        Returns:
+            A new NumArray containing the result of the matrix multiplication.
+        """
+        return self.matmul(other)
+
+    def __rmatmul__(self, other: "NumArray") -> "NumArray":
+        """
+        Implements the @ operator for right matrix multiplication.
+
+        Parameters:
+            other: Another NumArray to compute the matrix multiplication with.
+
+        Returns:
+            A new NumArray containing the result of the matrix multiplication.
+        """
+        return other.matmul(self)
+
     def item(self):
         if len(self.tolist()) == 1:
             return self.tolist()[0]
@@ -101,6 +208,38 @@ class NumArray:
         # Ensure reshape returns a new NumArray instance
         reshaped_inner = self.inner.reshape(shape)
         return NumArray(reshaped_inner, dtype=self.dtype)
+
+    def matmul(self, other: "NumArray") -> "NumArray":
+        """
+        Computes the matrix multiplication with another NumArray, similar to NumPy's matmul.
+
+        Parameters:
+            other: Another NumArray to compute the matrix multiplication with.
+
+        Returns:
+            A new NumArray containing the result of the matrix multiplication.
+        """
+        if self.dtype != other.dtype:
+            raise ValueError("dtype mismatch between arrays")
+
+        if self.dtype == "float32":
+            # Ensure both arrays are 2D for matrix multiplication
+            if len(self.shape) != 2 or len(other.shape) != 2:
+                raise ValueError(
+                    "Both NumArray instances must be 2D for matrix multiplication."
+                )
+            result = _rustynum.matmul_f32(self.inner, other.inner)
+        elif self.dtype == "float64":
+            # Ensure both arrays are 2D for matrix multiplication
+            if len(self.shape) != 2 or len(other.shape) != 2:
+                raise ValueError(
+                    "Both NumArray instances must be 2D for matrix multiplication."
+                )
+            result = _rustynum.matmul_f64(self.inner, other.inner)
+        else:
+            raise ValueError("Unsupported dtype for matrix multiplication")
+
+        return NumArray(result, dtype=self.dtype)
 
     def dot(self, other: "NumArray") -> "NumArray":
         """
