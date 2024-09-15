@@ -48,6 +48,22 @@ def test_sigmoid():
     assert np.allclose(a.sigmoid().tolist(), b, atol=1e-9), "Sigmoid failed"
 
 
+def test_concatenate_two_1d_arrays():
+    a = rnp.NumArray([1.0, 2.0, 3.0], dtype="float32")
+    b = rnp.NumArray([4.0, 5.0, 6.0], dtype="float32")
+    c = np.concatenate(
+        [
+            np.array([1.0, 2.0, 3.0], dtype="float32"),
+            np.array([4.0, 5.0, 6.0], dtype="float32"),
+        ]
+    )
+
+    assert rnp.concatenate([a, b]).shape == c.shape, "Shape mismatch"
+    assert np.allclose(
+        rnp.concatenate([a, b]).tolist(), c, atol=1e-9
+    ), "Concatenate failed"
+
+
 def test_concatenate_along_axis_0():
     a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
     b = rnp.NumArray([[5.0, 6.0], [7.0, 8.0]], dtype="float32")

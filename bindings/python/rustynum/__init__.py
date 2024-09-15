@@ -618,14 +618,12 @@ def sigmoid(a: "NumArray") -> "NumArray":
         )
 
 
-def concatenate(arrays: List["NumArray"], axis: int) -> "NumArray":
+def concatenate(arrays: List["NumArray"], axis: int = 0) -> "NumArray":
     # axis can be any integer, but most of the time it would only be 0 or 1
     if not all(isinstance(a, NumArray) for a in arrays):
         raise TypeError("All elements in 'arrays' must be NumArray instances.")
     if not all(a.dtype == arrays[0].dtype for a in arrays):
         raise ValueError("dtype mismatch between arrays")
-    if not all(a.shape[1 - axis] == arrays[0].shape[1 - axis] for a in arrays):
-        raise ValueError("Arrays must have the same shape along the specified axis")
 
     if arrays[0].dtype == "float32":
         return NumArray(
