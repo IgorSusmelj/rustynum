@@ -102,7 +102,6 @@ impl FromU32 for i64 {
     }
 }
 
-
 /// A trait for converting from `usize` to a specific type.
 pub trait FromUsize {
     /// Converts a `usize` value to the implementing type.
@@ -169,8 +168,6 @@ impl FromUsize for i64 {
     }
 }
 
-
-
 pub trait NumOps:
     Sized + Add<Output = Self> + Mul<Output = Self> + Sub<Output = Self> + Div<Output = Self> + Copy
 {
@@ -230,5 +227,38 @@ impl NumOps for i64 {
     /// Returns the zero value for `i64`.
     fn zero() -> Self {
         0
+    }
+}
+
+/// A trait that provides exponential and logarithmic operations.
+pub trait ExpLog: Sized {
+    /// Returns the exponential of the number.
+    fn exp(self) -> Self;
+
+    /// Returns the natural logarithm of the number.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number is non-positive, as the logarithm is undefined for such values.
+    fn log(self) -> Self;
+}
+
+impl ExpLog for f32 {
+    fn exp(self) -> Self {
+        f32::exp(self)
+    }
+
+    fn log(self) -> Self {
+        f32::ln(self)
+    }
+}
+
+impl ExpLog for f64 {
+    fn exp(self) -> Self {
+        f64::exp(self)
+    }
+
+    fn log(self) -> Self {
+        f64::ln(self)
     }
 }

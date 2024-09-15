@@ -407,6 +407,58 @@ class NumArray:
                 flat_list[i * shape[1] : (i + 1) * shape[1]] for i in range(shape[0])
             ]
 
+    def exp(self) -> "NumArray":
+        """
+        Computes the exponential of all elements in the NumArray.
+
+        Returns:
+            A new NumArray with the exponential of all elements.
+        """
+        return NumArray(self.inner.exp(), dtype=self.dtype)
+
+    def log(self) -> "NumArray":
+        """
+        Computes the natural logarithm of all elements in the NumArray.
+
+        Returns:
+            A new NumArray with the natural logarithm of all elements.
+        """
+        return NumArray(self.inner.log(), dtype=self.dtype)
+
+    def sigmoid(self) -> "NumArray":
+        """
+        Computes the sigmoid of all elements in the NumArray.
+
+        Returns:
+            A new NumArray with the sigmoid of all elements.
+        """
+        return NumArray(self.inner.sigmoid(), dtype=self.dtype)
+
+    def concatenate(self, other: "NumArray", axis: int) -> "NumArray":
+        """
+        Concatenates the NumArray with another NumArray along the specified axis.
+
+        Parameters:
+            other: Another NumArray to concatenate with.
+            axis: Axis along which to concatenate.
+
+        Returns:
+            A new NumArray containing the concatenated data.
+        """
+        if self.dtype != other.dtype:
+            raise ValueError("dtype mismatch between arrays")
+        if self.shape[1 - axis] != other.shape[1 - axis]:
+            raise ValueError("Arrays must have the same shape along the specified axis")
+
+        if self.dtype == "float32":
+            result = _rustynum.concatenate_f32([self.inner, other.inner], axis)
+        elif self.dtype == "float64":
+            result = _rustynum.concatenate_f64([self.inner, other.inner], axis)
+        else:
+            raise ValueError("Unsupported dtype for concatenation")
+
+        return NumArray(result, dtype=self.dtype)
+
 
 def zeros(shape: List[int], dtype: str = "float32") -> "NumArray":
     """
@@ -531,3 +583,57 @@ def dot(a: "NumArray", b: "NumArray") -> Union[float, "NumArray"]:
         return NumArray([out], dtype="float32").item()
     else:
         raise TypeError("Both arguments must be NumArray instances.")
+
+
+def exp(a: "NumArray") -> "NumArray":
+    if isinstance(a, NumArray):
+        return a.exp()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").exp()
+    else:
+        raise TypeError(
+            "Unsupported operand type for exp: '{}'".format(type(a).__name__)
+        )
+
+
+def log(a: "NumArray") -> "NumArray":
+    if isinstance(a, NumArray):
+        return a.log()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").log()
+    else:
+        raise TypeError(
+            "Unsupported operand type for log: '{}'".format(type(a).__name__)
+        )
+
+
+def sigmoid(a: "NumArray") -> "NumArray":
+    if isinstance(a, NumArray):
+        return a.sigmoid()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").sigmoid()
+    else:
+        raise TypeError(
+            "Unsupported operand type for sigmoid: '{}'".format(type(a).__name__)
+        )
+
+
+def concatenate(arrays: List["NumArray"], axis: int) -> "NumArray":
+    # axis can be any integer, but most of the time it would only be 0 or 1
+    if not all(isinstance(a, NumArray) for a in arrays):
+        raise TypeError("All elements in 'arrays' must be NumArray instances.")
+    if not all(a.dtype == arrays[0].dtype for a in arrays):
+        raise ValueError("dtype mismatch between arrays")
+    if not all(a.shape[1 - axis] == arrays[0].shape[1 - axis] for a in arrays):
+        raise ValueError("Arrays must have the same shape along the specified axis")
+
+    if arrays[0].dtype == "float32":
+        return NumArray(
+            _rustynum.concatenate_f32([a.inner for a in arrays], axis), dtype="float32"
+        )
+    elif arrays[0].dtype == "float64":
+        return NumArray(
+            _rustynum.concatenate_f64([a.inner for a in arrays], axis), dtype="float64"
+        )
+    else:
+        raise ValueError("Unsupported dtype for concatenation")

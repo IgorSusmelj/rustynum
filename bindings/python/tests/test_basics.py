@@ -28,3 +28,55 @@ def test_linspace():
     b = np.linspace(0, 10, 5, dtype="float32")
     assert a.tolist() == [0.0, 2.5, 5.0, 7.5, 10.0], "Linspace failed"
     assert np.allclose(a.tolist(), b, atol=1e-9), "Linspace failed"
+
+
+def test_exp():
+    a = rnp.NumArray([0.0, 1.0, 2.0, 3.0], dtype="float32")
+    b = np.exp(np.array([0.0, 1.0, 2.0, 3.0], dtype="float32"))
+    assert np.allclose(a.exp().tolist(), b, atol=1e-9), "Exp failed"
+
+
+def test_log():
+    a = rnp.NumArray([1.0, 2.0, 4.0, 8.0], dtype="float32")
+    b = np.log(np.array([1.0, 2.0, 4.0, 8.0], dtype="float32"))
+    assert np.allclose(a.log().tolist(), b, atol=1e-9), "Log failed"
+
+
+def test_sigmoid():
+    a = rnp.NumArray([0.0, 1.0, 2.0, 3.0], dtype="float32")
+    b = 1 / (1 + np.exp(-np.array([0.0, 1.0, 2.0, 3.0], dtype="float32")))
+    assert np.allclose(a.sigmoid().tolist(), b, atol=1e-9), "Sigmoid failed"
+
+
+def test_concatenate_along_axis_0():
+    a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    b = rnp.NumArray([[5.0, 6.0], [7.0, 8.0]], dtype="float32")
+    c = np.concatenate(
+        [
+            np.array([[1.0, 2.0], [3.0, 4.0]], dtype="float32"),
+            np.array([[5.0, 6.0], [7.0, 8.0]], dtype="float32"),
+        ],
+        axis=0,
+    )
+
+    assert rnp.concatenate([a, b], axis=0).shape == c.shape, "Shape mismatch"
+    assert np.allclose(
+        rnp.concatenate([a, b], axis=0).tolist(), c, atol=1e-9
+    ), "Concatenate failed"
+
+
+def test_concatenate_along_axis_1():
+    a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    b = rnp.NumArray([[5.0, 6.0], [7.0, 8.0]], dtype="float32")
+    c = np.concatenate(
+        [
+            np.array([[1.0, 2.0], [3.0, 4.0]], dtype="float32"),
+            np.array([[5.0, 6.0], [7.0, 8.0]], dtype="float32"),
+        ],
+        axis=1,
+    )
+
+    assert rnp.concatenate([a, b], axis=1).shape == c.shape, "Shape mismatch"
+    assert np.allclose(
+        rnp.concatenate([a, b], axis=1).tolist(), c, atol=1e-9
+    ), "Concatenate failed"

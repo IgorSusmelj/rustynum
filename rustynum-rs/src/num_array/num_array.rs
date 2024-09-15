@@ -27,12 +27,12 @@
 use std::fmt::Debug;
 use std::iter::Sum;
 use std::marker::PhantomData;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::simd::{f32x16, f64x8};
 
 use crate::num_array::linalg::matrix_multiply;
 use crate::simd_ops::SimdOps;
-use crate::traits::{FromU32, FromUsize, NumOps};
+use crate::traits::{ExpLog, FromU32, FromUsize, NumOps};
 
 pub type NumArray32 = NumArray<f32, f32x16>;
 pub type NumArray64 = NumArray<f64, f64x8>;
@@ -73,7 +73,7 @@ where
 
 impl<T, Ops> NumArray<T, Ops>
 where
-    T: Copy + Debug, // Only require what's absolutely necessary for this operation
+    T: Copy + Debug + Neg<Output = T>, // Only require what's absolutely necessary for this operation
 {
     /// Creates a new 1D array from the given data.
     ///
@@ -114,6 +114,8 @@ where
         + PartialOrd
         + FromU32
         + FromUsize
+        + ExpLog
+        + Neg<Output = T>
         + Default
         + Debug,
     Ops: SimdOps<T>,
@@ -193,6 +195,105 @@ where
             strides,
             _ops: PhantomData,
         }
+    }
+
+    /// Concatenates multiple `NumArray` instances along the specified axis.
+    ///
+    /// # Parameters
+    /// * `arrays` - A slice of `NumArray` instances to concatenate.
+    /// * `axis` - The axis along which to concatenate.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance resulting from the concatenation.
+    ///
+    /// # Panics
+    /// Panics if the shapes of the arrays are incompatible for concatenation along the specified axis.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    ///
+    /// let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3]);
+    /// let b = NumArray32::new_with_shape(vec![4.0, 5.0], vec![2]);
+    /// let concatenated = NumArray32::concatenate(&[a, b], 0);
+    /// assert_eq!(concatenated.get_data(), &[1.0, 2.0, 3.0, 4.0, 5.0]);
+    /// ```
+    pub fn concatenate(arrays: &[Self], axis: usize) -> Self {
+        // Ensure there is at least one array to concatenate
+        assert!(
+            !arrays.is_empty(),
+            "At least one array must be provided for concatenation."
+        );
+
+        // Determine the reference shape from the first array
+        let reference_shape = arrays[0].shape();
+
+        // Validate that all arrays have the same number of dimensions
+        let ndim = reference_shape.len();
+        assert!(
+            axis < ndim,
+            "Concatenation axis {} is out of bounds for arrays with {} dimensions.",
+            axis,
+            ndim
+        );
+        for array in arrays.iter() {
+            assert!(
+                array.shape().len() == ndim,
+                "All arrays must have the same number of dimensions."
+            );
+            // Validate that shapes match on all axes except the concatenation axis
+            for (i, (&dim_ref, &dim_other)) in
+                reference_shape.iter().zip(array.shape().iter()).enumerate()
+            {
+                if i != axis {
+                    assert!(
+                        dim_ref == dim_other,
+                        "All arrays must have the same shape except along the concatenation axis. Mismatch found at axis {}.",
+                        i
+                    );
+                }
+            }
+        }
+
+        // Compute the new shape
+        let mut new_shape = reference_shape.to_vec();
+        let total_concat_dim: usize = arrays.iter().map(|array| array.shape()[axis]).sum();
+        new_shape[axis] = total_concat_dim;
+
+        // Compute elements_before_axis and elements_after_axis
+        let elements_before_axis: usize = reference_shape.iter().take(axis).product();
+        let elements_after_axis: usize = reference_shape.iter().skip(axis + 1).product();
+
+        // Initialize the new data vector with the appropriate capacity
+        let total_size: usize = new_shape.iter().product();
+        let mut concatenated_data = Vec::with_capacity(total_size);
+
+        // Iterate over each outer slice and concatenate data from all arrays
+        for outer in 0..elements_before_axis {
+            for array in arrays.iter() {
+                let axis_size = array.shape()[axis];
+                let slice_size = axis_size * elements_after_axis;
+
+                // Calculate the start and end indices for the current slice
+                let start = outer * axis_size * elements_after_axis;
+                let end = start + slice_size;
+
+                // Safety check to prevent out-of-bounds access
+                assert!(
+                    end <= array.data.len(),
+                    "Slice indices out of bounds. Attempted to access {}..{} in an array with length {}.",
+                    start,
+                    end,
+                    array.data.len()
+                );
+
+                // Append the slice to the concatenated data
+                concatenated_data.extend_from_slice(&array.data[start..end]);
+            }
+        }
+
+        // Create and return the new NumArray with the concatenated data and new shape
+        Self::new_with_shape(concatenated_data, new_shape)
     }
 
     /// Transposes a 2D matrix from row-major to column-major format.
@@ -566,6 +667,80 @@ where
         Ops::max(&self.data)
     }
 
+    /// Applies the exponential function to each element of the `NumArray`.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance where each element is the exponential of the corresponding element in the original array.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    ///
+    /// let array = NumArray32::new(vec![0.0, 1.0, 2.0]);
+    /// let exp_array = array.exp();
+    /// assert_eq!(exp_array.get_data(), &[1.0, 2.7182817, 7.389056]);
+    /// ```
+    pub fn exp(&self) -> Self {
+        let exp_data = self.data.iter().map(|&x| x.exp()).collect::<Vec<T>>();
+        Self::new_with_shape(exp_data, self.shape.clone())
+    }
+
+    /// Applies the natural logarithm to each element of the `NumArray`.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance where each element is the natural logarithm of the corresponding element in the original array.
+    ///
+    /// # Panics
+    /// Panics if any element in the array is non-positive, as the logarithm is undefined for such values.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    ///
+    /// let array = NumArray32::new(vec![1.0, 2.718282, 7.389056]);
+    /// let log_array = array.log();
+    /// assert_eq!(log_array.get_data(), &[0.0, 1.0, 2.0]);
+    /// ```
+    pub fn log(&self) -> Self {
+        // Ensure all elements are positive
+        for &x in &self.data {
+            assert!(
+                x > T::from_u32(0),
+                "Logarithm undefined for non-positive values."
+            );
+        }
+
+        let log_data = self.data.iter().map(|&x| x.log()).collect::<Vec<T>>();
+        Self::new_with_shape(log_data, self.shape.clone())
+    }
+
+    /// Applies the sigmoid function to each element of the `NumArray`.
+    ///
+    /// The sigmoid function is defined as `1 / (1 + exp(-x))` for each element `x`.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance where each element is the sigmoid of the corresponding element in the original array.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArray32;
+    ///
+    /// let array = NumArray32::new(vec![0.0, 2.0, -2.0]);
+    /// let sigmoid_array = array.sigmoid();
+    /// let expected = vec![0.5, 0.880797, 0.119203];
+    /// for (computed, &exp_val) in sigmoid_array.get_data().iter().zip(expected.iter()) {
+    ///     assert!((computed - exp_val).abs() < 1e-5, "Expected {}, got {}", exp_val, computed);
+    /// }
+    /// ```
+    pub fn sigmoid(&self) -> Self {
+        let sigmoid_data = self
+            .data
+            .iter()
+            .map(|&x| T::from_u32(1) / (T::from_u32(1) + (-x).exp()))
+            .collect::<Vec<T>>();
+        Self::new_with_shape(sigmoid_data, self.shape.clone())
+    }
+
     /// Normalizes the array.
     ///
     /// # Returns
@@ -853,6 +1028,106 @@ mod tests {
         let ones_array = NumArray32::ones(shape.clone());
         assert_eq!(ones_array.shape(), shape.as_slice());
         assert_eq!(ones_array.get_data(), &[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn test_concatenate_1d_arrays() {
+        let a = NumArray32::new(vec![1.0, 2.0, 3.0]);
+        let b = NumArray32::new(vec![4.0, 5.0]);
+        let c = NumArray32::new(vec![6.0]);
+
+        let concatenated = NumArray32::concatenate(&[a.clone(), b.clone(), c.clone()], 0);
+        assert_eq!(concatenated.shape(), &[6]);
+        assert_eq!(concatenated.get_data(), &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+    }
+
+    #[test]
+    fn test_concatenate_2d_arrays_axis0() {
+        let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        let b = NumArray32::new_with_shape(vec![5.0, 6.0, 7.0, 8.0], vec![2, 2]);
+
+        let concatenated = NumArray32::concatenate(&[a.clone(), b.clone()], 0);
+        assert_eq!(concatenated.shape(), &[4, 2]);
+        assert_eq!(
+            concatenated.get_data(),
+            &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+        );
+    }
+
+    #[test]
+    fn test_concatenate_2d_arrays_axis1() {
+        let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        let b = NumArray32::new_with_shape(vec![5.0, 6.0, 7.0, 8.0], vec![2, 2]);
+
+        let concatenated = NumArray32::concatenate(&[a.clone(), b.clone()], 1);
+        assert_eq!(concatenated.shape(), &[2, 4]);
+        assert_eq!(
+            concatenated.get_data(),
+            &[1.0, 2.0, 5.0, 6.0, 3.0, 4.0, 7.0, 8.0]
+        );
+    }
+
+    #[test]
+    fn test_concatenate_multiple_2d_arrays() {
+        let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        let b = NumArray32::new_with_shape(vec![5.0, 6.0, 7.0, 8.0], vec![2, 2]);
+        let c = NumArray32::new_with_shape(vec![9.0, 10.0, 11.0, 12.0], vec![2, 2]);
+
+        let concatenated = NumArray32::concatenate(&[a.clone(), b.clone(), c.clone()], 0);
+        assert_eq!(concatenated.shape(), &[6, 2]);
+        assert_eq!(
+            concatenated.get_data(),
+            &[
+                1.0, 2.0, // a
+                3.0, 4.0, 5.0, 6.0, // b
+                7.0, 8.0, 9.0, 10.0, // c
+                11.0, 12.0
+            ]
+        );
+    }
+
+    #[test]
+    fn test_concatenate_incompatible_shapes() {
+        let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3, 1]);
+        let b = NumArray32::new_with_shape(vec![4.0, 5.0], vec![2, 1]);
+
+        // Attempt to concatenate along axis 0 (rows)
+        let concatenated = NumArray32::concatenate(&[a.clone(), b.clone()], 0);
+        assert_eq!(concatenated.shape(), &[5, 1]);
+        assert_eq!(concatenated.get_data(), &[1.0, 2.0, 3.0, 4.0, 5.0]);
+
+        // Attempt to concatenate along axis 1 (columns) should panic due to mismatched row sizes
+        let a = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3, 1]);
+        let b = NumArray32::new_with_shape(vec![4.0, 5.0, 6.0, 7.0], vec![4, 1]);
+
+        let result = std::panic::catch_unwind(|| NumArray32::concatenate(&[a, b], 1));
+        assert!(
+            result.is_err(),
+            "Concatenation should fail due to incompatible shapes."
+        );
+    }
+
+    #[test]
+    fn test_concatenate_empty_input() {
+        // Attempt to concatenate with an empty slice should panic
+        let result = std::panic::catch_unwind(|| NumArray32::concatenate(&[], 0));
+        assert!(
+            result.is_err(),
+            "Concatenation should fail when no arrays are provided."
+        );
+    }
+
+    #[test]
+    fn test_concatenate_different_dimensions() {
+        let a = NumArray32::new(vec![1.0, 2.0, 3.0]); // Shape: [3] (1D)
+        let b = NumArray32::new_with_shape(vec![4.0, 5.0], vec![1, 2]); // Shape: [1, 2] (2D)
+
+        // Attempt to concatenate arrays with different dimensions should panic
+        let result = std::panic::catch_unwind(|| NumArray32::concatenate(&[a, b], 0));
+        assert!(
+            result.is_err(),
+            "Concatenation should fail due to differing dimensions."
+        );
     }
 
     #[test]
@@ -1186,5 +1461,60 @@ mod tests {
         let array = NumArray32::new_with_shape(data, vec![2, 3]);
         let column_slice = array.column_slice(1);
         assert_eq!(column_slice, vec![2.0, 5.0]);
+    }
+
+    #[test]
+    fn test_exp_f32() {
+        let array = NumArray32::new(vec![0.0, 1.0, 2.0]);
+        let exp_array = array.exp();
+        // Using approximate values for floating-point comparisons
+        let expected = vec![1.0, 2.7182817, 7.389056];
+        for (computed, &exp_val) in exp_array.get_data().iter().zip(expected.iter()) {
+            assert!(
+                (computed - exp_val).abs() < 1e-5,
+                "Expected {}, got {}",
+                exp_val,
+                computed
+            );
+        }
+    }
+
+    #[test]
+    fn test_log_f32() {
+        let array = NumArray32::new(vec![1.0, 2.7182817, 7.389056]);
+        let log_array = array.log();
+        // Using approximate values for floating-point comparisons
+        let expected = vec![0.0, 1.0, 2.0];
+        for (computed, &log_val) in log_array.get_data().iter().zip(expected.iter()) {
+            assert!(
+                (computed - log_val).abs() < 1e-5,
+                "Expected {}, got {}",
+                log_val,
+                computed
+            );
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "Logarithm undefined for non-positive values.")]
+    fn test_log_f32_with_non_positive() {
+        let array = NumArray32::new(vec![1.0, -1.0, 0.0]);
+        let _ = array.log(); // Should panic
+    }
+
+    #[test]
+    fn test_sigmoid_f32() {
+        let array = NumArray32::new(vec![0.0, 2.0, -2.0]);
+        let sigmoid_array = array.sigmoid();
+        // Using approximate values for floating-point comparisons
+        let expected = vec![0.5, 0.880797, 0.119203];
+        for (computed, &exp_val) in sigmoid_array.get_data().iter().zip(expected.iter()) {
+            assert!(
+                (computed - exp_val).abs() < 1e-5,
+                "Expected {}, got {}",
+                exp_val,
+                computed
+            );
+        }
     }
 }

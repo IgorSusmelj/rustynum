@@ -5,11 +5,13 @@ use pyo3::wrap_pyfunction;
 use rustynum_rs::{NumArray32, NumArray64};
 
 #[pyclass]
+#[derive(Clone)]
 struct PyNumArray32 {
     inner: NumArray32,
 }
 
 #[pyclass]
+#[derive(Clone)]
 struct PyNumArray64 {
     inner: NumArray64,
 }
@@ -124,6 +126,24 @@ impl PyNumArray32 {
             inner: self.inner.reshape(&shape),
         })
     }
+
+    fn exp(&self) -> PyNumArray32 {
+        PyNumArray32 {
+            inner: self.inner.exp(),
+        }
+    }
+
+    fn log(&self) -> PyNumArray32 {
+        PyNumArray32 {
+            inner: self.inner.log(),
+        }
+    }
+
+    fn sigmoid(&self) -> PyNumArray32 {
+        PyNumArray32 {
+            inner: self.inner.sigmoid(),
+        }
+    }
 }
 
 #[pymethods]
@@ -234,6 +254,24 @@ impl PyNumArray64 {
             inner: self.inner.reshape(&shape),
         })
     }
+
+    fn exp(&self) -> PyNumArray64 {
+        PyNumArray64 {
+            inner: self.inner.exp(),
+        }
+    }
+
+    fn log(&self) -> PyNumArray64 {
+        PyNumArray64 {
+            inner: self.inner.log(),
+        }
+    }
+
+    fn sigmoid(&self) -> PyNumArray64 {
+        PyNumArray64 {
+            inner: self.inner.sigmoid(),
+        }
+    }
 }
 
 #[pyfunction]
@@ -314,6 +352,34 @@ fn max_f32(a: &PyNumArray32) -> PyResult<f32> {
 }
 
 #[pyfunction]
+fn exp_f32(a: &PyNumArray32) -> PyNumArray32 {
+    PyNumArray32 {
+        inner: a.inner.exp(),
+    }
+}
+
+#[pyfunction]
+fn log_f32(a: &PyNumArray32) -> PyNumArray32 {
+    PyNumArray32 {
+        inner: a.inner.log(),
+    }
+}
+
+#[pyfunction]
+fn sigmoid_f32(a: &PyNumArray32) -> PyNumArray32 {
+    PyNumArray32 {
+        inner: a.inner.sigmoid(),
+    }
+}
+
+#[pyfunction]
+fn concatenate_f32(arrays: Vec<PyNumArray32>, axis: usize) -> PyResult<PyNumArray32> {
+    let rust_arrays: Vec<NumArray32> = arrays.iter().map(|array| array.inner.clone()).collect();
+    let result = NumArray32::concatenate(&rust_arrays, axis);
+    Ok(PyNumArray32 { inner: result })
+}
+
+#[pyfunction]
 fn zeros_f64(shape: Vec<usize>) -> PyResult<PyNumArray64> {
     Python::with_gil(|py| {
         let result = NumArray64::zeros(shape);
@@ -390,6 +456,34 @@ fn max_f64(a: &PyNumArray64) -> PyResult<f64> {
     Ok(a.inner.max())
 }
 
+#[pyfunction]
+fn exp_f64(a: &PyNumArray64) -> PyNumArray64 {
+    PyNumArray64 {
+        inner: a.inner.exp(),
+    }
+}
+
+#[pyfunction]
+fn log_f64(a: &PyNumArray64) -> PyNumArray64 {
+    PyNumArray64 {
+        inner: a.inner.log(),
+    }
+}
+
+#[pyfunction]
+fn sigmoid_f64(a: &PyNumArray64) -> PyNumArray64 {
+    PyNumArray64 {
+        inner: a.inner.sigmoid(),
+    }
+}
+
+#[pyfunction]
+fn concatenate_f64(arrays: Vec<PyNumArray64>, axis: usize) -> PyResult<PyNumArray64> {
+    let rust_arrays: Vec<NumArray64> = arrays.iter().map(|array| array.inner.clone()).collect();
+    let result = NumArray64::concatenate(&rust_arrays, axis);
+    Ok(PyNumArray64 { inner: result })
+}
+
 #[pymodule]
 fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArray32>()?;
@@ -403,6 +497,10 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(exp_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(log_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(sigmoid_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(concatenate_f32, m)?)?;
 
     m.add_function(wrap_pyfunction!(zeros_f64, m)?)?;
     m.add_function(wrap_pyfunction!(ones_f64, m)?)?;
@@ -413,6 +511,10 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
     m.add_function(wrap_pyfunction!(max_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(exp_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(log_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(sigmoid_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(concatenate_f64, m)?)?;
 
     Ok(())
 }
