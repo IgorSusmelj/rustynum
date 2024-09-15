@@ -12,13 +12,13 @@ def setup_vector(dtype, size=1000):
 # Function to perform min using rustynum
 def min_rustynum(a, dtype):
     a_rnp = rnp.NumArray(a, dtype=dtype)
-    return a_rnp.mean()
+    return a_rnp.min()
 
 
 # Function to perform min using numpy
 def min_numpy(a, dtype):
     a_np = np.array(a, dtype=dtype)
-    return np.mean(a_np)
+    return np.min(a_np)
 
 
 # Parametrized test function for different libraries, data types, and sizes
