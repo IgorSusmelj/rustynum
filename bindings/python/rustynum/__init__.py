@@ -19,23 +19,32 @@ class NumArray:
         """
 
         if isinstance(data, NumArray):
-            self.inner = (
-                data.inner
-            )  # Use the existing PyNumArray32 or PyNumArray64 object
-            self.dtype = data.dtype  # Use the existing dtype
+            self.inner = data.inner
+            self.dtype = data.dtype
         elif isinstance(data, (_rustynum.PyNumArray32, _rustynum.PyNumArray64)):
-            # Directly assign the Rust object if it's already a PyNumArray32 or PyNumArray64
             self.inner = data
             self.dtype = (
                 "float32" if isinstance(data, _rustynum.PyNumArray32) else "float64"
             )
         else:
             # Determine if data is nested (e.g., list of lists)
-            if self._is_nested_list(data):
+            if not self._is_nested_list(data):
+                if dtype is None:
+                    dtype = self._infer_dtype_from_data(data)
+                self.dtype = dtype
+
+                if dtype == "float32":
+                    self.inner = _rustynum.PyNumArray32(data)
+                elif dtype == "float64":
+                    self.inner = _rustynum.PyNumArray64(data)
+                else:
+                    raise ValueError(f"Unsupported dtype: {dtype}")
+            else:
+                # Handling for nested lists
                 shape = self._infer_shape(data)
                 flat_data = self._flatten(data)
+
                 if dtype is None:
-                    # Infer dtype from data types
                     dtype = self._infer_dtype_from_data(flat_data)
                 self.dtype = dtype
 
@@ -45,39 +54,21 @@ class NumArray:
                     self.inner = _rustynum.PyNumArray64(flat_data, shape)
                 else:
                     raise ValueError(f"Unsupported dtype: {dtype}")
-            else:
-                # Flat list
-                if dtype is None:
-                    if all(isinstance(x, int) for x in data):
-                        dtype = "int32" if all(x < 2**31 for x in data) else "int64"
-                    elif all(isinstance(x, float) for x in data):
-                        dtype = "float32"  # Assume float32 for floating-point numbers
-                    else:
-                        raise ValueError("Data type could not be inferred from data.")
-
-                self.dtype = dtype
-
-                if dtype == "float32":
-                    self.inner = _rustynum.PyNumArray32(data)
-                elif dtype == "float64":
-                    self.inner = _rustynum.PyNumArray64(data)
-                else:
-                    raise ValueError(f"Unsupported dtype: {dtype}")
 
     @staticmethod
     def _is_nested_list(data: Any) -> bool:
         """
-        Determines if the provided data is a nested list (e.g., list of lists).
+        Determines if the provided data is likely a nested list by checking the first element.
 
         Parameters:
             data: The data to check.
 
         Returns:
-            True if data is a nested list, False otherwise.
+            True if data is likely a nested list, False otherwise.
         """
         if not isinstance(data, list):
             return False
-        return any(isinstance(elem, list) for elem in data)
+        return len(data) > 0 and isinstance(data[0], list)
 
     @staticmethod
     def _infer_shape(data: List[Any]) -> List[int]:
