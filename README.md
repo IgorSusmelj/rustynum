@@ -1,3 +1,7 @@
+[![PyPI python](https://img.shields.io/pypi/pyversions/rustynum)](https://pypi.org/project/rustynum)
+![PyPI Version](https://badge.fury.io/py/rustynum.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 # RustyNum
 
 RustyNum is a high-performance numerical computation library written in Rust, created to demonstrate the potential of Rust's SIMD (Single Instruction, Multiple Data) capabilities using the nightly `portable_simd` feature, and serving as a fast alternative to Numpy.
@@ -10,6 +14,10 @@ RustyNum is a high-performance numerical computation library written in Rust, cr
 
 ## Installation
 
+Supported Python versions: `3.8`, `3.9`, `3.10`, `3.11`, `3.12`
+
+Supported operating systems: `Windows x86`, `Linux x86`, `MacOS x86 & ARM`
+
 ### For Python
 
 You can install RustyNum directly from PyPI:
@@ -18,21 +26,25 @@ You can install RustyNum directly from PyPI:
 pip install rustynum
 ```
 
+> If that does not work for you please create an issue with the operating system and Python version you're using!
+
 ## Quick Start Guide (Python)
 
 If you're familiar with Numpy, you'll quickly get used to RustyNum!
 
 ```Python
 import numpy as np
+import rustynum as rnp
+
+# Using Numpy
 a = np.array([1.0, 2.0, 3.0, 4.0], dtype="float32")
 a = a + 2
+print(a.mean())  # 4.5
 
-import rustynum as rnp
+# Using RustyNum
 b = rnp.NumArray([1.0, 2.0, 3.0, 4.0], dtype="float32")
 b = b + 2
-
-print(a.mean()) # 4.5
-print(b.mean().item()) # 4.5
+print(b.mean().item())  # 4.5
 ```
 
 ### Advanced Usage
@@ -40,24 +52,21 @@ print(b.mean().item()) # 4.5
 You can perform advanced operations such as matrix-vector and matrix-matrix multiplications:
 
 ```Python
-
-# matrix-vector dot product
+# Matrix-vector dot product using Numpy
 import numpy as np
+import rustynum as rnp
 
 a = np.random.rand(4 * 4).astype(np.float32)
 b = np.random.rand(4).astype(np.float32)
-
 result_numpy = np.dot(a.reshape((4, 4)), b)
 
-import rustynum as rnp
-
+# Matrix-vector dot product using RustyNum
 a_rnp = rnp.NumArray(a.tolist())
 b_rnp = rnp.NumArray(b.tolist())
-
 result_rust = a_rnp.reshape([4, 4]).dot(b_rnp).tolist()
 
-print(result_numpy) # [0.8383043 1.678406  1.4153088 0.7959367]
-print(result_rust) # [0.8383043 1.678406  1.4153088 0.7959367]
+print(result_numpy)  # Example Output: [0.8383043, 1.678406, 1.4153088, 0.7959367]
+print(result_rust)   # Example Output: [0.8383043, 1.678406, 1.4153088, 0.7959367]
 ```
 
 ## Features
@@ -68,6 +77,8 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 
 - float64
 - float32
+- int32 (Planned)
+- int64 (Planned)
 
 ### Supported Operations
 
@@ -87,13 +98,83 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 | Element-wise Mul | `a * b`                         | `a * b`                          |
 | Element-wise Div | `a / b`                         | `a / b`                          |
 
-### 1-Dimensional Arrays
+### NumArray Class
 
-- Dot product
-- Mean
-- Min/Max
-- Addition (+), Subtraction (-), Multiplication (\*), Division (/)
-- Reshape
+Initialization
+
+```Python
+from rustynum import NumArray
+
+# From a list
+a = NumArray([1.0, 2.0, 3.0], dtype="float32")
+
+# From another NumArray
+b = NumArray(a)
+
+# From nested lists (2D array)
+c = NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float64")
+```
+
+Methods
+
+`reshape(shape: List[int]) -> NumArray`
+
+Reshapes the array to the specified shape.
+
+```Python
+reshaped = a.reshape([3, 1])
+```
+
+`matmul(other: NumArray) -> NumArray`
+
+Performs matrix multiplication with another NumArray.
+
+```Python
+result = a.matmul(b)
+# or
+result = a @ b
+```
+
+`dot(other: NumArray) -> NumArray`
+
+Computes the dot product with another NumArray.
+
+```Python
+dot_product = a.dot(b)
+```
+
+`mean(axes: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
+
+Computes the mean along specified axes.
+
+```Python
+average = a.mean()
+average_axis0 = a.mean(axes=0)
+```
+
+`min() -> float`
+
+Returns the minimum value in the array.
+
+```Python
+minimum = a.min()
+```
+
+`max() -> float`
+
+Returns the maximum value in the array.
+
+```Python
+maximum = a.max()
+```
+
+`tolist() -> Union[List[float], List[List[float]]]`
+
+Converts the NumArray to a Python list.
+
+```Python
+list_representation = a.tolist()
+```
 
 ### Multi-Dimensional Arrays
 
@@ -106,7 +187,7 @@ Planned Features:
 
 - N-dimensional arrays
   - Useful for filters, image processing, and machine learning
-- Additional operations: arange, linspace, median, argmin, argmax, sort, std, var, zeros, cumsum, interp
+- Additional operations: concat, exp, sigmoid, log, median, argmin, argmax, sort, std, var, zeros, cumsum, interp
 - Integer support
 - Extended shaping and reshaping capabilities
 - C++ and WASM bindings
