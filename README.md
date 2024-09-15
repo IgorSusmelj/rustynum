@@ -91,8 +91,12 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 | Mean             | `np.mean(a)`                    | `rnp.mean(a)`                    |
 | Min              | `np.min(a)`                     | `rnp.min(a)`                     |
 | Max              | `np.max(a)`                     | `rnp.max(a)`                     |
+| Exp              | `np.exp(a)`                     | `rnp.exp(a)`                     |
+| Log              | `np.log(a)`                     | `rnp.log(a)`                     |
+| Sigmoid          | `1 / (1 + np.exp(-a))`          | `rnp.sigmoid(a)`                 |
 | Dot Product      | `np.dot(a, b)`                  | `rnp.dot(a, b)`                  |
 | Reshape          | `a.reshape((2, 3))`             | `a.reshape([2, 3])`              |
+| Concatenate      | `np.concatenate([a,b], axis=0)` | `rnp.concatenate([a,b], axis=0)` |
 | Element-wise Add | `a + b`                         | `a + b`                          |
 | Element-wise Sub | `a - b`                         | `a - b`                          |
 | Element-wise Mul | `a * b`                         | `a * b`                          |
@@ -187,7 +191,7 @@ Planned Features:
 
 - N-dimensional arrays
   - Useful for filters, image processing, and machine learning
-- Additional operations: concat, exp, sigmoid, log, median, argmin, argmax, sort, std, var, zeros, cumsum, interp
+- Additional operations: median, argmin, argmax, sort, std, var, zeros, cumsum, interp
 - Integer support
 - Extended shaping and reshaping capabilities
 - C++ and WASM bindings

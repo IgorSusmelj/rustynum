@@ -5,9 +5,9 @@ use super::num_array::{NumArray, NumArray32, NumArray64};
 use std::iter::Sum;
 
 use crate::simd_ops::SimdOps;
-use crate::traits::{FromU32, FromUsize, NumOps};
+use crate::traits::{ExpLog, FromU32, FromUsize, NumOps};
 use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 /// Performs matrix-vector multiplication.
 ///
@@ -35,6 +35,9 @@ where
         + PartialOrd
         + FromU32
         + FromUsize
+        + FromUsize
+        + ExpLog
+        + Neg<Output = T>
         + NumOps
         + Debug,
     Ops: SimdOps<T>,
@@ -83,6 +86,9 @@ where
         + PartialOrd
         + FromU32
         + FromUsize
+        + FromUsize
+        + ExpLog
+        + Neg<Output = T>
         + NumOps
         + Debug,
     Ops: SimdOps<T>,
@@ -133,6 +139,9 @@ where
         + PartialOrd
         + FromU32
         + FromUsize
+        + FromUsize
+        + ExpLog
+        + Neg<Output = T>
         + NumOps
         + Debug,
     Ops: SimdOps<T>,
