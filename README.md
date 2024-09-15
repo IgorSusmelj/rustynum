@@ -211,7 +211,7 @@ RustyNum is built on four core principles:
 
 ## Performance
 
-RustyNum leverages Rust's `portable_simd` feature to achieve significant performance improvements in numerical computations. On a MacBook Pro M1 Pro, RustyNum outperforms Numpy in several key operations. Below are benchmark results comparing `RustyNum 0.1.2` with `Numpy 1.24.4`:
+RustyNum leverages Rust's `portable_simd` feature to achieve significant performance improvements in numerical computations. On a MacBook Pro M1 Pro, RustyNum outperforms Numpy in several key operations. Below are benchmark results comparing `RustyNum 0.1.4` with `Numpy 1.24.4`:
 
 ### Benchmark Results (float32)
 
@@ -219,10 +219,12 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 | --------------------------- | -------------- | -------------- | -------------- |
 | Mean (1000 elements)        | 8.8993         | 22.6300        | 2.54x          |
 | Min (1000 elements)         | 10.1423        | 28.9693        | 2.86x          |
+| Sigmoid (1000 elems)        | 10.6899        | 23.2486        | 2.17x          |
 | Dot Product (1000 elems)    | 17.0640        | 38.2958        | 2.24x          |
 | Matrix-Vector (1000x1000)   | 10,041.6093    | 24,990.2646    | 2.49x          |
 | Matrix-Vector (10000x10000) | 2,731,092.0332 | 2,103,920.4830 | 0.77x          |
-| Matrix-Matrix (2000x2000)   | 714,635.3832   | 264,115.1336   | 0.37x          |
+| Matrix-Matrix (500x500)     | 7,010.6638     | 14,878.9556    | 2.12x          |
+| Matrix-Matrix (2000x2000)   | 225,595.8832   | 257,832.6334   | 1.14x          |
 
 ### Benchmark Results (float64)
 
@@ -233,7 +235,8 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 | Dot Product (1000 elems)    | 16.6583        | 38.8000        | 2.33x          |
 | Matrix-Vector (1000x1000)   | 9,941.3305     | 23,788.9570    | 2.39x          |
 | Matrix-Vector (10000x10000) | 3,635,297.4664 | 4,962,900.9084 | 1.37x          |
-| Matrix-Matrix (2000x2000)   | 1,362,796.0666 | 331,243.1500   | 0.24x          |
+| Matrix-Matrix (500x500)     | 9,683.3815     | 15,866.6376    | 1.64x          |
+| Matrix-Matrix (2000x2000)   | 412,333.8586   | 365,047.5000   | 0.89x          |
 
 ### Observations
 
