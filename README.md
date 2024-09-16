@@ -2,6 +2,10 @@
 ![PyPI Version](https://badge.fury.io/py/rustynum.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+---
+
+⚠️ **Disclaimer:** _RustyNum is currently a work in progress and is not recommended for production use. Features may be unstable and subject to change._
+
 # RustyNum
 
 RustyNum is a high-performance numerical computation library written in Rust, created to demonstrate the potential of Rust's SIMD (Single Instruction, Multiple Data) capabilities using the nightly `portable_simd` feature, and serving as a fast alternative to Numpy.
@@ -10,7 +14,7 @@ RustyNum is a high-performance numerical computation library written in Rust, cr
 
 - **High Performance:** Utilizes Rust's `portable_simd` for accelerated numerical operations across various hardware platforms, achieving up to 2.86x faster computations for certain operations compared to Numpy.
 - **Python Bindings:** Seamless integration with Python, providing a familiar Numpy-like interface.
-- **Lightweight:** Minimal dependencies (no external crates are used), ensuring a small footprint and easy deployment. Rustynum Python wheels are only 300kBytes (50x smaller than Numpy wheels).
+- **Lightweight:** Minimal dependencies (no external crates are used), ensuring a small footprint and easy deployment. RustyNum Python wheels are only 300kBytes (50x smaller than Numpy wheels).
 
 ## Installation
 
@@ -82,7 +86,7 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 
 ### Supported Operations
 
-| Operation        | NumPy Equivalent                | Rustynum Equivalent              |
+| Operation        | NumPy Equivalent                | RustyNum Equivalent              |
 | ---------------- | ------------------------------- | -------------------------------- |
 | Zeros Array      | `np.zeros((2, 3))`              | `rnp.zeros((2, 3))`              |
 | Ones Array       | `np.ones((2, 3))`               | `rnp.ones((2, 3))`               |
@@ -211,9 +215,11 @@ RustyNum is built on four core principles:
 
 ## Performance
 
+### Python
+
 RustyNum leverages Rust's `portable_simd` feature to achieve significant performance improvements in numerical computations. On a MacBook Pro M1 Pro, RustyNum outperforms Numpy in several key operations. Below are benchmark results comparing `RustyNum 0.1.4` with `Numpy 1.24.4`:
 
-### Benchmark Results (float32)
+#### Benchmark Results (float32)
 
 | Operation                   | RustyNum (us)  | Numpy (us)     | Speedup Factor |
 | --------------------------- | -------------- | -------------- | -------------- |
@@ -226,7 +232,7 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 | Matrix-Matrix (500x500)     | 7,010.6638     | 14,878.9556    | 2.12x          |
 | Matrix-Matrix (2000x2000)   | 225,595.8832   | 257,832.6334   | 1.14x          |
 
-### Benchmark Results (float64)
+#### Benchmark Results (float64)
 
 | Operation                   | RustyNum (us)  | Numpy (us)     | Speedup Factor |
 | --------------------------- | -------------- | -------------- | -------------- |
@@ -238,12 +244,32 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 | Matrix-Matrix (500x500)     | 9,683.3815     | 15,866.6376    | 1.64x          |
 | Matrix-Matrix (2000x2000)   | 412,333.8586   | 365,047.5000   | 0.89x          |
 
-### Observations
+#### Observations
 
 - RustyNum significantly outperforms Numpy in basic operations such as mean, min, and dot product, with speedup factors over 2x.
 - For larger operations, especially matrix-vector and matrix-matrix multiplications, Numpy currently performs better, which highlights areas for potential optimization in RustyNum.
 
 These results demonstrate RustyNum's potential for high-performance numerical computations, particularly in operations where SIMD instructions can be fully leveraged.
+
+### Rust
+
+In addition to the Python bindings, RustyNum’s core library is implemented in Rust. Below is a comparison of RustyNum (rustynum_rs) with two popular Rust numerical libraries: `nalgebra 0.33.0` and `ndarray 0.16.1`. The benchmarks were conducted using the Criterion crate to measure performance across various basic operations.
+
+#### Benchmark Results (float32)
+
+| Input Size                                  | RustyNum  | nalgebra  | ndarray   |
+| ------------------------------------------- | --------- | --------- | --------- |
+| Addition (10k elements)                     | 760.53 ns | 695.73 ns | 664.29 ns |
+| Vector mean (10k elements)                  | 683.83 ns | 14.602 µs | 1.2370 µs |
+| Vector Dot Product (10k elements)           | 758.65 ns | 1.1843 µs | 1.1942 µs |
+| Matrix-Vector Multiplication (1k elements)  | 77.851 us | 403.39 µs | 115.75 µs |
+| Matrix-Matrix Multiplication (500 elements) | 2.5526 ms | 2.9038 ms | 2.7847 ms |
+| Matrix-Matrix Multiplication (1k elements)  | 17.836 ms | 21.895 ms | 22.423 ms |
+
+#### Observations
+
+- RustyNum is able to perform on par with nalgebra and ndarray in most operations and sometimes even outperforms them.
+- There seems a significant overhead in the Python bindings. We're getting 10ms in RustyNum for the matrix-vector multiplication with 1k elements vs 77us.
 
 # Build
 
