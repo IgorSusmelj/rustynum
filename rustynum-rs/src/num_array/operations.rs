@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use super::num_array::{NumArray, NumArray32, NumArray64};
+use super::num_array::{NumArray, NumArrayF32, NumArrayF64, NumArrayI32, NumArrayI64, NumArrayU8};
 use crate::simd_ops::SimdOps;
 use crate::traits::{ExpLog, FromU32, FromUsize, NumOps};
 use std::fmt::Debug;
@@ -481,35 +481,64 @@ where
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
-    /// test for our newly added Add method
+    #[test]
+    fn test_add_scalar_u8() {
+        let a = NumArrayU8::new(vec![1, 2, 3, 4]);
+        let result = a + 1;
+        assert_eq!(result.get_data(), &vec![2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_add_array_u8() {
+        let a = NumArrayU8::new(vec![1, 2, 3, 4]);
+        let b = NumArrayU8::new(vec![4, 3, 2, 1]);
+        let result = a + b;
+        assert_eq!(result.get_data(), &vec![5, 5, 5, 5]);
+    }
+
+    #[test]
+    fn test_add_scalar_i32() {
+        let a = NumArrayI32::new(vec![1, 2, 3, 4]);
+        let result = a + 1;
+        assert_eq!(result.get_data(), &vec![2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_add_scalar_i64() {
+        let a = NumArrayI64::new(vec![1, 2, 3, 4]);
+        let result = a + 1;
+        assert_eq!(result.get_data(), &vec![2, 3, 4, 5]);
+    }
+
     #[test]
     fn test_add_scalar_f32() {
-        let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        let a = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
         let result = a + 1.0;
         assert_eq!(result.get_data(), &vec![2.0, 3.0, 4.0, 5.0]);
     }
 
     #[test]
     fn test_add_scalar_f64() {
-        let a = NumArray64::new(vec![1.0, 2.0, 3.0, 4.0]);
+        let a = NumArrayF64::new(vec![1.0, 2.0, 3.0, 4.0]);
         let result = a + 1.0;
         assert_eq!(result.get_data(), &vec![2.0, 3.0, 4.0, 5.0]);
     }
 
     #[test]
     fn test_add_array_f32() {
-        let a = NumArray32::new(vec![1.0, 2.0, 3.0, 4.0]);
-        let b = NumArray32::new(vec![4.0, 3.0, 2.0, 1.0]);
+        let a = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        let b = NumArrayF32::new(vec![4.0, 3.0, 2.0, 1.0]);
         let result = a + b;
         assert_eq!(result.get_data(), &vec![5.0, 5.0, 5.0, 5.0]);
     }
 
     #[test]
     fn test_add_array_f64() {
-        let a = NumArray64::new(vec![1.0, 2.0, 3.0, 4.0]);
-        let b = NumArray64::new(vec![4.0, 3.0, 2.0, 1.0]);
+        let a = NumArrayF64::new(vec![1.0, 2.0, 3.0, 4.0]);
+        let b = NumArrayF64::new(vec![4.0, 3.0, 2.0, 1.0]);
         let result = a + b;
         assert_eq!(result.get_data(), &vec![5.0, 5.0, 5.0, 5.0]);
     }
@@ -517,7 +546,7 @@ mod tests {
     #[test]
     fn test_add_scalar_with_remainder() {
         let data = (0..18).map(|x| x as f32).collect::<Vec<_>>(); // Length not divisible by 16 (assuming f32x16)
-        let num_array = NumArray32::new(data);
+        let num_array = NumArrayF32::new(data);
         let scalar = 1.0f32;
 
         let result = num_array + scalar;
@@ -536,8 +565,8 @@ mod tests {
         let data_a = (0..18).map(|x| x as f32).collect::<Vec<_>>(); // Length not divisible by 16
         let data_b = (0..18).map(|x| 2.0 * x as f32).collect::<Vec<_>>();
 
-        let num_array_a = NumArray32::new(data_a);
-        let num_array_b = NumArray32::new(data_b);
+        let num_array_a = NumArrayF32::new(data_a);
+        let num_array_b = NumArrayF32::new(data_b);
 
         let result = num_array_a + num_array_b;
 

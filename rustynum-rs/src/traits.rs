@@ -70,6 +70,22 @@ impl FromU32 for f64 {
     }
 }
 
+/// Converts an unsigned 32-bit integer to an unsigned 8-bit integer.
+impl FromU32 for u8 {
+    /// Converts the given `value` of type `u32` to an unsigned 8-bit integer (`u8`).
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The unsigned 32-bit integer value to convert.
+    ///
+    /// # Returns
+    ///
+    /// The converted unsigned 8-bit integer value.
+    fn from_u32(value: u32) -> Self {
+        value as u8
+    }
+}
+
 /// Converts an unsigned 32-bit integer to a signed 32-bit integer.
 impl FromU32 for i32 {
     /// Converts the given `value` of type `u32` to a signed 32-bit integer (`i32`).
@@ -140,6 +156,26 @@ impl FromUsize for f64 {
     }
 }
 
+/// Converts a `usize` value to `u8` value.
+///
+/// # Panics
+///
+/// Panics if the `usize` value is too large to fit into a `u8`.
+impl FromUsize for u8 {
+    /// Converts a `usize` value into a `u8` value.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The `usize` value to convert.
+    ///
+    /// # Returns
+    ///
+    /// The converted `u8` value.
+    fn from_usize(value: usize) -> Self {
+        value.try_into().expect("usize value is too large for u8")
+    }
+}
+
 /// Converts a `usize` value into an `i32` value.
 ///
 /// # Panics
@@ -206,7 +242,7 @@ impl NumOps for f64 {
 
 /// Trait implementation for performing numeric operations on `i32`.
 impl NumOps for i32 {
-    /// Calculates the square root of the `i32` value.
+    /// Calculates the square root of the `i32` value.  
     fn sqrt(self) -> Self {
         (self as f64).sqrt() as i32
     }

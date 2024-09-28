@@ -1,7 +1,7 @@
 //! # Linear Algebra Operations
 //!
 //! Provides operations such as matrix-vector multiplication using NumArray data structures.
-use super::num_array::{NumArray, NumArray32, NumArray64};
+use super::num_array::NumArray;
 use std::iter::Sum;
 
 use crate::simd_ops::SimdOps;
@@ -155,12 +155,14 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::NumArrayF32;
+
     use super::*;
 
     #[test]
     fn test_matrix_vector_multiply_correct_calculation() {
-        let matrix = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
-        let vector = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3]);
+        let matrix = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let vector = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3]);
         let result = matrix_multiply(&matrix, &vector);
 
         assert_eq!(result.shape(), &[2]);
@@ -170,16 +172,16 @@ mod tests {
     #[test]
     #[should_panic(expected = "Column count of the matrix must match the length of the vector.")]
     fn test_matrix_vector_multiply_dimension_mismatch() {
-        let matrix = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
-        let vector = NumArray32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![4]);
+        let matrix = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let vector = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![4]);
 
         let _result = matrix_multiply(&matrix, &vector);
     }
 
     #[test]
     fn test_matrix_vector_multiply_empty_vector() {
-        let matrix = NumArray32::new_with_shape(vec![], vec![2, 0]);
-        let vector = NumArray32::new_with_shape(vec![], vec![0]);
+        let matrix = NumArrayF32::new_with_shape(vec![], vec![2, 0]);
+        let vector = NumArrayF32::new_with_shape(vec![], vec![0]);
 
         let result = matrix_multiply(&matrix, &vector);
 
@@ -189,8 +191,8 @@ mod tests {
 
     #[test]
     fn test_matrix_vector_multiply_single_element() {
-        let matrix = NumArray32::new_with_shape(vec![5.0], vec![1, 1]);
-        let vector = NumArray32::new_with_shape(vec![2.0], vec![1]);
+        let matrix = NumArrayF32::new_with_shape(vec![5.0], vec![1, 1]);
+        let vector = NumArrayF32::new_with_shape(vec![2.0], vec![1]);
 
         let result = matrix_multiply(&matrix, &vector);
 
@@ -200,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_matrix_matrix_multiply_size_16() {
-        let matrix = NumArray32::new_with_shape(
+        let matrix = NumArrayF32::new_with_shape(
             vec![
                 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
                 16.0, 16.0, 15.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0,
@@ -210,7 +212,7 @@ mod tests {
             vec![3, 16],
         );
 
-        let matrix_rhs = NumArray32::new_with_shape(
+        let matrix_rhs = NumArrayF32::new_with_shape(
             vec![
                 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
                 16.0,

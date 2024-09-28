@@ -1,10 +1,10 @@
-use rustynum_rs::{NumArray32, NumArray64};
+use rustynum_rs::{NumArrayF32, NumArrayF64};
 
 #[test]
 fn test_num_array_creation_and_dot_product() {
     // Create two `NumArray` instances with test data.
-    let array1 = NumArray32::from(&[1.0, 2.0, 3.0, 4.0][..]);
-    let array2 = NumArray32::from(vec![4.0, 3.0, 2.0, 1.0]);
+    let array1 = NumArrayF32::from(&[1.0, 2.0, 3.0, 4.0][..]);
+    let array2 = NumArrayF32::from(vec![4.0, 3.0, 2.0, 1.0]);
 
     // Perform a dot product operation between the two arrays.
     let result = array1.dot(&array2);
@@ -17,8 +17,8 @@ fn test_num_array_creation_and_dot_product() {
     );
 
     // Test with arrays of different sizes to ensure it handles non-multiples of SIMD width
-    let array3 = NumArray32::from(&[1.0, 2.0, 3.0][..]);
-    let array4 = NumArray32::from(vec![4.0, 5.0, 6.0]);
+    let array3 = NumArrayF32::from(&[1.0, 2.0, 3.0][..]);
+    let array4 = NumArrayF32::from(vec![4.0, 5.0, 6.0]);
 
     // Perform a dot product operation between the two smaller arrays.
     let result_small = array3.dot(&array4);
@@ -42,8 +42,8 @@ fn test_complex_operations() {
     let step = size as f64 / (size - 1) as f64; // Correct step calculation
     let data2: Vec<f64> = (0..size).map(|x| size as f64 - x as f64 * step).collect();
 
-    let array1 = NumArray64::from(data1.clone());
-    let array2 = NumArray64::from(data2.clone());
+    let array1 = NumArrayF64::from(data1.clone());
+    let array2 = NumArrayF64::from(data2.clone());
 
     // Perform addition of two NumArrays
     let added = &array1 + &array2;
