@@ -96,3 +96,49 @@ def test_concatenate_along_axis_1():
     assert np.allclose(
         rnp.concatenate([a, b], axis=1).tolist(), c, atol=1e-9
     ), "Concatenate failed"
+
+
+def test_flip_axis_0():
+    a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    b = np.flip(np.array([[1.0, 2.0], [3.0, 4.0]], dtype="float32"), axis=0)
+    assert np.allclose(a.flip(axis=0).tolist(), b, atol=1e-9), "Flip axis 0 failed"
+    assert a.flip(axis=0).shape == b.shape, "Shape mismatch"
+
+
+def test_flip_axis_1():
+    a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    b = np.flip(np.array([[1.0, 2.0], [3.0, 4.0]], dtype="float32"), axis=1)
+    assert np.allclose(a.flip(axis=1).tolist(), b, atol=1e-9), "Flip axis 1 failed"
+    assert a.flip(axis=1).shape == b.shape, "Shape mismatch"
+
+
+def test_flip_multiple_axis():
+    a = rnp.NumArray(
+        [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype="float32"
+    )
+    b = np.flip(
+        np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype="float32"),
+        axis=(0, 1),
+    )
+    assert np.allclose(
+        a.flip(axis=(0, 1)).tolist(), b, atol=1e-9
+    ), "Flip multiple axis failed"
+    assert a.flip(axis=(0, 1)).shape == b.shape, "Shape mismatch"
+
+
+def test_fancy_index_flipping_f32():
+    a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    b = np.array([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+
+    assert np.allclose(
+        a[:, ::-1].tolist(), b[:, ::-1], atol=1e-9
+    ), "Fancy indexing failed"
+
+
+def test_fancy_index_flipping_u8():
+    a = rnp.NumArray([[1, 2], [3, 4]], dtype="uint8")
+    b = np.array([[1, 2], [3, 4]], dtype="uint8")
+
+    assert np.allclose(
+        a[:, ::-1].tolist(), b[:, ::-1], atol=1e-9
+    ), "Fancy indexing failed"
