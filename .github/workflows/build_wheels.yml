@@ -18,17 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - name: Install Python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: ${{ matrix.python-version }}
-
-      # - name: Install Rust nightly
-      #   uses: actions-rs/toolchain@v1
-      #   with:
-      #     toolchain: nightly-2024-05-04
-      #     override: true
-
       - name: Build Wheels
         uses: pypa/cibuildwheel@v2.18.0
         with:
@@ -63,33 +52,6 @@ jobs:
         with:
           name: wheelhouse
           path: wheelhouse/*.whl
-
-  # build_wheels_linux:
-  #   name: py${{ matrix.python-version }} on ${{ matrix.os }} (x64)
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ubuntu-latest]
-  #       python-version: [38, 39, 310, 311, 312]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Build Wheels
-  #       uses: pypa/cibuildwheel@v2.16.5
-  #       with:
-  #         output-dir: wheelhouse
-  #         package-dir: ./bindings/python
-  #       env:
-  #         CIBW_BUILD: "cp${{ matrix.python-version }}-*"
-  #         CIBW_SKIP: "*musllinux_* *i686*"
-  #         CIBW_BEFORE_BUILD: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && rustup default nightly-2024-05-04 && pip install setuptools setuptools_rust wheel"
-  #         CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true
-
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         name: wheelhouse
-  #         path: wheelhouse/*.whl
-
 
   build_wheels_aarch64:
     name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
