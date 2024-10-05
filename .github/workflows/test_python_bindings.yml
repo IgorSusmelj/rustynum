@@ -57,7 +57,7 @@ jobs:
 
       - name: Install Test Dependencies
         run: |
-          pip install "pytest>=8.0.0" "numpy>=1.25.0"
+          pip install "pytest>=8.0.0" "numpy>=1.24.0"
       - name: Run Tests
         run: |
           pytest tests
