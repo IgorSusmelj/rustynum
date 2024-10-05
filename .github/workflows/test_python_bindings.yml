@@ -31,7 +31,7 @@ jobs:
       - name: Set up Python ${{ matrix.python.version }}
         uses: actions/setup-python@v4
         with:
-          python: ${{ matrix.python.version }}
+          python-version: ${{ matrix.python.version }}
 
       - name: Build Wheel
         uses: pypa/cibuildwheel@v2.18.0
@@ -53,7 +53,7 @@ jobs:
 
       - name: Install Built Wheel
         run: |
-          pip install wheelhouse/*cp${{ matrix.python.tag }}-musllinux*.whl
+          pip install wheelhouse/*cp${{ matrix.python.tag }}-*.whl
 
       - name: Install Test Dependencies
         run: |
