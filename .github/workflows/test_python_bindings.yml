@@ -1,0 +1,54 @@
+name: Test Python Bindings
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test_python_bindings:
+    name: Test Python ${{ matrix.python-version }} on Ubuntu
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build Wheel
+        uses: pypa/cibuildwheel@v2.18.0
+        with:
+          output-dir: wheelhouse
+          package-dir: ./bindings/python
+          build-frontend: build
+          build-verbosity: 1
+        env:
+          CIBW_BUILD: "cp${{ matrix.python-version.replace('.', '') }}-*"
+          CIBW_SKIP: "*-manylinux_i686 *-musllinux_i686 *-win32 *-macosx_*"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
+          CIBW_BEFORE_BUILD_LINUX: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+            rustup default nightly-2024-05-04
+            pip install setuptools setuptools_rust wheel
+          CIBW_ENVIRONMENT_LINUX: PATH="$PATH:$HOME/.cargo/bin"
+
+      - name: Install Built Wheel
+        run: |
+          pip install wheelhouse/*.whl
+
+      - name: Install Test Dependencies
+        run: |
+          run: pip install "pytest>=8.0.0" "numpy>=1.25.0"
+      - name: Run Tests
+        run: |
+          pytest tests
+        working-directory: rustynum/bindings/python
