@@ -43,7 +43,7 @@ class NumArray:
                 flat_data = self._flatten(data)
 
                 if dtype is None:
-                    dtype = self._infer_dtype_from_data(data)
+                    dtype = self._infer_dtype_from_data(flat_data)
                 self.dtype = dtype
 
                 if dtype == "float32":
@@ -61,8 +61,10 @@ class NumArray:
                     raise ValueError(f"Unsupported dtype: {dtype}")
             else:
                 # Handling for non-nested lists (1D arrays)
-                flat_data = self._flatten(data)
-                shape = [len(flat_data)]
+                if isinstance(data, list):
+                    flat_data = data
+                else:
+                    flat_data = [data]
 
                 if dtype is None:
                     dtype = self._infer_dtype_from_data(flat_data)
@@ -144,12 +146,16 @@ class NumArray:
         Returns:
             A string representing the dtype.
         """
-        if all(isinstance(x, int) for x in data):
-            return "int32" if all(x < 2**31 for x in data) else "int64"
-        elif all(isinstance(x, float) for x in data):
+        first_type = type(data[0])
+        if first_type is int:
+            max_val = max(data[0])
+            return "int32" if max_val < 2**31 else "int64"
+        elif first_type is float:
             return "float32"  # Default to float32
+        elif first_type is bytes or first_type is bytearray:
+            return "uint8"
         else:
-            raise ValueError("Mixed or unsupported data types in data.")
+            raise ValueError("Unsupported data type in data.")
 
     @property
     def shape(self) -> List[int]:
