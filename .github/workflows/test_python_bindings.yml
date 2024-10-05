@@ -15,16 +15,16 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - version: 3.8
-            tag: 38
-          - version: 3.9
-            tag: 39
-          - version: 3.10
-            tag: 310
-          - version: 3.11
-            tag: 311
-          - version: 3.12
-            tag: 312
+          - version: '3.8'
+            tag: '38'
+          - version: '3.9'
+            tag: '39'
+          - version: '3.10'
+            tag: '310'
+          - version: '3.11'
+            tag: '311'
+          - version: '3.12'
+            tag: '312'
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +42,7 @@ jobs:
           build-verbosity: 1
         env:
           CIBW_BUILD: "cp${{ matrix.python.tag }}-*"
-          CIBW_SKIP: "*-manylinux_i686 *-musllinux_i686 *-win32 *-macosx_*"
+          CIBW_SKIP: "*-manylinux_i686 *-musllinux* *-win32 *-macosx_*"
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           CIBW_BEFORE_BUILD_LINUX: |
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
