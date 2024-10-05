@@ -81,6 +81,7 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 
 - float64
 - float32
+- uint8 (experimental)
 - int32 (Planned)
 - int64 (Planned)
 
@@ -105,6 +106,8 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 | Element-wise Sub | `a - b`                         | `a - b`                          |
 | Element-wise Mul | `a * b`                         | `a * b`                          |
 | Element-wise Div | `a / b`                         | `a / b`                          |
+| Fancy indexing   | `np.ones((2,3))[0, :]`          | `rnp.ones((2,3))[0, :]`          |
+| Fancy flipping   | `np.array([1,2,3])[::-1]`       | `rnp.array([1,2,3])[::-1]`       |
 
 ### NumArray Class
 
@@ -269,7 +272,7 @@ In addition to the Python bindings, RustyNum’s core library is implemented in 
 #### Observations
 
 - RustyNum is able to perform on par with nalgebra and ndarray in most operations and sometimes even outperforms them.
-- There seems a significant overhead in the Python bindings. We're getting 10ms in RustyNum for the matrix-vector multiplication with 1k elements vs 77us.
+- There seems a significant overhead in the Python bindings. We're getting 10ms in Python in RustyNum for the matrix-vector multiplication with 1k elements vs 77us in Rust.
 
 # Build
 

@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2};
 use rustynum_rs::num_array::linalg::matrix_multiply;
-use rustynum_rs::NumArray32; // Adjust this to the path to your library
+use rustynum_rs::NumArrayF32;
 
 // Define the operations you want to benchmark
 enum Operation {
@@ -33,9 +33,9 @@ fn benchmark_vector_operation(c: &mut Criterion, op: Operation, sizes: &[usize])
 
     for &size in sizes {
         // Setup data
-        let a_rustynum = NumArray32::new(create_vector(size));
+        let a_rustynum = NumArrayF32::new(create_vector(size));
         let b_rustynum = if matches!(op, Operation::AddVectors | Operation::DotProduct) {
-            Some(NumArray32::new(create_vector(size)))
+            Some(NumArrayF32::new(create_vector(size)))
         } else {
             None
         };
@@ -128,7 +128,6 @@ fn benchmark_matrix_operation(c: &mut Criterion, op: Operation, sizes: &[usize])
     });
 
     for &size in sizes {
-        // Assuming square matrices for simplicity; adjust as needed
         let rows = size;
         let cols = size;
 
@@ -141,14 +140,14 @@ fn benchmark_matrix_operation(c: &mut Criterion, op: Operation, sizes: &[usize])
         };
         let vector = create_vector(cols);
 
-        let num_array_matrix1 = NumArray32::new_with_shape(matrix1.clone(), vec![rows, cols]);
+        let num_array_matrix1 = NumArrayF32::new_with_shape(matrix1.clone(), vec![rows, cols]);
         let num_array_matrix2 = if let Some(ref m2) = matrix2 {
-            Some(NumArray32::new_with_shape(m2.clone(), vec![cols, rows]))
+            Some(NumArrayF32::new_with_shape(m2.clone(), vec![cols, rows]))
         } else {
             None
         };
         let num_array_vector = if matches!(op, Operation::MatrixVectorMultiplication) {
-            Some(NumArray32::new_with_shape(vector.clone(), vec![cols]))
+            Some(NumArrayF32::new_with_shape(vector.clone(), vec![cols]))
         } else {
             None
         };

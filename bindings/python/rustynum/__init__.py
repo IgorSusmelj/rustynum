@@ -1,7 +1,8 @@
 # rustynum_py_wrapper/__init__.py
 from . import _rustynum
-from typing import Any, List, Sequence, Union
+from typing import Any, List, Sequence, Tuple, Union
 import itertools
+import math
 
 
 class NumArray:
@@ -21,25 +22,22 @@ class NumArray:
         if isinstance(data, NumArray):
             self.inner = data.inner
             self.dtype = data.dtype
-        elif isinstance(data, (_rustynum.PyNumArray32, _rustynum.PyNumArray64)):
+        elif isinstance(
+            data,
+            (_rustynum.PyNumArrayF32, _rustynum.PyNumArrayF64, _rustynum.PyNumArrayU8),
+        ):
             self.inner = data
-            self.dtype = (
-                "float32" if isinstance(data, _rustynum.PyNumArray32) else "float64"
-            )
+            if isinstance(data, _rustynum.PyNumArrayF32):
+                self.dtype = "float32"
+            elif isinstance(data, _rustynum.PyNumArrayF64):
+                self.dtype = "float64"
+            elif isinstance(data, _rustynum.PyNumArrayU8):
+                self.dtype = "uint8"
+            else:
+                self.dtype = "unknown"
         else:
             # Determine if data is nested (e.g., list of lists)
-            if not self._is_nested_list(data):
-                if dtype is None:
-                    dtype = self._infer_dtype_from_data(data)
-                self.dtype = dtype
-
-                if dtype == "float32":
-                    self.inner = _rustynum.PyNumArray32(data)
-                elif dtype == "float64":
-                    self.inner = _rustynum.PyNumArray64(data)
-                else:
-                    raise ValueError(f"Unsupported dtype: {dtype}")
-            else:
+            if self._is_nested_list(data):
                 # Handling for nested lists
                 shape = self._infer_shape(data)
                 flat_data = self._flatten(data)
@@ -49,9 +47,40 @@ class NumArray:
                 self.dtype = dtype
 
                 if dtype == "float32":
-                    self.inner = _rustynum.PyNumArray32(flat_data, shape)
+                    self.inner = _rustynum.PyNumArrayF32(flat_data, shape)
                 elif dtype == "float64":
-                    self.inner = _rustynum.PyNumArray64(flat_data, shape)
+                    self.inner = _rustynum.PyNumArrayF64(flat_data, shape)
+                elif dtype == "uint8":
+                    self.inner = _rustynum.PyNumArrayU8(flat_data, shape)
+                elif dtype in ("int32", "int64"):
+                    # Implement PyNumArrayInt32 and PyNumArrayInt64 similarly if needed
+                    raise NotImplementedError(
+                        f"dtype '{dtype}' is not yet implemented."
+                    )
+                else:
+                    raise ValueError(f"Unsupported dtype: {dtype}")
+            else:
+                # Handling for non-nested lists (1D arrays)
+                if isinstance(data, list):
+                    flat_data = data
+                else:
+                    flat_data = [data]
+
+                if dtype is None:
+                    dtype = self._infer_dtype_from_data(flat_data)
+                self.dtype = dtype
+
+                if dtype == "float32":
+                    self.inner = _rustynum.PyNumArrayF32(flat_data)
+                elif dtype == "float64":
+                    self.inner = _rustynum.PyNumArrayF64(flat_data)
+                elif dtype == "uint8":
+                    self.inner = _rustynum.PyNumArrayU8(flat_data)
+                elif dtype in ("int32", "int64"):
+                    # Implement PyNumArrayInt32 and PyNumArrayInt64 similarly if needed
+                    raise NotImplementedError(
+                        f"dtype '{dtype}' is not yet implemented."
+                    )
                 else:
                     raise ValueError(f"Unsupported dtype: {dtype}")
 
@@ -117,12 +146,16 @@ class NumArray:
         Returns:
             A string representing the dtype.
         """
-        if all(isinstance(x, int) for x in data):
-            return "int32" if all(x < 2**31 for x in data) else "int64"
-        elif all(isinstance(x, float) for x in data):
+        first_type = type(data[0])
+        if first_type is int:
+            max_val = max(data[0])
+            return "int32" if max_val < 2**31 else "int64"
+        elif first_type is float:
             return "float32"  # Default to float32
+        elif first_type is bytes or first_type is bytearray:
+            return "uint8"
         else:
-            raise ValueError("Mixed or unsupported data types in data.")
+            raise ValueError("Unsupported data type in data.")
 
     @property
     def shape(self) -> List[int]:
@@ -133,22 +166,60 @@ class NumArray:
         # You may need to implement this method in Rust if it doesn't exist
         return self.inner.shape()
 
-    def __getitem__(self, key: Union[int, slice]) -> Union[List[float], "NumArray"]:
+    def __getitem__(
+        self, key: Union[int, slice, Tuple[Any]]
+    ) -> Union[List[Any], "NumArray"]:
         """
         Gets the item(s) at the specified index or slice.
 
+        Supports single-axis flipping using slice with step=-1.
+
         Parameters:
-            key: Index or slice for the item(s) to get.
+            key: Index, slice, or tuple of indices/slices for access.
 
         Returns:
             Single item or a new NumArray with the sliced data.
         """
-        if isinstance(key, slice):
-            start, stop, _ = key.indices(len(self.tolist()))
-            sliced_data = self.inner.slice(start, stop).tolist()
-            return NumArray(sliced_data, dtype=self.dtype)
-        else:
-            return self.tolist()[key]
+        # Normalize the key to a tuple for uniform processing
+        if not isinstance(key, tuple):
+            key = (key,)
+
+        # Ensure the number of indices does not exceed the number of dimensions
+        if len(key) > len(self.shape):
+            raise IndexError("Too many indices for NumArray")
+
+        # Start with the current NumArray
+        result = self
+
+        # Iterate over each dimension and corresponding key
+        for axis, k in enumerate(key):
+            if isinstance(k, slice):
+                # Check if the slice has a step of -1 (indicating a flip)
+                if k.step == -1:
+                    # Flip the specified axis
+                    result = result.flip(axis)
+                elif k.step is None or k.step == 1:
+                    # Perform standard slicing
+                    result = result.slice(axis, k.start, k.stop)
+                else:
+                    # For simplicity, only handle step=None, step=1, or step=-1
+                    raise NotImplementedError(
+                        "Only full slices or slice with step=-1 are supported."
+                    )
+            elif isinstance(k, int):
+                # Handle integer indexing as before
+                if k < 0:
+                    k += result.shape[axis]
+                if not (0 <= k < result.shape[axis]):
+                    raise IndexError(
+                        f"Index {k} out of bounds for axis {axis} with size {result.shape[axis]}"
+                    )
+                # Perform the integer indexing by slicing the data
+                result = NumArray(result.inner.slice(axis, k, k + 1), dtype=self.dtype)
+            else:
+                raise TypeError(f"Unsupported index type: {type(k)}")
+
+        return result
 
     def __str__(self) -> str:
         return str(self.tolist())
@@ -396,16 +467,23 @@ class NumArray:
                 )
             )
 
-    def tolist(self) -> Union[List[float], List[List[float]]]:
+    def tolist(self) -> List[Any]:
         flat_list = self.inner.tolist()
         shape = self.shape
-        if len(shape) == 1:
-            return flat_list  # Already a 1D list, no changes needed
-        elif len(shape) == 2:
-            # Reshape flat list into a list of lists (2D)
-            return [
-                flat_list[i * shape[1] : (i + 1) * shape[1]] for i in range(shape[0])
-            ]
+
+        def build_nested(flat, shape):
+            if not shape:
+                raise ValueError("Shape cannot be empty")
+            if len(shape) == 1:
+                return flat[: shape[0]]
+            else:
+                step = math.prod(shape[1:])  # Number of elements in each sublist
+                return [
+                    build_nested(flat[i * step : (i + 1) * step], shape[1:])
+                    for i in range(shape[0])
+                ]
+
+        return build_nested(flat_list, shape)
 
     def exp(self) -> "NumArray":
         """
@@ -457,6 +535,52 @@ class NumArray:
         else:
             raise ValueError("Unsupported dtype for concatenation")
 
+        return NumArray(result, dtype=self.dtype)
+
+    def flip(self, axis: Union[int, Sequence[int]]) -> "NumArray":
+        """
+        Flips the NumArray along the specified axes.
+
+        Parameters:
+            axis: Axis to flip along.
+
+        Returns:
+            A new NumArray with the flipped data.
+        """
+        if isinstance(axis, int):
+            result = self.inner.flip_axes([axis])
+        elif isinstance(axis, (list, tuple)):
+            result = self.inner.flip_axes(list(axis))
+        else:
+            raise TypeError("axis must be an integer or a sequence of integers")
+        return NumArray(result, dtype=self.dtype)
+
+    def slice(
+        self, axis: int, start: Union[int, None], stop: Union[int, None]
+    ) -> "NumArray":
+        """
+        Slices the NumArray along a specified axis.
+
+        Parameters:
+            axis: Axis to slice.
+            start: Starting index of the slice.
+            stop: Stopping index of the slice.
+
+        Returns:
+            A new NumArray with the sliced data.
+        """
+        # Handle None values by setting defaults
+        if start is None:
+            start = 0
+        elif start < 0:
+            start += self.shape[axis]
+
+        if stop is None:
+            stop = self.shape[axis]
+        elif stop < 0:
+            stop += self.shape[axis]
+
+        result = self.inner.slice(axis, start, stop)
         return NumArray(result, dtype=self.dtype)
 
 
