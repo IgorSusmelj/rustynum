@@ -31,7 +31,7 @@ jobs:
           build-frontend: build
           build-verbosity: 1
         env:
-          CIBW_BUILD: "cp${{ matrix.python-version.replace('.', '') }}-*"
+          CIBW_BUILD: "cp${{ matrix.python-version }}-*"
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_i686 *-win32 *-macosx_*"
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           CIBW_BEFORE_BUILD_LINUX: |
