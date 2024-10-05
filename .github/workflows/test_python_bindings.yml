@@ -9,19 +9,29 @@ on:
 
 jobs:
   test_python_bindings:
-    name: Test Python ${{ matrix.python-version }} on Ubuntu
+    name: Test Python ${{ matrix.python.version }} on Ubuntu
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [38, 39, 310, 311, 312]
+        python:
+          - version: 3.8
+            tag: 38
+          - version: 3.9
+            tag: 39
+          - version: 3.10
+            tag: 310
+          - version: 3.11
+            tag: 311
+          - version: 3.12
+            tag: 312
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python.version }}
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python: ${{ matrix.python.version }}
 
       - name: Build Wheel
         uses: pypa/cibuildwheel@v2.18.0
@@ -31,7 +41,7 @@ jobs:
           build-frontend: build
           build-verbosity: 1
         env:
-          CIBW_BUILD: "cp${{ matrix.python-version }}-*"
+          CIBW_BUILD: "cp${{ matrix.python.tag }}-*"
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_i686 *-win32 *-macosx_*"
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           CIBW_BEFORE_BUILD_LINUX: |
