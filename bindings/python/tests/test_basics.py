@@ -2,6 +2,57 @@ import numpy as np
 import rustynum as rnp
 
 
+def test_flat_explicit_dtype_f32():
+    a = rnp.NumArray([1.0, 2.0, 3.0], dtype="float32")
+    b = np.array([1.0, 2.0, 3.0], dtype="float32")
+    assert np.allclose(a.tolist(), b, atol=1e-9), "Flat array creation failed"
+
+
+def test_flat_explicit_dtype_u8():
+    a = rnp.NumArray([1, 2, 3], dtype="uint8")
+    b = np.array([1, 2, 3], dtype="uint8")
+    assert np.allclose(a.tolist(), b, atol=1e-9), "Flat array creation failed"
+
+
+def test_nested_explicit_dtype_f32():
+    a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    b = np.array([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+    assert np.allclose(a.tolist(), b, atol=1e-9), "Nested array creation failed"
+
+
+def test_nested_explicit_dtype_u8():
+    a = rnp.NumArray([[1, 2], [3, 4]], dtype="uint8")
+    b = np.array([[1, 2], [3, 4]], dtype="uint8")
+    assert np.allclose(a.tolist(), b, atol=1e-9), "Nested array creation failed"
+
+
+def test_flat_inferred_dtype_f32():
+    a = rnp.NumArray([1.0, 2.0, 3.0])
+    b = np.array([1.0, 2.0, 3.0], dtype="float32")
+    assert np.allclose(a.tolist(), b, atol=1e-9), "Flat array creation failed"
+    assert a.dtype == "float32", "Inferred dtype failed"
+
+
+def test_numarray_creation_from_numarray_f32():
+    a = rnp.NumArray([1.0, 2.0, 3.0], dtype="float32")
+    b = rnp.NumArray(a)
+    # Modify the original NumArray to make sure we are not just copying the reference
+    a += 1
+    b += 1
+    assert a.tolist() == b.tolist(), "NumArray creation from NumArray failed"
+    assert a.dtype == b.dtype, "NumArray creation from NumArray failed"
+
+
+def test_numarray_creation_from_numarray_u8():
+    a = rnp.NumArray([1, 2, 3], dtype="uint8")
+    b = rnp.NumArray(a)
+    # Modify the original NumArray to make sure we are not just copying the reference
+    a += 1
+    b += 1
+    assert a.tolist() == b.tolist(), "NumArray creation from NumArray failed"
+    assert a.dtype == b.dtype, "NumArray creation from NumArray failed"
+
+
 def test_zeros():
     a = rnp.zeros((2, 3), dtype="float32")
     b = np.zeros((2, 3), dtype="float32")
@@ -142,3 +193,45 @@ def test_fancy_index_flipping_u8():
     assert np.allclose(
         a[:, ::-1].tolist(), b[:, ::-1], atol=1e-9
     ), "Fancy indexing failed"
+
+
+def test_fancy_index_flipping_3d_f32():
+    data = [
+        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+        [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
+        [[13.0, 14.0], [15.0, 16.0], [17.0, 18.0]],
+    ]
+
+    a = rnp.NumArray(data, dtype="float32")
+    b = np.array(data, dtype="float32")
+
+    assert np.allclose(
+        a[:, :, ::-1].tolist(), b[:, :, ::-1], atol=1e-9
+    ), "Fancy indexing failed"
+    assert a[:, :, ::-1].shape == b[:, :, ::-1].shape, "Shape mismatch"
+
+    assert np.allclose(
+        a[:, ::-1, :].tolist(), b[:, ::-1, :], atol=1e-9
+    ), "Fancy indexing failed"
+    assert a[:, ::-1, :].shape == b[:, ::-1, :].shape, "Shape mismatch"
+
+
+def test_fancy_index_flipping_3d_u8():
+    data = [
+        [[1, 2], [3, 4], [5, 6]],
+        [[7, 8], [9, 10], [11, 12]],
+        [[13, 14], [15, 16], [17, 18]],
+    ]
+
+    a = rnp.NumArray(data, dtype="uint8")
+    b = np.array(data, dtype="uint8")
+
+    assert np.allclose(
+        a[:, :, ::-1].tolist(), b[:, :, ::-1], atol=1e-9
+    ), "Fancy indexing failed"
+    assert a[:, :, ::-1].shape == b[:, :, ::-1].shape, "Shape mismatch"
+
+    assert np.allclose(
+        a[:, ::-1, :].tolist(), b[:, ::-1, :], atol=1e-9
+    ), "Fancy indexing failed"
+    assert a[:, ::-1, :].shape == b[:, ::-1, :].shape, "Shape mismatch"
