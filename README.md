@@ -1,7 +1,12 @@
+![RustyNum Banner](docs/assets/rustynum-banner.png?raw=true "RustyNum")
+
+
 [![PyPI python](https://img.shields.io/pypi/pyversions/rustynum)](https://pypi.org/project/rustynum)
 ![PyPI Version](https://badge.fury.io/py/rustynum.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Test Python Bindings](https://github.com/IgorSusmelj/rustynum/actions/workflows/test_python_bindings.yml/badge.svg)
+[![Documentation](https://img.shields.io/badge/docs-rustynum.com-blue)](https://rustynum.com)
+
 
 ---
 
@@ -22,6 +27,8 @@ RustyNum is a high-performance numerical computation library written in Rust, cr
 Supported Python versions: `3.8`, `3.9`, `3.10`, `3.11`, `3.12`
 
 Supported operating systems: `Windows x86`, `Linux x86`, `MacOS x86 & ARM`
+
+For comprehensive documentation, tutorials, and API reference, visit [rustynum.com](https://rustynum.com).
 
 ### For Python
 
