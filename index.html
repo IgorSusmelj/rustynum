@@ -672,6 +672,16 @@
 <p><img alt="RustyNum Banner" src="assets/rustynum-banner.png?raw=true" title="RustyNum" /></p>
 <h1 id="welcome-to-rustynum">Welcome to RustyNum!<a class="headerlink" href="#welcome-to-rustynum" title="Permanent link">&para;</a></h1>
 <p><strong>RustyNum</strong> is a high-performance numerical computation library written in Rust, designed to be faster, lighter, and simpler than traditional solutions. With seamless Python bindings, RustyNum empowers developers and data scientists to achieve efficient computation with minimal overhead.</p>
+<div class="admonition warning">
+<p class="admonition-title">Early Development Notice</p>
+<p>RustyNum is currently in early development and has some important limitations:</p>
+<ul>
+<li><strong>Limited Data Type Support</strong>: Currently only supports <code>float32</code>, <code>float64</code>, and experimental <code>uint8</code></li>
+<li><strong>Basic Operation Set</strong>: Many NumPy operations are not yet implemented</li>
+<li><strong>Partial Multithreading</strong>: Only matrix operations support parallel processing</li>
+</ul>
+<p>We're actively working on expanding these capabilities. Check our <a href="https://github.com/IgorSusmelj/rustynum">GitHub repository</a> for the latest updates and planned features.</p>
+</div>
 <hr />
 <h2 id="what-is-rustynum">🚀 What is RustyNum?<a class="headerlink" href="#what-is-rustynum" title="Permanent link">&para;</a></h2>
 <p>RustyNum is built to demonstrate the potential of <strong>Rust's SIMD capabilities</strong> while providing a <strong>NumPy-like interface</strong> for Python users. Whether you're working on machine learning, data analysis, or scientific computing, RustyNum offers:</p>

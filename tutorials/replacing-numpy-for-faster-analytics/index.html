@@ -605,24 +605,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#putting-it-all-together" class="md-nav__link">
-    <span class="md-ellipsis">
-      Putting It All Together
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#practical-tips" class="md-nav__link">
-    <span class="md-ellipsis">
-      Practical Tips
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       Next Steps
@@ -768,24 +750,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#putting-it-all-together" class="md-nav__link">
-    <span class="md-ellipsis">
-      Putting It All Together
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#practical-tips" class="md-nav__link">
-    <span class="md-ellipsis">
-      Practical Tips
-    </span>
-  </a>
   
 </li>
       
@@ -980,28 +944,12 @@ Speedup:       3.79x
 <p>The computed dot product is slightly different between NumPy and RustyNum. This is due to the different underlying algorithms used by the two libraries.</p>
 </div>
 <hr />
-<h2 id="putting-it-all-together">Putting It All Together<a class="headerlink" href="#putting-it-all-together" title="Permanent link">&para;</a></h2>
-<p>By comparing performance for each operation, you can decide where RustyNum is most beneficial in your workflow. Some common findings:</p>
-<ul>
-<li><strong>Larger arrays</strong> often highlight greater speedups with RustyNum.</li>
-<li><strong>Repeated runs</strong> help confirm if performance gains are consistent.</li>
-<li><strong>Float32</strong> data types sometimes outperform float64 in RustyNum (depending on hardware and usage).</li>
-</ul>
-<hr />
-<h2 id="practical-tips">Practical Tips<a class="headerlink" href="#practical-tips" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Batch Replacements</strong>: If you have multiple NumPy calls (e.g., mean, min, dot) in a single function, switching them all to RustyNum can yield a more substantial overall speedup.</li>
-<li><strong>Benchmark Thoroughly</strong>: Profiling different array shapes and data types ensures you’re optimizing the right operations.</li>
-<li><strong>Mind the Overhead</strong>: For smaller arrays, overhead might reduce or negate speed gains.</li>
-</ol>
-<hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Check out our <a href="../../api/">API Reference</a> for a complete list of functions and classes.</li>
 <li>Explore more advanced examples in our upcoming <a href="../">Tutorials</a>.</li>
 <li>Contribute your own ideas or ask questions on our <a href="https://github.com/IgorSusmelj/rustynum">GitHub</a>.</li>
 </ul>
-<p>Replacing essential NumPy functions with RustyNum can boost performance in many workloads. By running benchmarks on your own hardware, you’ll see where RustyNum truly shines. Try it on real-world data and let us know how it goes!</p>
 
 
 
