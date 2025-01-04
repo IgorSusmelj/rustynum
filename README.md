@@ -1,7 +1,12 @@
+![RustyNum Banner](docs/assets/rustynum-banner.png?raw=true "RustyNum")
+
+
 [![PyPI python](https://img.shields.io/pypi/pyversions/rustynum)](https://pypi.org/project/rustynum)
 ![PyPI Version](https://badge.fury.io/py/rustynum.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Test Python Bindings](https://github.com/IgorSusmelj/rustynum/actions/workflows/test_python_bindings.yml/badge.svg)
+[![Documentation](https://img.shields.io/badge/docs-rustynum.com-blue)](https://rustynum.com)
+
 
 ---
 
