@@ -192,28 +192,8 @@ Speedup:       3.79x
 
 ---
 
-## Putting It All Together
-
-By comparing performance for each operation, you can decide where RustyNum is most beneficial in your workflow. Some common findings:
-
-- **Larger arrays** often highlight greater speedups with RustyNum.
-- **Repeated runs** help confirm if performance gains are consistent.
-- **Float32** data types sometimes outperform float64 in RustyNum (depending on hardware and usage).
-
----
-
-## Practical Tips
-
-1. **Batch Replacements**: If you have multiple NumPy calls (e.g., mean, min, dot) in a single function, switching them all to RustyNum can yield a more substantial overall speedup.
-2. **Benchmark Thoroughly**: Profiling different array shapes and data types ensures you’re optimizing the right operations.
-3. **Mind the Overhead**: For smaller arrays, overhead might reduce or negate speed gains.
-
----
-
 ## Next Steps
 
 - Check out our [API Reference](../../api/) for a complete list of functions and classes.
 - Explore more advanced examples in our upcoming [Tutorials](../).
 - Contribute your own ideas or ask questions on our [GitHub](https://github.com/IgorSusmelj/rustynum).
-
-Replacing essential NumPy functions with RustyNum can boost performance in many workloads. By running benchmarks on your own hardware, you’ll see where RustyNum truly shines. Try it on real-world data and let us know how it goes!

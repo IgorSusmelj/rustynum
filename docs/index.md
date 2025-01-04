@@ -4,6 +4,15 @@
 
 **RustyNum** is a high-performance numerical computation library written in Rust, designed to be faster, lighter, and simpler than traditional solutions. With seamless Python bindings, RustyNum empowers developers and data scientists to achieve efficient computation with minimal overhead.
 
+!!! warning "Early Development Notice"
+    RustyNum is currently in early development and has some important limitations:
+
+    - **Limited Data Type Support**: Currently only supports `float32`, `float64`, and experimental `uint8`
+    - **Basic Operation Set**: Many NumPy operations are not yet implemented
+    - **Partial Multithreading**: Only matrix operations support parallel processing
+    
+    We're actively working on expanding these capabilities. Check our [GitHub repository](https://github.com/IgorSusmelj/rustynum) for the latest updates and planned features.
+
 ---
 
 ## 🚀 What is RustyNum?

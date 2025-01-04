@@ -176,7 +176,7 @@ While timing results can vary based on hardware and environment, RustyNum may of
 ## Troubleshooting Tips
 
 - **Shape Mismatch**: RustyNum will raise an error if matrix dimensions are incompatible. Double-check shapes with `.shape`.
-- **Unsupported Data Type**: If you try to create a NumArray with an unsupported type, you might see a ValueError. Stick to float32, float64, or supported integer types.
+- **Unsupported Data Type**: If you try to create a NumArray with an unsupported type, you might see a ValueError. Stick to float32 or float64.
 - **Installation Problems**: Confirm you have the right Python version and platform by revisiting the [Installation Guide](../installation.md).
 
 ---
