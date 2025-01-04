@@ -194,6 +194,6 @@ Speedup:       3.79x
 
 ## Next Steps
 
-- Check out our [API Reference](../../api/) for a complete list of functions and classes.
-- Explore more advanced examples in our upcoming [Tutorials](../).
-- Contribute your own ideas or ask questions on our [GitHub](https://github.com/IgorSusmelj/rustynum).
+- Check out the [API Reference](../../api/) for a complete list of functions and classes.
+- Explore more advanced examples in the upcoming [Tutorials](../).
+- Contribute your own ideas or ask questions on [GitHub](https://github.com/IgorSusmelj/rustynum).

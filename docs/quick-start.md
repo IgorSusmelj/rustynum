@@ -129,7 +129,7 @@ Once you’re comfortable with the basics, dive deeper into RustyNum with these 
 
 ## 📩 Need Help?
 
-If you have any questions, check out our [GitHub Discussions](https://github.com/IgorSusmelj/rustynum/discussions) or file an issue on our [GitHub Repository](https://github.com/IgorSusmelj/rustynum/issues).
+If you have any questions, check out the [GitHub Discussions](https://github.com/IgorSusmelj/rustynum/discussions) or file an issue on the [GitHub Repository](https://github.com/IgorSusmelj/rustynum/issues).
 
 ---
 

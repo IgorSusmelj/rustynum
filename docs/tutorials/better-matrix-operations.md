@@ -183,8 +183,8 @@ While timing results can vary based on hardware and environment, RustyNum may of
 
 ## Next Steps
 
-- Check out our [API Reference](../../api/) for a complete list of functions and classes.
-- Explore more advanced examples in our upcoming [Tutorials](../).
-- Contribute your own ideas or ask questions on our [GitHub](https://github.com/IgorSusmelj/rustynum).
+- Check out the [API Reference](../../api/) for a complete list of functions and classes.
+- Explore more advanced examples in the upcoming [Tutorials](../).
+- Contribute your own ideas or ask questions on [GitHub](https://github.com/IgorSusmelj/rustynum).
 
 Matrix operations are a cornerstone of computational tasks, and RustyNum offers a Python-friendly path to faster, more efficient code. By tapping into Rust’s low-level optimizations, you can scale your projects without changing your entire workflow.

@@ -73,9 +73,9 @@ RustyNum is open source and powered by contributors like you! Whether you’re a
 
 ## 📩 Stay Updated
 
-Follow our journey and stay updated on RustyNum's latest developments:
+Follow the journey and stay updated on RustyNum's latest developments:
 
-- Star our [GitHub repository](https://github.com/IgorSusmelj/rustynum) to support the project!
+- Star the [GitHub repository](https://github.com/IgorSusmelj/rustynum) to support the project!
 
 ---
 
