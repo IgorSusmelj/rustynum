@@ -134,6 +134,6 @@ If you have any questions, check out our [GitHub Discussions](https://github.com
 ---
 
 <div style="text-align: center;">
-    <a href="tutorials/" class="md-button md-button--primary">Explore Tutorials</a>
-    <a href="api/" class="md-button">View API Reference</a>
+    <a href="../tutorials/" class="md-button md-button--primary">Explore Tutorials</a>
+    <a href="../api/" class="md-button">View API Reference</a>
 </div>

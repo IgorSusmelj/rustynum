@@ -71,6 +71,6 @@ Follow our journey and stay updated on RustyNum's latest developments:
 ---
 
 <div style="text-align: center;">
-    <a href="quick-start.md" class="md-button md-button--primary">Get Started</a>
+    <a href="quick-start" class="md-button md-button--primary">Get Started</a>
     <a href="https://github.com/IgorSusmelj/rustynum" class="md-button">Contribute on GitHub</a>
 </div>
