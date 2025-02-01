@@ -298,3 +298,33 @@ impl ExpLog for f64 {
         f64::ln(self)
     }
 }
+
+/// A trait to provide a generic absolute value operation.
+/// Only types that support an intrinsic absolute value are implemented.
+pub trait AbsOps {
+    fn abs(self) -> Self;
+}
+
+impl AbsOps for f32 {
+    fn abs(self) -> Self {
+        f32::abs(self)
+    }
+}
+
+impl AbsOps for f64 {
+    fn abs(self) -> Self {
+        f64::abs(self)
+    }
+}
+
+impl AbsOps for i32 {
+    fn abs(self) -> Self {
+        i32::abs(self)
+    }
+}
+
+impl AbsOps for i64 {
+    fn abs(self) -> Self {
+        i64::abs(self)
+    }
+}
