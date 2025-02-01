@@ -37,7 +37,7 @@ def test_mean_f32_random():
     ), "Mean for f32 failed with error"
 
 
-def test_mean_f32_axes():
+def test_mean_f32_axis():
     # Create a 2D array and wrap it in NumArray
     a = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
     a_py = rnp.NumArray(a.tolist(), dtype="float32")
@@ -45,9 +45,9 @@ def test_mean_f32_axes():
     a = a.reshape((2, 3))
     a_py = a_py.reshape([2, 3])
 
-    # Compute means along different axes
-    result_rusty_axis0 = a_py.mean(axes=0)
-    result_rusty_axis1 = a_py.mean(axes=1)
+    # Compute means along different axis
+    result_rusty_axis0 = a_py.mean(axis=0)
+    result_rusty_axis1 = a_py.mean(axis=1)
     result_numpy_axis0 = np.mean(a, axis=0)
     result_numpy_axis1 = np.mean(a, axis=1)
 
