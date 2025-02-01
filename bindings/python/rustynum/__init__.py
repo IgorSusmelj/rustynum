@@ -1,8 +1,9 @@
 # rustynum_py_wrapper/__init__.py
-from . import _rustynum
-from typing import Any, List, Sequence, Tuple, Union
 import itertools
 import math
+from typing import Any, List, Sequence, Tuple, Union
+
+from . import _rustynum
 
 
 class NumArray:
@@ -326,81 +327,81 @@ class NumArray:
         return NumArray(result, dtype=self.dtype)
 
     def mean(
-        self, axes: Union[None, int, Sequence[int]] = None
+        self, axis: Union[None, int, Sequence[int]] = None
     ) -> Union["NumArray", float]:
         """
-        Computes the mean of the NumArray along specified axes.
+        Computes the mean of the NumArray along specified axis.
 
         Parameters:
-            axes: Optional; Axis or axes along which to compute the mean. If None, the mean
+            axis: Optional; Axis or axis along which to compute the mean. If None, the mean
                   of all elements is computed as a scalar.
 
         Returns:
-            A new NumArray with the mean values along the specified axes, or a scalar if no axes are given.
+            A new NumArray with the mean values along the specified axis, or a scalar if no axis are given.
         """
-        axes = [axes] if isinstance(axes, int) else axes
+        axis = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.mean_f32(self.inner, axes)
+            _rustynum.mean_f32(self.inner, axis)
             if self.dtype == "float32"
-            else _rustynum.mean_f64(self.inner, axes)
+            else _rustynum.mean_f64(self.inner, axis)
         )
         return NumArray(result, dtype=self.dtype)
 
     def min(
-        self, axes: Union[None, int, Sequence[int]] = None
+        self, axis: Union[None, int, Sequence[int]] = None
     ) -> Union["NumArray", float]:
         """
-        Return the minimum along the specified axes.
+        Return the minimum along the specified axis.
 
         Parameters:
-            axes: Optional; Axis or axes along which to find the minimum. If None,
+            axis: Optional; Axis or axis along which to find the minimum. If None,
                   the minimum of all elements is computed as a scalar.
 
         Returns:
-            A new NumArray with the minimum values along the specified axes,
-            or a scalar if no axes are given.
+            A new NumArray with the minimum values along the specified axis,
+            or a scalar if no axis are given.
         """
-        if axes is None:
+        if axis is None:
             return (
                 _rustynum.min_f32(self.inner)
                 if self.dtype == "float32"
                 else _rustynum.min_f64(self.inner)
             )
 
-        axes = [axes] if isinstance(axes, int) else axes
+        axis = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.min_axes_f32(self.inner, axes)
+            _rustynum.min_axis_f32(self.inner, axis)
             if self.dtype == "float32"
-            else _rustynum.min_axes_f64(self.inner, axes)
+            else _rustynum.min_axis_f64(self.inner, axis)
         )
         return NumArray(result, dtype=self.dtype)
 
     def max(
-        self, axes: Union[None, int, Sequence[int]] = None
+        self, axis: Union[None, int, Sequence[int]] = None
     ) -> Union["NumArray", float]:
         """
-        Return the maximum along the specified axes.
+        Return the maximum along the specified axis.
 
         Parameters:
-            axes: Optional; Axis or axes along which to find the maximum. If None,
+            axis: Optional; Axis or axis along which to find the maximum. If None,
                   the maximum of all elements is computed as a scalar.
 
         Returns:
-            A new NumArray with the maximum values along the specified axes,
-            or a scalar if no axes are given.
+            A new NumArray with the maximum values along the specified axis,
+            or a scalar if no axis are given.
         """
-        if axes is None:
+        if axis is None:
             return (
                 _rustynum.max_f32(self.inner)
                 if self.dtype == "float32"
                 else _rustynum.max_f64(self.inner)
             )
 
-        axes = [axes] if isinstance(axes, int) else axes
+        axis = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.max_axes_f32(self.inner, axes)
+            _rustynum.max_axis_f32(self.inner, axis)
             if self.dtype == "float32"
-            else _rustynum.max_axes_f64(self.inner, axes)
+            else _rustynum.max_axis_f64(self.inner, axis)
         )
         return NumArray(result, dtype=self.dtype)
 
@@ -571,7 +572,7 @@ class NumArray:
 
     def flip(self, axis: Union[int, Sequence[int]]) -> "NumArray":
         """
-        Flips the NumArray along the specified axes.
+        Flips the NumArray along the specified axis.
 
         Parameters:
             axis: Axis to flip along.
@@ -580,9 +581,9 @@ class NumArray:
             A new NumArray with the flipped data.
         """
         if isinstance(axis, int):
-            result = self.inner.flip_axes([axis])
+            result = self.inner.flip_axis([axis])
         elif isinstance(axis, (list, tuple)):
-            result = self.inner.flip_axes(list(axis))
+            result = self.inner.flip_axis(list(axis))
         else:
             raise TypeError("axis must be an integer or a sequence of integers")
         return NumArray(result, dtype=self.dtype)

@@ -108,12 +108,12 @@ impl PyNumArrayF32 {
         })
     }
 
-    fn mean_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
-            let result = match axes {
-                Some(axes_list) => {
-                    let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-                    self.inner.mean_axes(Some(&axes_vec)) // Now correctly passing a slice wrapped in Some
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+                    self.inner.mean_axis(Some(&axis_vec)) // Now correctly passing a slice wrapped in Some
                 }
                 None => self.inner.mean(),
             };
@@ -145,16 +145,16 @@ impl PyNumArrayF32 {
         })
     }
 
-    fn flip_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    fn flip_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
-            let axes_vec: Vec<usize> = match axes {
+            let axis_vec: Vec<usize> = match axis {
                 Some(list) => list.extract()?,
                 None => vec![],
             };
-            let result = if axes_vec.is_empty() {
+            let result = if axis_vec.is_empty() {
                 self.inner.clone()
             } else {
-                self.inner.flip_axes(axes_vec)
+                self.inner.flip_axis(axis_vec)
             };
             Ok(PyNumArrayF32 { inner: result })
         })
@@ -178,27 +178,27 @@ impl PyNumArrayF32 {
         }
     }
 
-    fn min_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    fn min_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
-            let result = match axes {
-                Some(axes_list) => {
-                    let axes_vec: Vec<usize> = axes_list.extract()?;
-                    self.inner.min_axes(Some(&axes_vec))
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.min_axis(Some(&axis_vec))
                 }
-                None => self.inner.min_axes(None),
+                None => self.inner.min_axis(None),
             };
             Ok(PyNumArrayF32 { inner: result })
         })
     }
 
-    fn max_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    fn max_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
-            let result = match axes {
-                Some(axes_list) => {
-                    let axes_vec: Vec<usize> = axes_list.extract()?;
-                    self.inner.max_axes(Some(&axes_vec))
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.max_axis(Some(&axis_vec))
                 }
-                None => self.inner.max_axes(None),
+                None => self.inner.max_axis(None),
             };
             Ok(PyNumArrayF32 { inner: result })
         })
@@ -277,14 +277,14 @@ impl PyNumArrayF64 {
         })
     }
 
-    fn mean_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
-            let result = match axes {
-                Some(axes_list) => {
-                    let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-                    self.inner.mean_axes(Some(&axes_vec)) // Now correctly passing a slice wrapped in Some
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+                    self.inner.mean_axis(Some(&axis_vec)) // Now correctly passing a slice wrapped in Some
                 }
-                None => self.inner.mean_axes(None),
+                None => self.inner.mean_axis(None),
             };
             Ok(PyNumArrayF64 { inner: result })
         })
@@ -314,16 +314,16 @@ impl PyNumArrayF64 {
         })
     }
 
-    fn flip_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    fn flip_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
-            let axes_vec: Vec<usize> = match axes {
+            let axis_vec: Vec<usize> = match axis {
                 Some(list) => list.extract()?,
                 None => vec![],
             };
-            let result = if axes_vec.is_empty() {
+            let result = if axis_vec.is_empty() {
                 self.inner.clone()
             } else {
-                self.inner.flip_axes(axes_vec)
+                self.inner.flip_axis(axis_vec)
             };
             Ok(PyNumArrayF64 { inner: result })
         })
@@ -347,27 +347,27 @@ impl PyNumArrayF64 {
         }
     }
 
-    fn min_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    fn min_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
-            let result = match axes {
-                Some(axes_list) => {
-                    let axes_vec: Vec<usize> = axes_list.extract()?;
-                    self.inner.min_axes(Some(&axes_vec))
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.min_axis(Some(&axis_vec))
                 }
-                None => self.inner.min_axes(None),
+                None => self.inner.min_axis(None),
             };
             Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn max_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    fn max_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
-            let result = match axes {
-                Some(axes_list) => {
-                    let axes_vec: Vec<usize> = axes_list.extract()?;
-                    self.inner.max_axes(Some(&axes_vec))
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.max_axis(Some(&axis_vec))
                 }
-                None => self.inner.max_axes(None),
+                None => self.inner.max_axis(None),
             };
             Ok(PyNumArrayF64 { inner: result })
         })
@@ -465,16 +465,16 @@ impl PyNumArrayU8 {
         })
     }
 
-    fn flip_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayU8> {
+    fn flip_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
-            let axes_vec: Vec<usize> = match axes {
+            let axis_vec: Vec<usize> = match axis {
                 Some(list) => list.extract()?,
                 None => vec![],
             };
-            let result = if axes_vec.is_empty() {
+            let result = if axis_vec.is_empty() {
                 self.inner.clone()
             } else {
-                self.inner.flip_axes(axes_vec)
+                self.inner.flip_axis(axis_vec)
             };
             Ok(PyNumArrayU8 { inner: result })
         })
@@ -572,16 +572,16 @@ impl PyNumArrayU8 {
 //         })
 //     }
 
-//     fn flip_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayI32> {
+//     fn flip_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayI32> {
 //         Python::with_gil(|py| {
-//             let axes_vec: Vec<usize> = match axes {
+//             let axis_vec: Vec<usize> = match axis {
 //                 Some(list) => list.extract()?,
 //                 None => vec![],
 //             };
-//             let result = if axes_vec.is_empty() {
+//             let result = if axis_vec.is_empty() {
 //                 self.inner.clone()
 //             } else {
-//                 self.inner.flip_axes(axes_vec)
+//                 self.inner.flip_axis(axis_vec)
 //             };
 //             Ok(PyNumArrayI32 { inner: result })
 //         })
@@ -655,14 +655,14 @@ impl PyNumArrayU8 {
 //         })
 //     }
 
-//     fn mean_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayI64> {
+//     fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayI64> {
 //         Python::with_gil(|py| {
-//             let result = match axes {
-//                 Some(axes_list) => {
-//                     let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-//                     self.inner.mean_axes(Some(&axes_vec)) // Now correctly passing a slice wrapped in Some
+//             let result = match axis {
+//                 Some(axis_list) => {
+//                     let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+//                     self.inner.mean_axis(Some(&axis_vec)) // Now correctly passing a slice wrapped in Some
 //                 }
-//                 None => self.inner.mean_axes(None),
+//                 None => self.inner.mean_axis(None),
 //             };
 //             Ok(PyNumArrayI64 { inner: result })
 //         })
@@ -692,16 +692,16 @@ impl PyNumArrayU8 {
 //         })
 //     }
 
-//     fn flip_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayI64> {
+//     fn flip_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayI64> {
 //         Python::with_gil(|py| {
-//             let axes_vec: Vec<usize> = match axes {
+//             let axis_vec: Vec<usize> = match axis {
 //                 Some(list) => list.extract()?,
 //                 None => vec![],
 //             };
-//             let result = if axes_vec.is_empty() {
+//             let result = if axis_vec.is_empty() {
 //                 self.inner.clone()
 //             } else {
-//                 self.inner.flip_axes(axes_vec)
+//                 self.inner.flip_axis(axis_vec)
 //             };
 //             Ok(PyNumArrayI64 { inner: result })
 //         })
@@ -780,14 +780,14 @@ fn linspace_f32(start: f32, end: f32, num: usize) -> PyResult<PyNumArrayF32> {
 }
 
 #[pyfunction]
-fn mean_f32(a: &PyNumArrayF32, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+fn mean_f32(a: &PyNumArrayF32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
     Python::with_gil(|py| {
-        let result = match axes {
-            Some(axes_list) => {
-                let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-                a.inner.mean_axes(Some(&axes_vec))
+        let result = match axis {
+            Some(axis_list) => {
+                let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+                a.inner.mean_axis(Some(&axis_vec))
             }
-            None => a.inner.mean_axes(None), // Handle the case where no axes are provided
+            None => a.inner.mean_axis(None), // Handle the case where no axis are provided
         };
         Ok(PyNumArrayF32 { inner: result }) // Convert the result data to a Python object
     })
@@ -799,13 +799,13 @@ fn min_f32(a: &PyNumArrayF32) -> PyResult<f32> {
 }
 
 #[pyfunction]
-fn min_axes_f32(a: &PyNumArrayF32, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
-    let result = match axes {
-        Some(axes_list) => {
-            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-            a.inner.min_axes(Some(&axes_vec))
+fn min_axis_f32(a: &PyNumArrayF32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    let result = match axis {
+        Some(axis_list) => {
+            let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.min_axis(Some(&axis_vec))
         }
-        None => a.inner.min_axes(None),
+        None => a.inner.min_axis(None),
     };
     Ok(PyNumArrayF32 { inner: result })
 }
@@ -816,13 +816,13 @@ fn max_f32(a: &PyNumArrayF32) -> PyResult<f32> {
 }
 
 #[pyfunction]
-fn max_axes_f32(a: &PyNumArrayF32, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
-    let result = match axes {
-        Some(axes_list) => {
-            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-            a.inner.max_axes(Some(&axes_vec))
+fn max_axis_f32(a: &PyNumArrayF32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    let result = match axis {
+        Some(axis_list) => {
+            let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.max_axis(Some(&axis_vec))
         }
-        None => a.inner.max_axes(None),
+        None => a.inner.max_axis(None),
     };
     Ok(PyNumArrayF32 { inner: result })
 }
@@ -909,14 +909,14 @@ fn linspace_f64(start: f64, end: f64, num: usize) -> PyResult<PyNumArrayF64> {
 }
 
 #[pyfunction]
-fn mean_f64(a: &PyNumArrayF64, axes: Option<&PyList>) -> PyResult<Py<PyAny>> {
+fn mean_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
     Python::with_gil(|py| {
-        let result = match axes {
-            Some(axes_list) => {
-                let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-                a.inner.mean_axes(Some(&axes_vec))
+        let result = match axis {
+            Some(axis_list) => {
+                let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+                a.inner.mean_axis(Some(&axis_vec))
             }
-            None => a.inner.mean_axes(None), // Handle the case where no axes are provided
+            None => a.inner.mean_axis(None), // Handle the case where no axis are provided
         };
         Ok(result.get_data().to_object(py)) // Convert the result data to a Python object
     })
@@ -928,13 +928,13 @@ fn min_f64(a: &PyNumArrayF64) -> PyResult<f64> {
 }
 
 #[pyfunction]
-fn min_axes_f64(a: &PyNumArrayF64, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
-    let result = match axes {
-        Some(axes_list) => {
-            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-            a.inner.min_axes(Some(&axes_vec))
+fn min_axis_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    let result = match axis {
+        Some(axis_list) => {
+            let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.min_axis(Some(&axis_vec))
         }
-        None => a.inner.min_axes(None),
+        None => a.inner.min_axis(None),
     };
     Ok(PyNumArrayF64 { inner: result })
 }
@@ -945,13 +945,13 @@ fn max_f64(a: &PyNumArrayF64) -> PyResult<f64> {
 }
 
 #[pyfunction]
-fn max_axes_f64(a: &PyNumArrayF64, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
-    let result = match axes {
-        Some(axes_list) => {
-            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
-            a.inner.max_axes(Some(&axes_vec))
+fn max_axis_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    let result = match axis {
+        Some(axis_list) => {
+            let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.max_axis(Some(&axis_vec))
         }
-        None => a.inner.max_axes(None),
+        None => a.inner.max_axis(None),
     };
     Ok(PyNumArrayF64 { inner: result })
 }
@@ -998,9 +998,9 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(linspace_f32, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
-    m.add_function(wrap_pyfunction!(min_axes_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(min_axis_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
-    m.add_function(wrap_pyfunction!(max_axes_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(max_axis_f32, m)?)?;
     m.add_function(wrap_pyfunction!(exp_f32, m)?)?;
     m.add_function(wrap_pyfunction!(log_f32, m)?)?;
     m.add_function(wrap_pyfunction!(sigmoid_f32, m)?)?;

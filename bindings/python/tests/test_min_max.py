@@ -37,52 +37,52 @@ def test_max_f32_small():
     ), "Max for f32 failed with error"
 
 
-def test_min_axes_2d():
-    # Test min along different axes of a 2D array
+def test_min_axis_2d():
+    # Test min along different axis of a 2D array
     a = [[1.0, 2.0], [3.0, 4.0]]
     a_py = rnp.NumArray(a, dtype="float32")
 
     # Test min along axis 0 (columns)
-    result_axis0 = a_py.min(axes=0)
+    result_axis0 = a_py.min(axis=0)
     expected_axis0 = rnp.NumArray([1.0, 2.0], dtype="float32")
     assert result_axis0.tolist() == expected_axis0.tolist(), "Min along axis 0 failed"
 
     # Test min along axis 1 (rows)
-    result_axis1 = a_py.min(axes=1)
+    result_axis1 = a_py.min(axis=1)
     expected_axis1 = rnp.NumArray([1.0, 3.0], dtype="float32")
     assert result_axis1.tolist() == expected_axis1.tolist(), "Min along axis 1 failed"
 
 
-def test_max_axes_2d():
-    # Test max along different axes of a 2D array
+def test_max_axis_2d():
+    # Test max along different axis of a 2D array
     a = [[1.0, 2.0], [3.0, 4.0]]
     a_py = rnp.NumArray(a, dtype="float32")
 
     # Test max along axis 0 (columns)
-    result_axis0 = a_py.max(axes=0)
+    result_axis0 = a_py.max(axis=0)
     expected_axis0 = rnp.NumArray([3.0, 4.0], dtype="float32")
     assert result_axis0.tolist() == expected_axis0.tolist(), "Max along axis 0 failed"
 
     # Test max along axis 1 (rows)
-    result_axis1 = a_py.max(axes=1)
+    result_axis1 = a_py.max(axis=1)
     expected_axis1 = rnp.NumArray([2.0, 4.0], dtype="float32")
     assert result_axis1.tolist() == expected_axis1.tolist(), "Max along axis 1 failed"
 
 
 def test_min_max_3d():
-    # Test min/max with 3D array and multiple axes
+    # Test min/max with 3D array and multiple axis
     a = [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]
     a_py = rnp.NumArray(a, dtype="float32")
 
-    # Test min along axes (0,1)
-    result_min = a_py.min(axes=[0, 1])
+    # Test min along axis (0,1)
+    result_min = a_py.min(axis=[0, 1])
     expected_min = rnp.NumArray([1.0, 2.0], dtype="float32")
-    assert result_min.tolist() == expected_min.tolist(), "Min along axes (0,1) failed"
+    assert result_min.tolist() == expected_min.tolist(), "Min along axis (0,1) failed"
 
-    # Test max along axes (1,2)
-    result_max = a_py.max(axes=[1, 2])
+    # Test max along axis (1,2)
+    result_max = a_py.max(axis=[1, 2])
     expected_max = rnp.NumArray([4.0, 8.0], dtype="float32")
-    assert result_max.tolist() == expected_max.tolist(), "Max along axes (1,2) failed"
+    assert result_max.tolist() == expected_max.tolist(), "Max along axis (1,2) failed"
 
 
 def test_min_max_edge_cases():
@@ -95,7 +95,7 @@ def test_min_max_edge_cases():
 
     # Empty axis reduction
     a_empty_axis = rnp.NumArray([[1.0], [2.0]], dtype="float32")
-    result_min = a_empty_axis.min(axes=1)
+    result_min = a_empty_axis.min(axis=1)
     assert result_min.tolist() == [1.0, 2.0], "Min failed for empty axis reduction"
 
     # Test with negative values

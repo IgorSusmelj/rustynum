@@ -162,16 +162,16 @@ Computes the dot product with another NumArray.
 dot_product = a.dot(b)
 ```
 
-`mean(axes: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
+`mean(axis: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
 
-Computes the mean along specified axes.
+Computes the mean along specified axis.
 
 ```Python
 average = a.mean()
-average_axis0 = a.mean(axes=0)
+average_axis0 = a.mean(axis=0)
 ```
 
-`min() -> float`
+`min(axis: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
 
 Returns the minimum value in the array.
 
@@ -179,7 +179,7 @@ Returns the minimum value in the array.
 minimum = a.min()
 ```
 
-`max() -> float`
+`max(axis: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
 
 Returns the maximum value in the array.
 
