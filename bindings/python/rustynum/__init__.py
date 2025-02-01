@@ -346,31 +346,63 @@ class NumArray:
         )
         return NumArray(result, dtype=self.dtype)
 
-    def min(self) -> float:
+    def min(
+        self, axes: Union[None, int, Sequence[int]] = None
+    ) -> Union["NumArray", float]:
         """
-        Finds the minimum value in the NumArray.
+        Return the minimum along the specified axes.
+
+        Parameters:
+            axes: Optional; Axis or axes along which to find the minimum. If None,
+                  the minimum of all elements is computed as a scalar.
 
         Returns:
-            The minimum value as a float.
+            A new NumArray with the minimum values along the specified axes,
+            or a scalar if no axes are given.
         """
-        return (
-            _rustynum.min_f32(self.inner)
-            if self.dtype == "float32"
-            else _rustynum.min_f64(self.inner)
-        )
+        if axes is None:
+            return (
+                _rustynum.min_f32(self.inner)
+                if self.dtype == "float32"
+                else _rustynum.min_f64(self.inner)
+            )
 
-    def max(self) -> float:
+        axes = [axes] if isinstance(axes, int) else axes
+        result = (
+            _rustynum.min_axes_f32(self.inner, axes)
+            if self.dtype == "float32"
+            else _rustynum.min_axes_f64(self.inner, axes)
+        )
+        return NumArray(result, dtype=self.dtype)
+
+    def max(
+        self, axes: Union[None, int, Sequence[int]] = None
+    ) -> Union["NumArray", float]:
         """
-        Finds the maximum value in the NumArray.
+        Return the maximum along the specified axes.
+
+        Parameters:
+            axes: Optional; Axis or axes along which to find the maximum. If None,
+                  the maximum of all elements is computed as a scalar.
 
         Returns:
-            The maximum value as a float.
+            A new NumArray with the maximum values along the specified axes,
+            or a scalar if no axes are given.
         """
-        return (
-            _rustynum.max_f32(self.inner)
+        if axes is None:
+            return (
+                _rustynum.max_f32(self.inner)
+                if self.dtype == "float32"
+                else _rustynum.max_f64(self.inner)
+            )
+
+        axes = [axes] if isinstance(axes, int) else axes
+        result = (
+            _rustynum.max_axes_f32(self.inner, axes)
             if self.dtype == "float32"
-            else _rustynum.max_f64(self.inner)
+            else _rustynum.max_axes_f64(self.inner, axes)
         )
+        return NumArray(result, dtype=self.dtype)
 
     def __imul__(self, scalar: float) -> "NumArray":
         """
