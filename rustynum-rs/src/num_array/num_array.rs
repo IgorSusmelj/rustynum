@@ -254,6 +254,39 @@ where
 
         Self::new_with_shape(new_data, new_shape)
     }
+
+    /// Calculates a reduced index for operations that collapse dimensions (like mean, min, max, norm).
+    ///
+    /// # Parameters
+    /// * `index` - The original linear index
+    /// * `reduction_shape` - The shape after reduction (with 1s in reduced dimensions)
+    ///
+    /// # Returns
+    /// The index in the reduced array where this element contributes
+    fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
+        let mut reduced_index = 0;
+        let mut stride = 1;
+        let mut accumulated_strides = 1;
+
+        for (_i, (&original_dim, &reduced_dim)) in self
+            .shape
+            .iter()
+            .zip(reduction_shape.iter())
+            .rev()
+            .enumerate()
+        {
+            let index_in_dim = (index / stride) % original_dim;
+
+            if reduced_dim != 1 {
+                reduced_index += index_in_dim * accumulated_strides;
+                accumulated_strides *= original_dim;
+            }
+
+            stride *= original_dim;
+        }
+
+        reduced_index
+    }
 }
 
 impl<T, Ops> NumArray<T, Ops>
@@ -327,39 +360,6 @@ where
     pub fn item(&self) -> T {
         assert_eq!(self.data.len(), 1, "Array must have exactly one element.");
         self.data[0]
-    }
-
-    /// Calculates the reduced index for a given index and reduction shape.
-    ///
-    /// # Parameters
-    /// * `index` - The original index.
-    /// * `reduction_shape` - A reference to the reduction shape vector.
-    ///
-    /// # Returns
-    /// The reduced index.
-    pub fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
-        let mut reduced_index = 0;
-        let mut stride = 1;
-        let mut accumulated_strides = 1; // To handle collapsed dimensions correctly
-
-        for (_i, (&original_dim, &reduced_dim)) in self
-            .shape
-            .iter()
-            .zip(reduction_shape.iter())
-            .rev()
-            .enumerate()
-        {
-            let index_in_dim = (index / stride) % original_dim;
-
-            if reduced_dim != 1 {
-                reduced_index += index_in_dim * accumulated_strides;
-                accumulated_strides *= original_dim; // Update only when not collapsing
-            }
-
-            stride *= original_dim; // Always update stride to traverse dimensions
-        }
-
-        reduced_index
     }
 
     /// Removes axis of length one from the array.
@@ -1384,36 +1384,60 @@ where
                 Self::new(vec![result])
             }
             Some(axes) => {
-                // For axis-specific reduction, we need to compute norm along specified axes
-                let mut result_shape: Vec<usize> = self
-                    .shape
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(i, &dim)| if !axes.contains(&i) { Some(dim) } else { None })
-                    .collect();
-
-                if result_shape.is_empty() {
-                    result_shape.push(1);
+                // 1) Mark down the shape for the reduced array:
+                let mut reduced_shape = self.shape.clone();
+                for &ax in axes {
+                    reduced_shape[ax] = 1; // same approach as in min_axis
                 }
 
-                let stride = self.shape[axes[0]];
-                let n_chunks = self.data.len() / stride;
-                let mut result = Vec::with_capacity(n_chunks);
+                let reduced_size: usize = reduced_shape.iter().product();
+                let mut reduced_data = vec![T::default(); reduced_size];
+                let mut computed_sqrt = false;
 
-                for chunk_idx in 0..n_chunks {
-                    let start = chunk_idx * stride;
-                    let end = start + stride;
-                    let chunk = &self.data[start..end];
-
-                    let norm = match p {
-                        1 => Ops::l1_norm(chunk),
-                        2 => Ops::l2_norm(chunk),
-                        _ => unimplemented!("Only L1 and L2 norm are implemented"),
-                    };
-                    result.push(norm);
+                // 2) Accumulate partial sums (L1 or L2):
+                if let Some(&last_axis) = axes.iter().max() {
+                    if last_axis == self.shape.len() - 1 {
+                        let block_size = self.shape[last_axis];
+                        let num_blocks = self.data.len() / block_size;
+                        for i in 0..num_blocks {
+                            let block = &self.data[i * block_size..(i + 1) * block_size];
+                            let norm_val = if p == 1 {
+                                Ops::l1_norm(block)
+                            } else {
+                                Ops::l2_norm(block)
+                            };
+                            reduced_data[i] = norm_val;
+                        }
+                        if p == 2 {
+                            computed_sqrt = true;
+                        }
+                    } else {
+                        // fallback branch remains unchanged
+                        for (i, &val) in self.data.iter().enumerate() {
+                            let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
+                            if p == 1 {
+                                reduced_data[reduced_idx] = reduced_data[reduced_idx] + val.abs();
+                            } else {
+                                reduced_data[reduced_idx] = reduced_data[reduced_idx] + val * val;
+                            }
+                        }
+                    }
                 }
 
-                Self::new_with_shape(result, result_shape)
+                // 3) If L2, finish by taking sqrt:
+                if p == 2 && !computed_sqrt {
+                    for x in &mut reduced_data {
+                        *x = x.sqrt();
+                    }
+                }
+
+                // 4) "Squeeze" shape if needed:
+                let squeezed_shape = reduced_shape
+                    .into_iter()
+                    .filter(|&dim| dim != 1)
+                    .collect::<Vec<_>>();
+
+                Self::new_with_shape(reduced_data, squeezed_shape)
             }
         }
     }
@@ -2100,30 +2124,68 @@ mod tests {
 
     #[test]
     fn test_norm() {
-        let array = NumArrayF32::new(vec![3.0, 4.0, -3.0, -4.0]);
-
-        // Test L2 norm (Euclidean)
-        let l2_norm = array.norm(2, None);
-        // Use an epsilon tolerance for approximate float comparison
+        let matrix = NumArrayF32::new_with_shape(vec![3.0, 4.0, -3.0, -4.0], vec![2, 2]);
+        let l2_norm_axis0 = matrix.norm(2, Some(&[0]));
+        assert_eq!(l2_norm_axis0.shape(), &[2]);
+        // Column norms: sqrt(3² + (-3)²) and sqrt(4² + (-4)²)
         assert!(
-            (l2_norm.item() - 7.0710678).abs() < 1e-5,
-            "Expected approximately 7.0710678, got {}",
-            l2_norm.item()
+            (l2_norm_axis0.get(&[0]) - 4.2426405).abs() < 1e-5,
+            "Expected ~4.2426405, got {}",
+            l2_norm_axis0.get(&[0])
         );
+        assert!(
+            (l2_norm_axis0.get(&[1]) - 5.656854).abs() < 1e-5,
+            "Expected ~5.656854, got {}",
+            l2_norm_axis0.get(&[1])
+        );
+    }
 
-        // Test norm along axis 0 (this full-reduction implementation ignores axis, but test remains)
-        // let l2_norm_axis0 = array.norm(2, Some(&[0]));
-        // assert_eq!(l2_norm_axis0.shape(), &[2]);
-        // // Compare expected values approximately.
-        // assert!(
-        //     (l2_norm_axis0.get(&[0]) - 4.2426405).abs() < 1e-5,
-        //     "Expected approximately 4.2426405, got {}",
-        //     l2_norm_axis0.get(&[0])
-        // );
-        // assert!(
-        //     (l2_norm_axis0.get(&[1]) - 5.656854).abs() < 1e-5,
-        //     "Expected approximately 5.656854, got {}",
-        //     l2_norm_axis0.get(&[1])
-        // );
+    #[test]
+    fn test_norms_matching_numpy() {
+        let c = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, -1.0, 1.0, 4.0], vec![2, 3]);
+
+        // axis=0 (column norms)
+        let norm_axis0 = c.norm(2, Some(&[0]));
+        assert_eq!(norm_axis0.shape(), &[3]);
+        assert!(
+            (norm_axis0.get(&[0]) - 1.41421356).abs() < 1e-5,
+            "Expected ~1.41421356, got {}",
+            norm_axis0.get(&[0])
+        );
+        assert!((norm_axis0.get(&[1]) - 2.23606798).abs() < 1e-5);
+        assert!((norm_axis0.get(&[2]) - 5.0).abs() < 1e-5);
+
+        // axis=1 (row norms)
+        let norm_axis1 = c.norm(2, Some(&[1]));
+        assert_eq!(norm_axis1.shape(), &[2]);
+        assert!((norm_axis1.get(&[0]) - 3.74165739).abs() < 1e-5);
+        assert!((norm_axis1.get(&[1]) - 4.24264069).abs() < 1e-5);
+
+        // ord=1 (sum of absolute values)
+        let l1_norm = c.norm(1, None);
+        assert!((l1_norm.item() - 12.0).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_matrix_norms() {
+        let matrix = NumArrayF32::new_with_shape(vec![3.0, 4.0, 5.0, 12.0], vec![2, 2]);
+        let frobenius = matrix.norm(2, None);
+        // Correct calculation: sqrt(3² + 4² + 5² + 12²) = sqrt(9+16+25+144) = sqrt(194) ≈ 13.928388
+        assert!((frobenius.item() - 13.928388).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_edge_cases() {
+        // Empty array
+        let empty = NumArrayF32::new(vec![]);
+        assert_eq!(empty.norm(2, None).item(), 0.0);
+
+        // Single element
+        let single = NumArrayF32::new(vec![5.0]);
+        assert_eq!(single.norm(2, None).item(), 5.0);
+
+        // All zeros
+        let zeros = NumArrayF32::new(vec![0.0; 4]);
+        assert_eq!(zeros.norm(2, None).item(), 0.0);
     }
 }

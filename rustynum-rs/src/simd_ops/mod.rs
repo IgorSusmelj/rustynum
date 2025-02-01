@@ -294,14 +294,15 @@ impl SimdOps<f32> for f32x16 {
         let mut sum = f32x16::splat(0.0);
         let chunks = a.len() / LANES_32;
 
+        // Main SIMD processing
         for i in 0..chunks {
-            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..]);
+            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..(i + 1) * LANES_32]);
             sum += simd_chunk.abs();
         }
 
+        // Scalar tail processing
         let mut scalar_sum = sum.reduce_sum();
-        // Handle remaining elements
-        for i in (chunks * LANES_32)..a.len() {
+        for i in chunks * LANES_32..a.len() {
             scalar_sum += a[i].abs();
         }
 
@@ -312,14 +313,15 @@ impl SimdOps<f32> for f32x16 {
         let mut sum = f32x16::splat(0.0);
         let chunks = a.len() / LANES_32;
 
+        // Main SIMD processing with fused multiply-add
         for i in 0..chunks {
-            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..]);
+            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..(i + 1) * LANES_32]);
             sum += simd_chunk * simd_chunk;
         }
 
+        // Scalar tail processing
         let mut scalar_sum = sum.reduce_sum();
-        // Handle remaining elements
-        for i in (chunks * LANES_32)..a.len() {
+        for i in chunks * LANES_32..a.len() {
             scalar_sum += a[i] * a[i];
         }
 
@@ -457,13 +459,12 @@ impl SimdOps<f64> for f64x8 {
         let chunks = a.len() / LANES_64;
 
         for i in 0..chunks {
-            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..]);
+            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..(i + 1) * LANES_64]);
             sum += simd_chunk.abs();
         }
 
         let mut scalar_sum = sum.reduce_sum();
-        // Handle remaining elements
-        for i in (chunks * LANES_64)..a.len() {
+        for i in chunks * LANES_64..a.len() {
             scalar_sum += a[i].abs();
         }
 
@@ -475,13 +476,12 @@ impl SimdOps<f64> for f64x8 {
         let chunks = a.len() / LANES_64;
 
         for i in 0..chunks {
-            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..]);
+            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..(i + 1) * LANES_64]);
             sum += simd_chunk * simd_chunk;
         }
 
         let mut scalar_sum = sum.reduce_sum();
-        // Handle remaining elements
-        for i in (chunks * LANES_64)..a.len() {
+        for i in chunks * LANES_64..a.len() {
             scalar_sum += a[i] * a[i];
         }
 
@@ -773,5 +773,34 @@ mod tests {
         let a = [3.0f64, 4.0];
         let result = f64x8::l2_norm(&a);
         assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_l1_norm_2d_axis0() {
+        let a = [
+            1.0f32, 2.0, 3.0, 4.0, 5.0, 6.0, // Shape (2, 3)
+        ];
+        let result = f32x16::l1_norm(&a[0..3]); // First row
+        assert_eq!(result, 6.0);
+        let result = f32x16::l1_norm(&a[3..6]); // Second row
+        assert_eq!(result, 15.0);
+    }
+
+    #[test]
+    fn test_l2_norm_2d_axis1() {
+        let a = [
+            3.0f32, 4.0, 5.0, 12.0, // Shape (2, 2)
+        ];
+        let result = f32x16::l2_norm(&a[0..2]);
+        assert_eq!(result, 5.0);
+        let result = f32x16::l2_norm(&a[2..4]);
+        assert_eq!(result, 13.0);
+    }
+
+    #[test]
+    fn test_l1_norm_empty() {
+        let a: [f32; 0] = [];
+        let result = f32x16::l1_norm(&a);
+        assert_eq!(result, 0.0);
     }
 }
