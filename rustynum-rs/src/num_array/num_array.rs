@@ -362,16 +362,65 @@ where
         reduced_index
     }
 
-    fn squeeze(&self) -> NumArray<T, Ops> {
-        let mut new_shape = self.shape.clone();
-        let mut new_data = self.data.clone();
+    /// Removes axes of length one from the array.
+    ///
+    /// # Parameters
+    /// * `axes` - Optional slice of axes to squeeze. If None, all axes of length 1 are removed.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance with the specified axes removed.
+    ///
+    /// # Panics
+    /// Panics if any specified axis is out of bounds or has length greater than 1.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArrayF32;
+    /// let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
+    /// let squeezed = array.squeeze(None); // removes all axes of length 1
+    /// assert_eq!(squeezed.shape(), &[2]);
+    /// ```
+    pub fn squeeze(&self, axes: Option<&[usize]>) -> NumArray<T, Ops> {
+        match axes {
+            Some(specified_axes) => {
+                // Validate axes
+                for &axis in specified_axes {
+                    assert!(
+                        axis < self.shape.len(),
+                        "Axis {} is out of bounds for array of dimension {}",
+                        axis,
+                        self.shape.len()
+                    );
+                    assert!(
+                        self.shape[axis] == 1,
+                        "Cannot squeeze axis {} with size {}",
+                        axis,
+                        self.shape[axis]
+                    );
+                }
 
-        let mut new_shape = new_shape
-            .into_iter()
-            .filter(|&x| x != 1)
-            .collect::<Vec<_>>();
+                let new_shape: Vec<usize> = self
+                    .shape
+                    .iter()
+                    .enumerate()
+                    .filter(|&(i, &dim)| !specified_axes.contains(&i) || dim != 1)
+                    .map(|(_, &dim)| dim)
+                    .collect();
 
-        NumArray::new_with_shape(self.data.clone(), new_shape)
+                NumArray::new_with_shape(self.data.clone(), new_shape)
+            }
+            None => {
+                // Remove all axes of length 1
+                let new_shape: Vec<usize> = self
+                    .shape
+                    .iter()
+                    .filter(|&&dim| dim != 1)
+                    .cloned()
+                    .collect();
+
+                NumArray::new_with_shape(self.data.clone(), new_shape)
+            }
+        }
     }
 
     /// Creates a slice of the array.
@@ -773,6 +822,67 @@ where
         }
     }
 
+    /// Computes the minimum value along the specified axes.
+    ///
+    /// # Parameters
+    /// * `axes` - An optional reference to a vector of axes to compute the minimum along.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance containing the minimum values along the specified axes.
+    ///
+    /// # Panics
+    /// Panics if any of the specified axes is out of bounds.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArrayF32;
+    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
+    /// let min_array = array.min_axes(Some(&[1]));
+    /// println!("Min array: {:?}", min_array.get_data());
+    /// ```
+    pub fn min_axes(&self, axes: Option<&[usize]>) -> NumArray<T, Ops> {
+        match axes {
+            Some(axes) => {
+                for &axis in axes {
+                    assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
+                }
+
+                let mut reduced_shape = self.shape.clone();
+                for &axis in axes {
+                    reduced_shape[axis] = 1; // Mark this axis for reduction
+                }
+
+                let reduced_size: usize = reduced_shape.iter().product();
+                let mut reduced_data = vec![T::default(); reduced_size];
+                let mut initialized = vec![false; reduced_size];
+
+                for (i, &val) in self.data.iter().enumerate() {
+                    let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
+                    if !initialized[reduced_idx] {
+                        // First element for this group
+                        reduced_data[reduced_idx] = val;
+                        initialized[reduced_idx] = true;
+                    } else if val < reduced_data[reduced_idx] {
+                        reduced_data[reduced_idx] = val;
+                    }
+                }
+
+                // Squeeze out axes of size 1
+                let squeezed_shape = reduced_shape
+                    .into_iter()
+                    .filter(|&dim| dim != 1)
+                    .collect::<Vec<_>>();
+
+                NumArray::new_with_shape(reduced_data, squeezed_shape)
+            }
+            None => {
+                // If no axes are provided, return the overall min
+                NumArray::new(vec![Ops::min_simd(&self.data)])
+            }
+        }
+    }
+
     /// Computes the minimum value in the array.
     ///
     /// # Returns
@@ -786,7 +896,7 @@ where
     /// println!("Min value: {}", min_value);
     /// ```
     pub fn min(&self) -> T {
-        Ops::min(&self.data)
+        Ops::min_simd(&self.data)
     }
 
     /// Computes the maximum value in the array.
@@ -802,7 +912,7 @@ where
     /// println!("Max value: {}", max_value);
     /// ```
     pub fn max(&self) -> T {
-        Ops::max(&self.data)
+        Ops::max_simd(&self.data)
     }
 
     /// Applies the exponential function to each element of the `NumArray`.
@@ -928,6 +1038,67 @@ where
         (0..self.shape()[0])
             .map(|i| self.data[i * self.shape()[1] + col])
             .collect()
+    }
+
+    /// Computes the maximum value along the specified axes.
+    ///
+    /// # Parameters
+    /// * `axes` - An optional reference to a vector of axes to compute the maximum along.
+    ///
+    /// # Returns
+    /// A new `NumArray` instance containing the maximum values along the specified axes.
+    ///
+    /// # Panics
+    /// Panics if any of the specified axes is out of bounds.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArrayF32;
+    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
+    /// let max_array = array.max_axes(Some(&[1]));
+    /// println!("Max array: {:?}", max_array.get_data());
+    /// ```
+    pub fn max_axes(&self, axes: Option<&[usize]>) -> NumArray<T, Ops> {
+        match axes {
+            Some(axes) => {
+                for &axis in axes {
+                    assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
+                }
+
+                let mut reduced_shape = self.shape.clone();
+                for &axis in axes {
+                    reduced_shape[axis] = 1; // Mark this axis for reduction
+                }
+
+                let reduced_size: usize = reduced_shape.iter().product();
+                let mut reduced_data = vec![T::default(); reduced_size];
+                let mut initialized = vec![false; reduced_size];
+
+                for (i, &val) in self.data.iter().enumerate() {
+                    let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
+                    if !initialized[reduced_idx] {
+                        // First element for this group
+                        reduced_data[reduced_idx] = val;
+                        initialized[reduced_idx] = true;
+                    } else if val > reduced_data[reduced_idx] {
+                        reduced_data[reduced_idx] = val;
+                    }
+                }
+
+                // Squeeze out axes of size 1
+                let squeezed_shape = reduced_shape
+                    .into_iter()
+                    .filter(|&dim| dim != 1)
+                    .collect::<Vec<_>>();
+
+                NumArray::new_with_shape(reduced_data, squeezed_shape)
+            }
+            None => {
+                // If no axes are provided, return the overall max
+                NumArray::new(vec![Ops::max_simd(&self.data)])
+            }
+        }
     }
 }
 
@@ -1755,5 +1926,123 @@ mod tests {
                 computed
             );
         }
+    }
+
+    #[test]
+    fn test_min_axes_1d() {
+        let data = vec![1.0, 2.0, 3.0, 4.0];
+        let array = NumArrayF32::new_with_shape(data, vec![4]);
+        let min_array = array.min_axes(Some(&[0]));
+        assert_eq!(min_array.get_data(), &vec![1.0]);
+    }
+
+    #[test]
+    fn test_min_axes_2d() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
+        let min_array = array.min_axes(Some(&[1]));
+        assert_eq!(min_array.get_data(), &vec![1.0, 4.0]);
+    }
+
+    #[test]
+    fn test_min_axes_3d() {
+        let data = vec![
+            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+        ];
+        let array = NumArrayF32::new_with_shape(data, vec![2, 2, 3]);
+        let min_array = array.min_axes(Some(&[1, 2]));
+        assert_eq!(min_array.get_data(), &vec![1.0, 7.0]);
+    }
+
+    #[test]
+    fn test_min_axes_invalid_axis() {
+        let data = vec![1.0, 2.0, 3.0, 4.0];
+        let array = NumArrayF32::new_with_shape(data, vec![4]);
+        let result = std::panic::catch_unwind(|| array.min_axes(Some(&[1])));
+        assert!(result.is_err(), "Should panic due to invalid axis");
+    }
+
+    #[test]
+    fn test_min_f32() {
+        let array = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(array.min(), 1.0);
+    }
+
+    #[test]
+    fn test_squeeze() {
+        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
+        let squeezed = array.squeeze(None); // removes all axes of length 1
+        assert_eq!(squeezed.shape(), &[2]);
+    }
+
+    #[test]
+    fn test_squeeze_no_axes() {
+        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
+        let squeezed = array.squeeze(None);
+        assert_eq!(squeezed.shape(), &[2]);
+        assert_eq!(squeezed.get_data(), &[1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_squeeze_specific_axes() {
+        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
+        let squeezed = array.squeeze(Some(&[0])); // Only squeeze first axis
+        assert_eq!(squeezed.shape(), &[2, 1]);
+        assert_eq!(squeezed.get_data(), &[1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_squeeze_multiple_axes() {
+        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1, 1]);
+        let squeezed = array.squeeze(Some(&[0, 2])); // Squeeze first and third axes
+        assert_eq!(squeezed.shape(), &[2, 1]);
+        assert_eq!(squeezed.get_data(), &[1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_max_axes_1d() {
+        let data = vec![1.0, 2.0, 3.0, 4.0];
+        let array = NumArrayF32::new_with_shape(data, vec![4]);
+        let max_array = array.max_axes(Some(&[0]));
+        assert_eq!(max_array.get_data(), &vec![4.0]);
+    }
+
+    #[test]
+    fn test_max_axes_2d() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
+        let max_array = array.max_axes(Some(&[1]));
+
+        assert_eq!(max_array.shape(), &[2]);
+        assert_eq!(max_array.get_data(), &vec![3.0, 6.0]); // Max along the second axis (columns)
+    }
+
+    #[test]
+    fn test_max_axes_2d_column() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
+        // Compute max across columns (axis 1)
+        let max_array = array.max_axes(Some(&[1]));
+        assert_eq!(max_array.get_data(), &vec![3.0, 6.0]); // Max along the second axis (columns)
+    }
+
+    #[test]
+    fn test_max_axes_3d() {
+        let data = vec![
+            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+        ];
+        let array = NumArrayF32::new_with_shape(data, vec![2, 2, 3]);
+        // Compute max across the last two axes (1 and 2)
+        let max_array = array.max_axes(Some(&[1, 2]));
+        assert_eq!(max_array.get_data(), &vec![6.0, 12.0]);
+    }
+
+    #[test]
+    fn test_max_axes_invalid_axis() {
+        let data = vec![1.0, 2.0, 3.0, 4.0];
+        let array = NumArrayF32::new_with_shape(data, vec![4]);
+        // Attempt to compute max across an invalid axis
+        let result = std::panic::catch_unwind(|| array.max_axes(Some(&[1])));
+        assert!(result.is_err(), "Should panic due to invalid axis");
     }
 }
