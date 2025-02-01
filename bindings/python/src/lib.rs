@@ -177,6 +177,32 @@ impl PyNumArrayF32 {
             inner: self.inner.sigmoid(),
         }
     }
+
+    fn min_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+        Python::with_gil(|py| {
+            let result = match axes {
+                Some(axes_list) => {
+                    let axes_vec: Vec<usize> = axes_list.extract()?;
+                    self.inner.min_axes(Some(&axes_vec))
+                }
+                None => self.inner.min_axes(None),
+            };
+            Ok(PyNumArrayF32 { inner: result })
+        })
+    }
+
+    fn max_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+        Python::with_gil(|py| {
+            let result = match axes {
+                Some(axes_list) => {
+                    let axes_vec: Vec<usize> = axes_list.extract()?;
+                    self.inner.max_axes(Some(&axes_vec))
+                }
+                None => self.inner.max_axes(None),
+            };
+            Ok(PyNumArrayF32 { inner: result })
+        })
+    }
 }
 
 #[pymethods]
@@ -319,6 +345,32 @@ impl PyNumArrayF64 {
         PyNumArrayF64 {
             inner: self.inner.sigmoid(),
         }
+    }
+
+    fn min_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+        Python::with_gil(|py| {
+            let result = match axes {
+                Some(axes_list) => {
+                    let axes_vec: Vec<usize> = axes_list.extract()?;
+                    self.inner.min_axes(Some(&axes_vec))
+                }
+                None => self.inner.min_axes(None),
+            };
+            Ok(PyNumArrayF64 { inner: result })
+        })
+    }
+
+    fn max_axes(&self, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+        Python::with_gil(|py| {
+            let result = match axes {
+                Some(axes_list) => {
+                    let axes_vec: Vec<usize> = axes_list.extract()?;
+                    self.inner.max_axes(Some(&axes_vec))
+                }
+                None => self.inner.max_axes(None),
+            };
+            Ok(PyNumArrayF64 { inner: result })
+        })
     }
 }
 
@@ -747,8 +799,32 @@ fn min_f32(a: &PyNumArrayF32) -> PyResult<f32> {
 }
 
 #[pyfunction]
+fn min_axes_f32(a: &PyNumArrayF32, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    let result = match axes {
+        Some(axes_list) => {
+            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.min_axes(Some(&axes_vec))
+        }
+        None => a.inner.min_axes(None),
+    };
+    Ok(PyNumArrayF32 { inner: result })
+}
+
+#[pyfunction]
 fn max_f32(a: &PyNumArrayF32) -> PyResult<f32> {
     Ok(a.inner.max())
+}
+
+#[pyfunction]
+fn max_axes_f32(a: &PyNumArrayF32, axes: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    let result = match axes {
+        Some(axes_list) => {
+            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.max_axes(Some(&axes_vec))
+        }
+        None => a.inner.max_axes(None),
+    };
+    Ok(PyNumArrayF32 { inner: result })
 }
 
 #[pyfunction]
@@ -852,8 +928,32 @@ fn min_f64(a: &PyNumArrayF64) -> PyResult<f64> {
 }
 
 #[pyfunction]
+fn min_axes_f64(a: &PyNumArrayF64, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    let result = match axes {
+        Some(axes_list) => {
+            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.min_axes(Some(&axes_vec))
+        }
+        None => a.inner.min_axes(None),
+    };
+    Ok(PyNumArrayF64 { inner: result })
+}
+
+#[pyfunction]
 fn max_f64(a: &PyNumArrayF64) -> PyResult<f64> {
     Ok(a.inner.max())
+}
+
+#[pyfunction]
+fn max_axes_f64(a: &PyNumArrayF64, axes: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    let result = match axes {
+        Some(axes_list) => {
+            let axes_vec: Vec<usize> = axes_list.extract()?; // Convert PyList to Vec<usize>
+            a.inner.max_axes(Some(&axes_vec))
+        }
+        None => a.inner.max_axes(None),
+    };
+    Ok(PyNumArrayF64 { inner: result })
 }
 
 #[pyfunction]
@@ -898,7 +998,9 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(linspace_f32, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(min_axes_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(max_axes_f32, m)?)?;
     m.add_function(wrap_pyfunction!(exp_f32, m)?)?;
     m.add_function(wrap_pyfunction!(log_f32, m)?)?;
     m.add_function(wrap_pyfunction!(sigmoid_f32, m)?)?;

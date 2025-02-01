@@ -9,8 +9,10 @@ crate-type = ["cdylib"]
 
 
 [dependencies]
-numpy = "0.19.0"
 pyo3 = { version = "0.19.2", features = ["extension-module"] }
-
-# Adjust the path to point to your rustynum-rs crate relative to the bindings/python directory
 rustynum-rs = { path = "../../rustynum-rs" }
+
+[profile.release]
+strip = true
+lto = true
+panic = "abort"

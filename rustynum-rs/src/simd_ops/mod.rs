@@ -17,8 +17,8 @@ pub trait SimdOps<T> {
     fn dot_product(a: &[T], b: &[T]) -> T;
     fn transpose(src: &[T], dst: &mut [T], n: usize, k: usize);
     fn sum(a: &[T]) -> T;
-    fn min(a: &[T]) -> T;
-    fn max(a: &[T]) -> T;
+    fn min_simd(a: &[T]) -> T;
+    fn max_simd(a: &[T]) -> T;
 }
 
 #[inline(always)]
@@ -122,7 +122,7 @@ impl SimdOps<u8> for u8x64 {
         scalar_sum
     }
 
-    fn min(a: &[u8]) -> u8 {
+    fn min_simd(a: &[u8]) -> u8 {
         let simd_min_initial_value = u8::MAX;
         let mut simd_min = u8x64::splat(simd_min_initial_value);
         let chunks = a.len() / LANES_8;
@@ -138,7 +138,7 @@ impl SimdOps<u8> for u8x64 {
         final_min
     }
 
-    fn max(a: &[u8]) -> u8 {
+    fn max_simd(a: &[u8]) -> u8 {
         let simd_max_initial_value = u8::MIN;
         let mut simd_max = u8x64::splat(simd_max_initial_value);
         let chunks = a.len() / LANES_8;
@@ -248,7 +248,7 @@ impl SimdOps<f32> for f32x16 {
         scalar_sum
     }
 
-    fn min(a: &[f32]) -> f32 {
+    fn min_simd(a: &[f32]) -> f32 {
         let simd_min_initial_value = f32::MAX;
         let mut simd_min = f32x16::splat(simd_min_initial_value);
         let chunks = a.len() / LANES_32;
@@ -264,7 +264,7 @@ impl SimdOps<f32> for f32x16 {
         final_min
     }
 
-    fn max(a: &[f32]) -> f32 {
+    fn max_simd(a: &[f32]) -> f32 {
         let simd_max_initial_value = f32::MIN;
         let mut simd_max = f32x16::splat(simd_max_initial_value);
         let chunks = a.len() / LANES_32;
@@ -374,7 +374,7 @@ impl SimdOps<f64> for f64x8 {
         scalar_sum
     }
 
-    fn min(a: &[f64]) -> f64 {
+    fn min_simd(a: &[f64]) -> f64 {
         let simd_min_initial_value = f64::MAX;
         let mut simd_min = f64x8::splat(simd_min_initial_value);
         let chunks = a.len() / LANES_64;
@@ -390,7 +390,7 @@ impl SimdOps<f64> for f64x8 {
         final_min
     }
 
-    fn max(a: &[f64]) -> f64 {
+    fn max_simd(a: &[f64]) -> f64 {
         let simd_max_initial_value = f64::MIN;
         let mut simd_max = f64x8::splat(simd_max_initial_value);
         let chunks = a.len() / LANES_64;
@@ -542,14 +542,14 @@ mod tests {
     #[test]
     fn test_min_f32() {
         let a = [4.0, 1.0, 3.0, 2.0];
-        let result = f32x16::min(&a);
+        let result = f32x16::min_simd(&a);
         assert_eq!(result, 1.0);
     }
 
     #[test]
     fn test_max_f32() {
         let a = [4.0, 1.0, 3.0, 2.0];
-        let result = f32x16::max(&a);
+        let result = f32x16::max_simd(&a);
         assert_eq!(result, 4.0);
     }
 
@@ -654,14 +654,14 @@ mod tests {
     #[test]
     fn test_min_f64() {
         let a = [4.0, 1.0, 3.0, 2.0];
-        let result = f64x8::min(&a);
+        let result = f64x8::min_simd(&a);
         assert_eq!(result, 1.0);
     }
 
     #[test]
     fn test_max_f64() {
         let a = [4.0, 1.0, 3.0, 2.0];
-        let result = f64x8::max(&a);
+        let result = f64x8::max_simd(&a);
         assert_eq!(result, 4.0);
     }
 }
