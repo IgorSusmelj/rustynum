@@ -98,9 +98,40 @@ def test_norm_f64_axis():
     )
 
 
-if __name__ == "__main__":
-    test_norm_f32_full_reduction()
-    test_norm_f32_axis()
-    test_norm_f64_full_reduction()
-    test_norm_f64_axis()
-    print("All norm tests passed.")
+def test_l2_normalization():
+    data = [
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0],
+    ]
+
+    # RustyNum implementation
+    arr_rn = rnp.NumArray(data, dtype="float32")
+    norms_rn = arr_rn.norm(p=2, axis=[1])
+    normalized_rn = []
+    for i, row in enumerate(data):
+        norm_val = norms_rn[i]
+        # Extract the scalar from the NumArray
+        norm_val = norm_val.item() if hasattr(norm_val, "item") else norm_val[0]
+        normalized_rn.append([val / norm_val for val in row])
+
+    # NumPy implementation for comparison
+    arr_np = np.array(data, dtype=np.float32)
+    norms_np = np.linalg.norm(arr_np, ord=2, axis=1).reshape(-1, 1)
+    normalized_np = arr_np / norms_np
+
+    np.testing.assert_allclose(
+        normalized_rn,
+        normalized_np,
+        rtol=1e-6,
+        err_msg="L2 normalization results differ between RustyNum and NumPy",
+    )
+
+    # Verify that all rows now have unit norm
+    row_norms = [np.linalg.norm(row, ord=2) for row in normalized_rn]
+    np.testing.assert_allclose(
+        row_norms,
+        np.ones(len(data)),
+        rtol=1e-6,
+        err_msg="Normalized rows do not have unit norm",
+    )
