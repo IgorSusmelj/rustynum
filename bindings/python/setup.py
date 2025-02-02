@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 from setuptools_rust import Binding, RustExtension
 
 setup(
     name="rustynum",
-    version="0.1.5",
+    version="0.1.6",
     description="Python wrapper for the RustyNum library bindings",
     author="IgorSusmelj",
     author_email="isusmelj@gmail.com",
