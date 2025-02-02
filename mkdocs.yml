@@ -39,6 +39,7 @@ nav:
           - tutorials/index.md
           - Getting Better Matrix Operations with RustyNum: tutorials/better-matrix-operations.md
           - Replacing Core NumPy Calls for Faster Analytics: tutorials/replacing-numpy-for-faster-analytics.md
+          - Streamlining Machine Learning Preprocessing: tutorials/streamlining-machine-learning-preprocessing.md
       - API Reference: api/index.md
 plugins:
   - search

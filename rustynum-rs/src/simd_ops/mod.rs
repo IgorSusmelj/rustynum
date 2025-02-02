@@ -19,6 +19,8 @@ pub trait SimdOps<T> {
     fn sum(a: &[T]) -> T;
     fn min_simd(a: &[T]) -> T;
     fn max_simd(a: &[T]) -> T;
+    fn l1_norm(a: &[T]) -> T;
+    fn l2_norm(a: &[T]) -> T;
 }
 
 #[inline(always)]
@@ -153,6 +155,14 @@ impl SimdOps<u8> for u8x64 {
         }
         final_max
     }
+
+    fn l1_norm(_a: &[u8]) -> u8 {
+        unimplemented!("Norm operations are not supported for u8")
+    }
+
+    fn l2_norm(_a: &[u8]) -> u8 {
+        unimplemented!("Norm operations are not supported for u8")
+    }
 }
 
 impl SimdOps<f32> for f32x16 {
@@ -279,6 +289,44 @@ impl SimdOps<f32> for f32x16 {
         }
         final_max
     }
+
+    fn l1_norm(a: &[f32]) -> f32 {
+        let mut sum = f32x16::splat(0.0);
+        let chunks = a.len() / LANES_32;
+
+        // Main SIMD processing
+        for i in 0..chunks {
+            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..(i + 1) * LANES_32]);
+            sum += simd_chunk.abs();
+        }
+
+        // Scalar tail processing
+        let mut scalar_sum = sum.reduce_sum();
+        for i in chunks * LANES_32..a.len() {
+            scalar_sum += a[i].abs();
+        }
+
+        scalar_sum
+    }
+
+    fn l2_norm(a: &[f32]) -> f32 {
+        let mut sum = f32x16::splat(0.0);
+        let chunks = a.len() / LANES_32;
+
+        // Main SIMD processing with fused multiply-add
+        for i in 0..chunks {
+            let simd_chunk = f32x16::from_slice(&a[i * LANES_32..(i + 1) * LANES_32]);
+            sum += simd_chunk * simd_chunk;
+        }
+
+        // Scalar tail processing
+        let mut scalar_sum = sum.reduce_sum();
+        for i in chunks * LANES_32..a.len() {
+            scalar_sum += a[i] * a[i];
+        }
+
+        scalar_sum.sqrt()
+    }
 }
 
 impl SimdOps<f64> for f64x8 {
@@ -404,6 +452,40 @@ impl SimdOps<f64> for f64x8 {
             final_max = final_max.max(a[i]);
         }
         final_max
+    }
+
+    fn l1_norm(a: &[f64]) -> f64 {
+        let mut sum = f64x8::splat(0.0);
+        let chunks = a.len() / LANES_64;
+
+        for i in 0..chunks {
+            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..(i + 1) * LANES_64]);
+            sum += simd_chunk.abs();
+        }
+
+        let mut scalar_sum = sum.reduce_sum();
+        for i in chunks * LANES_64..a.len() {
+            scalar_sum += a[i].abs();
+        }
+
+        scalar_sum
+    }
+
+    fn l2_norm(a: &[f64]) -> f64 {
+        let mut sum = f64x8::splat(0.0);
+        let chunks = a.len() / LANES_64;
+
+        for i in 0..chunks {
+            let simd_chunk = f64x8::from_slice(&a[i * LANES_64..(i + 1) * LANES_64]);
+            sum += simd_chunk * simd_chunk;
+        }
+
+        let mut scalar_sum = sum.reduce_sum();
+        for i in chunks * LANES_64..a.len() {
+            scalar_sum += a[i] * a[i];
+        }
+
+        scalar_sum.sqrt()
     }
 }
 
@@ -663,5 +745,62 @@ mod tests {
         let a = [4.0, 1.0, 3.0, 2.0];
         let result = f64x8::max_simd(&a);
         assert_eq!(result, 4.0);
+    }
+
+    #[test]
+    fn test_l1_norm_f32() {
+        let a = [-1.0f32, 2.0, -3.0, 4.0];
+        let result = f32x16::l1_norm(&a);
+        assert_eq!(result, 10.0);
+    }
+
+    #[test]
+    fn test_l2_norm_f32() {
+        let a = [3.0f32, 4.0];
+        let result = f32x16::l2_norm(&a);
+        assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_l1_norm_f64() {
+        let a = [-1.0f64, 2.0, -3.0, 4.0];
+        let result = f64x8::l1_norm(&a);
+        assert_eq!(result, 10.0);
+    }
+
+    #[test]
+    fn test_l2_norm_f64() {
+        let a = [3.0f64, 4.0];
+        let result = f64x8::l2_norm(&a);
+        assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_l1_norm_2d_axis0() {
+        let a = [
+            1.0f32, 2.0, 3.0, 4.0, 5.0, 6.0, // Shape (2, 3)
+        ];
+        let result = f32x16::l1_norm(&a[0..3]); // First row
+        assert_eq!(result, 6.0);
+        let result = f32x16::l1_norm(&a[3..6]); // Second row
+        assert_eq!(result, 15.0);
+    }
+
+    #[test]
+    fn test_l2_norm_2d_axis1() {
+        let a = [
+            3.0f32, 4.0, 5.0, 12.0, // Shape (2, 2)
+        ];
+        let result = f32x16::l2_norm(&a[0..2]);
+        assert_eq!(result, 5.0);
+        let result = f32x16::l2_norm(&a[2..4]);
+        assert_eq!(result, 13.0);
+    }
+
+    #[test]
+    fn test_l1_norm_empty() {
+        let a: [f32; 0] = [];
+        let result = f32x16::l1_norm(&a);
+        assert_eq!(result, 0.0);
     }
 }

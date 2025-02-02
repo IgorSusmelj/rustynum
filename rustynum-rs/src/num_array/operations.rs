@@ -469,13 +469,41 @@ where
     type Output = NumArray<T, Ops>;
 
     fn div(self, rhs: &'b NumArray<T, Ops>) -> Self::Output {
-        let result_data = self
-            .get_data()
-            .iter()
-            .zip(rhs.get_data().iter())
-            .map(|(&x, &y)| x / y)
-            .collect::<Vec<T>>();
-        NumArray::new(result_data)
+        // Same shape case - use existing implementation
+        if self.shape() == rhs.shape() {
+            let result_data = self
+                .get_data()
+                .iter()
+                .zip(rhs.get_data().iter())
+                .map(|(&x, &y)| x / y)
+                .collect::<Vec<T>>();
+            return NumArray::new_with_shape(result_data, self.shape().to_vec());
+        }
+
+        // Broadcasting case for 2D arrays: self: [m, n], rhs: [m, 1]
+        if self.shape().len() == 2
+            && rhs.shape().len() == 2
+            && self.shape()[0] == rhs.shape()[0]
+            && rhs.shape()[1] == 1
+        {
+            let (m, n) = (self.shape()[0], self.shape()[1]);
+            let mut result_data = Vec::with_capacity(m * n);
+
+            for i in 0..m {
+                let divisor = rhs.get(&[i, 0]);
+                for j in 0..n {
+                    result_data.push(self.get(&[i, j]) / divisor);
+                }
+            }
+            // Important: maintain the original shape for the result
+            return NumArray::new_with_shape(result_data, vec![m, n]);
+        }
+
+        panic!(
+            "Shapes not broadcastable for division: {:?} vs {:?}",
+            self.shape(),
+            rhs.shape()
+        );
     }
 }
 
@@ -576,6 +604,62 @@ mod tests {
         // Check that each element in the result is the sum of elements from the original arrays
         for (i, &val) in result.get_data().iter().enumerate() {
             assert_eq!(val, i as f32 + 2.0 * i as f32);
+        }
+    }
+
+    #[test]
+    fn test_broadcast_division() {
+        // Test for f32
+        let a = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let b = NumArrayF32::new_with_shape(vec![2.0, 4.0], vec![2, 1]);
+        let result = &a / &b;
+        assert_eq!(result.shape(), &[2, 3]);
+        assert_eq!(result.get_data(), &[0.5, 1.0, 1.5, 1.0, 1.25, 1.5]);
+
+        // Test for f64
+        let a = NumArrayF64::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let b = NumArrayF64::new_with_shape(vec![2.0, 4.0], vec![2, 1]);
+        let result = &a / &b;
+        assert_eq!(result.shape(), &[2, 3]);
+        assert_eq!(result.get_data(), &[0.5, 1.0, 1.5, 1.0, 1.25, 1.5]);
+    }
+
+    #[test]
+    #[should_panic(expected = "Shapes not broadcastable")]
+    fn test_invalid_broadcast_division() {
+        let a = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        let b = NumArrayF32::new_with_shape(vec![2.0], vec![1, 1]);
+        let _result = &a / &b; // Should panic
+    }
+
+    #[test]
+    fn test_broadcast_division_shape_preservation() {
+        let a = NumArrayF32::new_with_shape(
+            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+            vec![3, 3],
+        );
+        let b = NumArrayF32::new_with_shape(
+            vec![14.0_f32.sqrt(), 77.0_f32.sqrt(), 194.0_f32.sqrt()],
+            vec![3, 1],
+        );
+        let result = &a / &b;
+
+        // Check shape is preserved
+        assert_eq!(result.shape(), &[3, 3]);
+
+        // Check first row values
+        let expected_first_row = vec![
+            1.0 / 14.0_f32.sqrt(),
+            2.0 / 14.0_f32.sqrt(),
+            3.0 / 14.0_f32.sqrt(),
+        ];
+
+        for i in 0..3 {
+            assert!(
+                (result.get(&[0, i]) - expected_first_row[i]).abs() < 1e-5,
+                "Mismatch at position [0, {}]",
+                i
+            );
         }
     }
 }

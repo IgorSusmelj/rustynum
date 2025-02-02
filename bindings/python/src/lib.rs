@@ -101,10 +101,10 @@ impl PyNumArrayF32 {
         })
     }
 
-    fn div_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<Py<PyAny>> {
+    fn div_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
-            let result = &self.inner / &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            let result = &self.inner / &other.inner;
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
@@ -116,6 +116,24 @@ impl PyNumArrayF32 {
                     self.inner.mean_axis(Some(&axis_vec)) // Now correctly passing a slice wrapped in Some
                 }
                 None => self.inner.mean(),
+            };
+            Ok(PyNumArrayF32 { inner: result })
+        })
+    }
+
+    fn norm(
+        &self,
+        p: u32,
+        axis: Option<&PyList>,
+        keepdims: Option<bool>,
+    ) -> PyResult<PyNumArrayF32> {
+        Python::with_gil(|py| {
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.norm(p, Some(&axis_vec), keepdims)
+                }
+                None => self.inner.norm(p, None, keepdims),
             };
             Ok(PyNumArrayF32 { inner: result })
         })
@@ -270,21 +288,39 @@ impl PyNumArrayF64 {
         })
     }
 
-    fn div_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<Py<PyAny>> {
+    fn div_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
-            let result = &self.inner / &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            let result = &self.inner / &other.inner;
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
         Python::with_gil(|py| {
             let result = match axis {
                 Some(axis_list) => {
-                    let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
-                    self.inner.mean_axis(Some(&axis_vec)) // Now correctly passing a slice wrapped in Some
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.mean_axis(Some(&axis_vec))
                 }
                 None => self.inner.mean_axis(None),
+            };
+            Ok(result.get_data().to_object(py))
+        })
+    }
+
+    fn norm(
+        &self,
+        p: u32,
+        axis: Option<&PyList>,
+        keepdims: Option<bool>,
+    ) -> PyResult<PyNumArrayF64> {
+        Python::with_gil(|py| {
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.norm(p, Some(&axis_vec), keepdims)
+                }
+                None => self.inner.norm(p, None, keepdims),
             };
             Ok(PyNumArrayF64 { inner: result })
         })
@@ -984,6 +1020,44 @@ fn concatenate_f64(arrays: Vec<PyNumArrayF64>, axis: usize) -> PyResult<PyNumArr
     Ok(PyNumArrayF64 { inner: result })
 }
 
+#[pyfunction]
+fn norm_f32(
+    a: &PyNumArrayF32,
+    p: u32,
+    axis: Option<&PyList>,
+    keepdims: Option<bool>,
+) -> PyResult<PyNumArrayF32> {
+    Python::with_gil(|py| {
+        let result = match axis {
+            Some(axis_list) => {
+                let axis_vec: Vec<usize> = axis_list.extract()?;
+                a.inner.norm(p, Some(&axis_vec), keepdims)
+            }
+            None => a.inner.norm(p, None, keepdims),
+        };
+        Ok(PyNumArrayF32 { inner: result })
+    })
+}
+
+#[pyfunction]
+fn norm_f64(
+    a: &PyNumArrayF64,
+    p: u32,
+    axis: Option<&PyList>,
+    keepdims: Option<bool>,
+) -> PyResult<PyNumArrayF64> {
+    Python::with_gil(|py| {
+        let result = match axis {
+            Some(axis_list) => {
+                let axis_vec: Vec<usize> = axis_list.extract()?;
+                a.inner.norm(p, Some(&axis_vec), keepdims)
+            }
+            None => a.inner.norm(p, None, keepdims),
+        };
+        Ok(PyNumArrayF64 { inner: result })
+    })
+}
+
 #[pymodule]
 fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyNumArrayF32>()?;
@@ -1019,6 +1093,8 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(log_f64, m)?)?;
     m.add_function(wrap_pyfunction!(sigmoid_f64, m)?)?;
     m.add_function(wrap_pyfunction!(concatenate_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(norm_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(norm_f64, m)?)?;
 
     Ok(())
 }

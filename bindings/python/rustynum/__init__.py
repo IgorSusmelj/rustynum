@@ -1,7 +1,7 @@
 # rustynum_py_wrapper/__init__.py
 import itertools
 import math
-from typing import Any, List, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 from . import _rustynum
 
@@ -489,7 +489,10 @@ class NumArray:
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
             # Use div_array method from bindings for NumArray division
-            return NumArray(self.inner.div_array(other.inner), dtype=self.dtype)
+            # Create new NumArray with the original shape
+            result = self.inner.div_array(other.inner)
+            # Important: Create NumArray with the original shape preserved
+            return NumArray(result, dtype=self.dtype)
         elif isinstance(other, (int, float)):
             # Use div_scalar method from bindings for scalar division
             return NumArray(self.inner.div_scalar(other), dtype=self.dtype)
@@ -615,6 +618,20 @@ class NumArray:
 
         result = self.inner.slice(axis, start, stop)
         return NumArray(result, dtype=self.dtype)
+
+    def norm(
+        self, p: int = 2, axis: Optional[List[int]] = None, keepdims: bool = False
+    ) -> "NumArray":
+        if self.dtype == "float32":
+            return NumArray(
+                _rustynum.norm_f32(self.inner, p, axis, keepdims), dtype="float32"
+            )
+        elif self.dtype == "float64":
+            return NumArray(
+                _rustynum.norm_f64(self.inner, p, axis, keepdims), dtype="float64"
+            )
+        else:
+            raise ValueError(f"Unsupported dtype for norm: {self.dtype}")
 
 
 def zeros(shape: List[int], dtype: str = "float32") -> "NumArray":
@@ -792,3 +809,14 @@ def concatenate(arrays: List["NumArray"], axis: int = 0) -> "NumArray":
         )
     else:
         raise ValueError("Unsupported dtype for concatenation")
+
+
+def norm(
+    a: "NumArray", p: int = 2, axis: Optional[List[int]] = None, keepdims: bool = False
+) -> "NumArray":
+    if a.dtype == "float32":
+        return NumArray(_rustynum.norm_f32(a.inner, p, axis, keepdims), dtype="float32")
+    elif a.dtype == "float64":
+        return NumArray(_rustynum.norm_f64(a.inner, p, axis, keepdims), dtype="float64")
+    else:
+        raise ValueError(f"Unsupported dtype for norm: {a.dtype}")
