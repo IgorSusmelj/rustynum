@@ -164,6 +164,42 @@ This approach provides a quick path for ML experimentation.
 
 ---
 
+## Advanced Operations
+
+### Element-wise Operations
+
+RustyNum supports arithmetic and math functions directly on NumArray objects. For example, you can apply functions like `sigmoid`, `exp`, and `log` element-wise:
+
+```python
+# Element-wise operations example
+data = rnp.NumArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype="float32")
+print("Original data:", data.tolist())
+
+# Apply the sigmoid function
+sigmoid_data = data.sigmoid()
+print("After applying sigmoid:", sigmoid_data.tolist())
+
+# Compute the exponential and logarithm of each element
+exp_data = data.exp()
+log_data = data.log()
+print("Exponential:", exp_data.tolist())
+print("Logarithm:", log_data.tolist())
+```
+
+### Matrix Multiplication
+
+You can perform matrix multiplication with RustyNum using the @ operator, just like with NumPy:
+
+```python
+# Matrix multiplication example
+a = rnp.NumArray([[1.0, 2.0], [3.0, 4.0]], dtype="float32")
+b = rnp.NumArray([[5.0, 6.0], [7.0, 8.0]], dtype="float32")
+product = a @ b
+print("Matrix multiplication result:", product.tolist())
+```
+
+---
+
 ## Tips and Best Practices
 
 1. **Batch Operations**: RustyNum is most beneficial when dealing with whole arrays instead of looping element-by-element.  
