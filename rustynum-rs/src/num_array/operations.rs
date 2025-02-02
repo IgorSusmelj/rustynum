@@ -489,13 +489,14 @@ where
             let (m, n) = (self.shape()[0], self.shape()[1]);
             let mut result_data = Vec::with_capacity(m * n);
 
-            for row in 0..m {
-                let divisor = rhs.get(&[row, 0]);
-                for col in 0..n {
-                    result_data.push(self.get(&[row, col]) / divisor);
+            for i in 0..m {
+                let divisor = rhs.get(&[i, 0]);
+                for j in 0..n {
+                    result_data.push(self.get(&[i, j]) / divisor);
                 }
             }
-            return NumArray::new_with_shape(result_data, self.shape().to_vec());
+            // Important: maintain the original shape for the result
+            return NumArray::new_with_shape(result_data, vec![m, n]);
         }
 
         panic!(
@@ -629,5 +630,36 @@ mod tests {
         let a = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
         let b = NumArrayF32::new_with_shape(vec![2.0], vec![1, 1]);
         let _result = &a / &b; // Should panic
+    }
+
+    #[test]
+    fn test_broadcast_division_shape_preservation() {
+        let a = NumArrayF32::new_with_shape(
+            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+            vec![3, 3],
+        );
+        let b = NumArrayF32::new_with_shape(
+            vec![14.0_f32.sqrt(), 77.0_f32.sqrt(), 194.0_f32.sqrt()],
+            vec![3, 1],
+        );
+        let result = &a / &b;
+
+        // Check shape is preserved
+        assert_eq!(result.shape(), &[3, 3]);
+
+        // Check first row values
+        let expected_first_row = vec![
+            1.0 / 14.0_f32.sqrt(),
+            2.0 / 14.0_f32.sqrt(),
+            3.0 / 14.0_f32.sqrt(),
+        ];
+
+        for i in 0..3 {
+            assert!(
+                (result.get(&[0, i]) - expected_first_row[i]).abs() < 1e-5,
+                "Mismatch at position [0, {}]",
+                i
+            );
+        }
     }
 }

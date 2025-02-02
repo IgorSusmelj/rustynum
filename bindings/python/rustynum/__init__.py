@@ -489,7 +489,10 @@ class NumArray:
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
             # Use div_array method from bindings for NumArray division
-            return NumArray(self.inner.div_array(other.inner), dtype=self.dtype)
+            # Create new NumArray with the original shape
+            result = self.inner.div_array(other.inner)
+            # Important: Create NumArray with the original shape preserved
+            return NumArray(result, dtype=self.dtype)
         elif isinstance(other, (int, float)):
             # Use div_scalar method from bindings for scalar division
             return NumArray(self.inner.div_scalar(other), dtype=self.dtype)

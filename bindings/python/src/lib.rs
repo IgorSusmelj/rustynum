@@ -101,10 +101,10 @@ impl PyNumArrayF32 {
         })
     }
 
-    fn div_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<Py<PyAny>> {
+    fn div_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
-            let result = &self.inner / &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            let result = &self.inner / &other.inner;
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
@@ -288,10 +288,10 @@ impl PyNumArrayF64 {
         })
     }
 
-    fn div_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<Py<PyAny>> {
+    fn div_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
-            let result = &self.inner / &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            let result = &self.inner / &other.inner;
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
