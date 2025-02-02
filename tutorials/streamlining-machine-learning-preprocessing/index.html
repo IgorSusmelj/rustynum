@@ -11,6 +11,10 @@
         <link rel="canonical" href="https://rustynum.com/tutorials/streamlining-machine-learning-preprocessing/">
       
       
+        <link rel="prev" href="../replacing-numpy-for-faster-analytics/">
+      
+      
+        <link rel="next" href="../../api/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -18,7 +22,7 @@
     
     
       
-        <title>Streamlining Machine Learning Preprocessing with RustyNum - RustyNum Docs</title>
+        <title>Streamlining Machine Learning Preprocessing - RustyNum Docs</title>
       
     
     
@@ -118,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Streamlining Machine Learning Preprocessing with RustyNum
+              Streamlining Machine Learning Preprocessing
             
           </span>
         </div>
@@ -217,10 +221,12 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../.." class="md-tabs__link">
           
   
@@ -289,8 +295,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -311,16 +319,17 @@
     
     
       
+        
+        
+      
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
           
@@ -336,13 +345,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Home
@@ -397,6 +406,8 @@
                 
   
   
+    
+  
   
   
     
@@ -410,19 +421,19 @@
       
         
       
+        
+      
     
     
       
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_4" checked>
         
           
           
@@ -444,7 +455,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_4">
             <span class="md-nav__icon md-icon"></span>
             Tutorials
@@ -490,6 +501,196 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Streamlining Machine Learning Preprocessing
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Streamlining Machine Learning Preprocessing
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loading-and-inspecting-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Loading and Inspecting Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-preprocessing-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Preprocessing Tasks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Preprocessing Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scaling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normalization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concatenating-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concatenating Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integrating-with-ml-libraries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integrating with ML Libraries
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Operations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#element-wise-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Element-wise Operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matrix-multiplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Matrix Multiplication
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips-and-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tips and Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -636,6 +837,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#advanced-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Operations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#element-wise-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Element-wise Operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matrix-multiplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Matrix Multiplication
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips-and-best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       Tips and Best Practices
@@ -672,16 +906,16 @@
 
 
 <h1 id="streamlining-machine-learning-preprocessing-with-rustynum">Streamlining Machine Learning Preprocessing with RustyNum<a class="headerlink" href="#streamlining-machine-learning-preprocessing-with-rustynum" title="Permanent link">&para;</a></h1>
-<p>Data preprocessing is a key step in machine learning. Whether you’re prepping large datasets for neural networks or just cleaning up smaller ones, RustyNum can help speed up vectorized operations and transformations. In this tutorial, we’ll explore how to use RustyNum for several preprocessing tasks, then show how to integrate your processed data with popular Python ML libraries.</p>
+<p>Data preprocessing is a key step in machine learning. Whether you're prepping large datasets for neural networks or just cleaning up smaller ones, RustyNum can help speed up vectorized operations and transformations. In this tutorial, we'll explore how to use RustyNum for several preprocessing tasks, then show how to integrate your processed data with popular Python ML libraries.</p>
 <hr />
 <h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
-<p>When working with data, you often need to transform and prepare it for machine learning models. This can include scaling, normalizing, feature concatenation, and more. RustyNum offers a Python-friendly interface that can accelerate these tasks by leveraging Rust’s SIMD optimizations. Let’s look at how it works in practice.</p>
+<p>When working with data, you often need to transform and prepare it for machine learning models. This can include scaling, normalizing, feature concatenation, and more. RustyNum offers a Python-friendly interface that can accelerate these tasks by leveraging Rust's SIMD optimizations. Let's look at how it works in practice.</p>
 <hr />
 <h2 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">&para;</a></h2>
 <p>Before starting, ensure you have RustyNum installed:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>rustynum
 </code></pre></div>
-<p>We’ll also use NumPy for comparison and scikit-learn for a quick model integration step (optional):</p>
+<p>We'll also use NumPy for comparison and scikit-learn for a quick model integration step (optional):</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scikit-learn
 </code></pre></div>
 <hr />
@@ -699,12 +933,13 @@
 <span class="n">data_rn</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">NumArray</span><span class="p">(</span><span class="n">data_np</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RustyNum data shape:&quot;</span><span class="p">,</span> <span class="n">data_rn</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># RustyNum data shape: (100, 3)</span>
 </code></pre></div>
-<p>Here, we create random data in NumPy, convert it to RustyNum, and confirm its shape. If you’re loading a CSV, just convert that array to RustyNum similarly.</p>
+<p>Here, we create random data in NumPy, convert it to RustyNum, and confirm its shape. If you're loading a CSV, just convert that array to RustyNum similarly.</p>
 <hr />
 <h2 id="common-preprocessing-tasks">Common Preprocessing Tasks<a class="headerlink" href="#common-preprocessing-tasks" title="Permanent link">&para;</a></h2>
 <h3 id="scaling">Scaling<a class="headerlink" href="#scaling" title="Permanent link">&para;</a></h3>
-<p>Scaling adjusts the range of features so they align more closely, which can help certain algorithms converge faster. Let’s perform a simple min-max scale manually with RustyNum.</p>
+<p>Scaling adjusts the range of features so they align more closely, which can help certain algorithms converge faster. Let's perform a simple min-max scale manually with RustyNum.</p>
 <ol>
 <li>Find the min and max for each column.  </li>
 <li>Subtract the min from each element.  </li>
@@ -738,7 +973,9 @@
 <span class="c1"># Scale our data</span>
 <span class="n">scaled_data_rn</span> <span class="o">=</span> <span class="n">min_max_scale</span><span class="p">(</span><span class="n">data_rn</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scaled data shape:&quot;</span><span class="p">,</span> <span class="n">scaled_data_rn</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># Scaled data shape: (100, 3)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First row after scaling:&quot;</span><span class="p">,</span> <span class="n">scaled_data_rn</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="c1"># First row after scaling: [[0.9085683226585388, 0.006626238115131855, 0.5808358788490295]]</span>
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Why Scale Before Normalizing?</p>
@@ -750,34 +987,34 @@
 <p>This combination is particularly useful for neural networks and distance-based algorithms where both feature balance and sample comparability matter.</p>
 </div>
 <h3 id="normalization">Normalization<a class="headerlink" href="#normalization" title="Permanent link">&para;</a></h3>
-<p>Normalization transforms each sample to have unit norm. It’s helpful in tasks such as text classification or when using distance-based metrics.</p>
+<p>Normalization transforms each sample to have unit norm. It's helpful in tasks such as text classification or when using distance-based metrics.</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">l2_normalize</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
-    <span class="n">rows</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">cols</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize array rows to unit L2 norm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Compute L2 norm along axis 1 (for each row)</span>
+    <span class="n">norms</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="c1"># Reshape norms to allow broadcasting (add dimension)</span>
+    <span class="n">norms</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">norms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="c1"># Divide each row by its norm (broadcasting will work)</span>
+    <span class="k">return</span> <span class="n">array</span> <span class="o">/</span> <span class="n">norms</span>
 
-    <span class="k">for</span> <span class="n">row_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
-        <span class="n">row_data</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">row_idx</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-        <span class="n">norm</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">row_data</span><span class="p">))</span>
-        <span class="n">norm</span> <span class="o">=</span> <span class="n">norm</span> <span class="k">if</span> <span class="n">norm</span> <span class="o">!=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">1.0</span>
-        <span class="n">normalized_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">/</span> <span class="n">norm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">row_data</span><span class="p">]</span>
-        <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalized_row</span><span class="p">)</span>
+<span class="c1"># Create sample data</span>
+<span class="n">data_rn</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">NumArray</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">rnp</span><span class="o">.</span><span class="n">NumArray</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
-
-<span class="c1"># Normalize our scaled data</span>
-<span class="n">normalized_data_rn</span> <span class="o">=</span> <span class="n">l2_normalize</span><span class="p">(</span><span class="n">scaled_data_rn</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First row after L2 normalization:&quot;</span><span class="p">,</span> <span class="n">normalized_data_rn</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="c1"># Normalize the data</span>
+<span class="n">normalized_data_rn</span> <span class="o">=</span> <span class="n">l2_normalize</span><span class="p">(</span><span class="n">data_rn</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data after L2 normalization:&quot;</span><span class="p">,</span> <span class="n">normalized_data_rn</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 </code></pre></div>
 <h3 id="concatenating-features">Concatenating Features<a class="headerlink" href="#concatenating-features" title="Permanent link">&para;</a></h3>
 <p>If you have multiple feature sets (e.g., one from images, another from text), RustyNum can concatenate them into a single array:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create two feature sets from our normalized data</span>
-<span class="n">features1</span> <span class="o">=</span> <span class="n">normalized_data_rn</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># First two columns</span>
-<span class="n">features2</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>         <span class="c1"># Additional features</span>
+<span class="n">features1</span> <span class="o">=</span> <span class="n">normalized_data_rn</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># First two columns (shape: [2, 2])</span>
+<span class="n">features2</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>          <span class="c1"># Match features1 shape: [2, 2]</span>
 
 <span class="c1"># Combine them</span>
 <span class="n">combined</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">features1</span><span class="p">,</span> <span class="n">features2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combined feature shape:&quot;</span><span class="p">,</span> <span class="n">combined</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combined feature shape:&quot;</span><span class="p">,</span> <span class="n">combined</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># Expected: [2, 4]</span>
 </code></pre></div>
 <hr />
 <h2 id="integrating-with-ml-libraries">Integrating with ML Libraries<a class="headerlink" href="#integrating-with-ml-libraries" title="Permanent link">&para;</a></h2>
@@ -796,6 +1033,32 @@
 </code></pre></div>
 <p>This approach provides a quick path for ML experimentation.</p>
 <hr />
+<h2 id="advanced-operations">Advanced Operations<a class="headerlink" href="#advanced-operations" title="Permanent link">&para;</a></h2>
+<h3 id="element-wise-operations">Element-wise Operations<a class="headerlink" href="#element-wise-operations" title="Permanent link">&para;</a></h3>
+<p>RustyNum supports arithmetic and math functions directly on NumArray objects. For example, you can apply functions like <code>sigmoid</code>, <code>exp</code>, and <code>log</code> element-wise:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Element-wise operations example</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">NumArray</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Original data:&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+<span class="c1"># Apply the sigmoid function</span>
+<span class="n">sigmoid_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After applying sigmoid:&quot;</span><span class="p">,</span> <span class="n">sigmoid_data</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+<span class="c1"># Compute the exponential and logarithm of each element</span>
+<span class="n">exp_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span>
+<span class="n">log_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exponential:&quot;</span><span class="p">,</span> <span class="n">exp_data</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Logarithm:&quot;</span><span class="p">,</span> <span class="n">log_data</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+</code></pre></div>
+<h3 id="matrix-multiplication">Matrix Multiplication<a class="headerlink" href="#matrix-multiplication" title="Permanent link">&para;</a></h3>
+<p>You can perform matrix multiplication with RustyNum using the @ operator, just like with NumPy:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Matrix multiplication example</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">NumArray</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">rnp</span><span class="o">.</span><span class="n">NumArray</span><span class="p">([[</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+<span class="n">product</span> <span class="o">=</span> <span class="n">a</span> <span class="o">@</span> <span class="n">b</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Matrix multiplication result:&quot;</span><span class="p">,</span> <span class="n">product</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+</code></pre></div>
+<hr />
 <h2 id="tips-and-best-practices">Tips and Best Practices<a class="headerlink" href="#tips-and-best-practices" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Batch Operations</strong>: RustyNum is most beneficial when dealing with whole arrays instead of looping element-by-element.  </li>
@@ -805,7 +1068,7 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Check out the other <a href="../">Tutorials</a> for deeper dives into RustyNum’s capabilities.  </li>
+<li>Check out the other <a href="../">Tutorials</a> for deeper dives into RustyNum's capabilities.  </li>
 <li>Review the <a href="../api/">API Reference</a> for more advanced methods.  </li>
 <li>Join the community on <a href="https://github.com/IgorSusmelj/rustynum/discussions">GitHub Discussions</a> to share ideas or ask questions.</li>
 </ul>
@@ -830,7 +1093,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 4, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 2, 2025</span>
   </span>
 
     
