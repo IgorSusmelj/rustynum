@@ -107,28 +107,29 @@ def test_l2_normalization():
 
     # RustyNum implementation
     arr_rn = rnp.NumArray(data, dtype="float32")
-    norms_rn = arr_rn.norm(p=2, axis=[1])
-    normalized_rn = []
-    for i, row in enumerate(data):
-        norm_val = norms_rn[i]
-        # Extract the scalar from the NumArray
-        norm_val = norm_val.item() if hasattr(norm_val, "item") else norm_val[0]
-        normalized_rn.append([val / norm_val for val in row])
+    # Use keepdims=True to maintain the shape for broadcasting
+    norms_rn = arr_rn.norm(p=2, axis=[1], keepdims=True)
+    normalized_rn = arr_rn / norms_rn
+
+    print(arr_rn.shape, norms_rn.shape, normalized_rn.shape)
 
     # NumPy implementation for comparison
     arr_np = np.array(data, dtype=np.float32)
-    norms_np = np.linalg.norm(arr_np, ord=2, axis=1).reshape(-1, 1)
+    norms_np = np.linalg.norm(arr_np, ord=2, axis=1, keepdims=True)
     normalized_np = arr_np / norms_np
 
+    # check if shape is the same
+    assert normalized_rn.shape == normalized_np.shape
+
     np.testing.assert_allclose(
-        normalized_rn,
+        normalized_rn.tolist(),
         normalized_np,
         rtol=1e-6,
         err_msg="L2 normalization results differ between RustyNum and NumPy",
     )
 
     # Verify that all rows now have unit norm
-    row_norms = [np.linalg.norm(row, ord=2) for row in normalized_rn]
+    row_norms = [np.linalg.norm(row, ord=2) for row in normalized_rn.tolist()]
     np.testing.assert_allclose(
         row_norms,
         np.ones(len(data)),
