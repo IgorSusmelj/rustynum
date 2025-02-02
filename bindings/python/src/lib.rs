@@ -121,14 +121,19 @@ impl PyNumArrayF32 {
         })
     }
 
-    fn norm(&self, p: u32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    fn norm(
+        &self,
+        p: u32,
+        axis: Option<&PyList>,
+        keepdims: Option<bool>,
+    ) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = match axis {
                 Some(axis_list) => {
                     let axis_vec: Vec<usize> = axis_list.extract()?;
-                    self.inner.norm(p, Some(&axis_vec))
+                    self.inner.norm(p, Some(&axis_vec), keepdims)
                 }
-                None => self.inner.norm(p, None),
+                None => self.inner.norm(p, None, keepdims),
             };
             Ok(PyNumArrayF32 { inner: result })
         })
@@ -303,14 +308,19 @@ impl PyNumArrayF64 {
         })
     }
 
-    fn norm(&self, p: u32, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+    fn norm(
+        &self,
+        p: u32,
+        axis: Option<&PyList>,
+        keepdims: Option<bool>,
+    ) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = match axis {
                 Some(axis_list) => {
                     let axis_vec: Vec<usize> = axis_list.extract()?;
-                    self.inner.norm(p, Some(&axis_vec))
+                    self.inner.norm(p, Some(&axis_vec), keepdims)
                 }
-                None => self.inner.norm(p, None),
+                None => self.inner.norm(p, None, keepdims),
             };
             Ok(PyNumArrayF64 { inner: result })
         })
@@ -1011,28 +1021,38 @@ fn concatenate_f64(arrays: Vec<PyNumArrayF64>, axis: usize) -> PyResult<PyNumArr
 }
 
 #[pyfunction]
-fn norm_f32(a: &PyNumArrayF32, p: u32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+fn norm_f32(
+    a: &PyNumArrayF32,
+    p: u32,
+    axis: Option<&PyList>,
+    keepdims: Option<bool>,
+) -> PyResult<PyNumArrayF32> {
     Python::with_gil(|py| {
         let result = match axis {
             Some(axis_list) => {
                 let axis_vec: Vec<usize> = axis_list.extract()?;
-                a.inner.norm(p, Some(&axis_vec))
+                a.inner.norm(p, Some(&axis_vec), keepdims)
             }
-            None => a.inner.norm(p, None),
+            None => a.inner.norm(p, None, keepdims),
         };
         Ok(PyNumArrayF32 { inner: result })
     })
 }
 
 #[pyfunction]
-fn norm_f64(a: &PyNumArrayF64, p: u32, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
+fn norm_f64(
+    a: &PyNumArrayF64,
+    p: u32,
+    axis: Option<&PyList>,
+    keepdims: Option<bool>,
+) -> PyResult<PyNumArrayF64> {
     Python::with_gil(|py| {
         let result = match axis {
             Some(axis_list) => {
                 let axis_vec: Vec<usize> = axis_list.extract()?;
-                a.inner.norm(p, Some(&axis_vec))
+                a.inner.norm(p, Some(&axis_vec), keepdims)
             }
-            None => a.inner.norm(p, None),
+            None => a.inner.norm(p, None, keepdims),
         };
         Ok(PyNumArrayF64 { inner: result })
     })

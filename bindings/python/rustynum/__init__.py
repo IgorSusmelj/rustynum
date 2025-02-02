@@ -616,11 +616,17 @@ class NumArray:
         result = self.inner.slice(axis, start, stop)
         return NumArray(result, dtype=self.dtype)
 
-    def norm(self, p: int = 2, axis: Optional[List[int]] = None) -> "NumArray":
+    def norm(
+        self, p: int = 2, axis: Optional[List[int]] = None, keepdims: bool = False
+    ) -> "NumArray":
         if self.dtype == "float32":
-            return NumArray(_rustynum.norm_f32(self.inner, p, axis), dtype="float32")
+            return NumArray(
+                _rustynum.norm_f32(self.inner, p, axis, keepdims), dtype="float32"
+            )
         elif self.dtype == "float64":
-            return NumArray(_rustynum.norm_f64(self.inner, p, axis), dtype="float64")
+            return NumArray(
+                _rustynum.norm_f64(self.inner, p, axis, keepdims), dtype="float64"
+            )
         else:
             raise ValueError(f"Unsupported dtype for norm: {self.dtype}")
 
@@ -802,10 +808,12 @@ def concatenate(arrays: List["NumArray"], axis: int = 0) -> "NumArray":
         raise ValueError("Unsupported dtype for concatenation")
 
 
-def norm(a: "NumArray", p: int = 2, axis: Optional[List[int]] = None) -> "NumArray":
+def norm(
+    a: "NumArray", p: int = 2, axis: Optional[List[int]] = None, keepdims: bool = False
+) -> "NumArray":
     if a.dtype == "float32":
-        return NumArray(_rustynum.norm_f32(a.inner, p, axis), dtype="float32")
+        return NumArray(_rustynum.norm_f32(a.inner, p, axis, keepdims), dtype="float32")
     elif a.dtype == "float64":
-        return NumArray(_rustynum.norm_f64(a.inner, p, axis), dtype="float64")
+        return NumArray(_rustynum.norm_f64(a.inner, p, axis, keepdims), dtype="float64")
     else:
         raise ValueError(f"Unsupported dtype for norm: {a.dtype}")

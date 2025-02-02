@@ -1369,75 +1369,101 @@ where
     /// For p = 1, computes the L1 norm (i.e., the sum of absolute values).
     /// For p = 2, computes the L2 norm (i.e., the square root of the sum of squares).
     ///
-    /// Instead of manually iterating the data, this version uses the simd operations
-    /// defined in the SimdOps trait.
-    pub fn norm(&self, p: u32, axis: Option<&[usize]>) -> Self {
+    /// # Parameters
+    /// * `p` - The order of the norm (1 for L1 norm, 2 for L2 norm)
+    /// * `axis` - Optional axis along which to compute the norm
+    /// * `keepdims` - If true, the reduced axes are left in the result as dimensions with size one
+    ///
+    /// # Returns
+    /// A new array with the computed norms. If keepdims is false, the reduced dimensions are removed.
+    ///
+    /// # Example
+    /// ```
+    /// use rustynum_rs::NumArrayF32;
+    /// let array = NumArrayF32::new_with_shape(vec![3.0, 4.0], vec![2]);
+    /// let norm = array.norm(2, None, Some(true));
+    /// assert!((norm.item() - 5.0).abs() < 1e-5);
+    /// ```
+    pub fn norm(&self, p: u32, axis: Option<&[usize]>, keepdims: Option<bool>) -> Self {
+        let keepdims = keepdims.unwrap_or(false);
         match axis {
             None => {
-                // Full reduction - current behavior
+                // Full reduction
                 let data = self.get_data();
                 let result = match p {
                     1 => Ops::l1_norm(data),
                     2 => Ops::l2_norm(data),
                     _ => unimplemented!("Only L1 and L2 norm are implemented"),
                 };
-                Self::new(vec![result])
+                if keepdims {
+                    // Create shape with all dimensions of size 1
+                    let reduced_shape = vec![1; self.shape.len()];
+                    Self::new_with_shape(vec![result], reduced_shape)
+                } else {
+                    Self::new(vec![result])
+                }
             }
             Some(axes) => {
-                // 1) Mark down the shape for the reduced array:
                 let mut reduced_shape = self.shape.clone();
                 for &ax in axes {
-                    reduced_shape[ax] = 1; // same approach as in min_axis
+                    reduced_shape[ax] = 1;
                 }
 
-                let reduced_size: usize = reduced_shape.iter().product();
-                let mut reduced_data = vec![T::default(); reduced_size];
-                let mut computed_sqrt = false;
+                // Calculate the size of the output array
+                let output_size: usize = reduced_shape.iter().product();
+                let mut reduced_data = vec![T::default(); output_size];
 
-                // 2) Accumulate partial sums (L1 or L2):
-                if let Some(&last_axis) = axes.iter().max() {
-                    if last_axis == self.shape.len() - 1 {
-                        let block_size = self.shape[last_axis];
-                        let num_blocks = self.data.len() / block_size;
-                        for i in 0..num_blocks {
-                            let block = &self.data[i * block_size..(i + 1) * block_size];
-                            let norm_val = if p == 1 {
-                                Ops::l1_norm(block)
-                            } else {
-                                Ops::l2_norm(block)
-                            };
-                            reduced_data[i] = norm_val;
+                // For single axis reduction along the last dimension, use SIMD optimization
+                if axes.len() == 1 && axes[0] == self.shape.len() - 1 {
+                    let block_size = self.shape[self.shape.len() - 1];
+                    let num_blocks = self.data.len() / block_size;
+
+                    for i in 0..num_blocks {
+                        let block = &self.data[i * block_size..(i + 1) * block_size];
+                        reduced_data[i] = match p {
+                            1 => Ops::l1_norm(block),
+                            2 => Ops::l2_norm(block),
+                            _ => unimplemented!("Only L1 and L2 norm are implemented"),
+                        };
+                    }
+                } else {
+                    // For other cases, use the general accumulation method
+                    let mut temp_sums = vec![T::default(); output_size];
+                    let mut counts = vec![0usize; output_size];
+
+                    for (i, &val) in self.data.iter().enumerate() {
+                        let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
+                        if p == 1 {
+                            temp_sums[reduced_idx] = temp_sums[reduced_idx] + val.abs();
+                        } else {
+                            temp_sums[reduced_idx] = temp_sums[reduced_idx] + val * val;
                         }
-                        if p == 2 {
-                            computed_sqrt = true;
-                        }
-                    } else {
-                        // fallback branch remains unchanged
-                        for (i, &val) in self.data.iter().enumerate() {
-                            let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
-                            if p == 1 {
-                                reduced_data[reduced_idx] = reduced_data[reduced_idx] + val.abs();
-                            } else {
-                                reduced_data[reduced_idx] = reduced_data[reduced_idx] + val * val;
+                        counts[reduced_idx] += 1;
+                    }
+
+                    if p == 2 {
+                        for (sum, &count) in temp_sums.iter_mut().zip(counts.iter()) {
+                            if count > 0 {
+                                *sum = sum.sqrt();
                             }
                         }
                     }
+                    reduced_data = temp_sums;
                 }
 
-                // 3) If L2, finish by taking sqrt:
-                if p == 2 && !computed_sqrt {
-                    for x in &mut reduced_data {
-                        *x = x.sqrt();
-                    }
+                if !keepdims {
+                    // Remove the reduced dimensions
+                    let final_shape: Vec<usize> = self
+                        .shape
+                        .iter()
+                        .enumerate()
+                        .filter(|&(i, _)| !axes.contains(&i))
+                        .map(|(_, &dim)| dim)
+                        .collect();
+                    Self::new_with_shape(reduced_data, final_shape)
+                } else {
+                    Self::new_with_shape(reduced_data, reduced_shape)
                 }
-
-                // 4) "Squeeze" shape if needed:
-                let squeezed_shape = reduced_shape
-                    .into_iter()
-                    .filter(|&dim| dim != 1)
-                    .collect::<Vec<_>>();
-
-                Self::new_with_shape(reduced_data, squeezed_shape)
             }
         }
     }
@@ -2125,7 +2151,7 @@ mod tests {
     #[test]
     fn test_norm() {
         let matrix = NumArrayF32::new_with_shape(vec![3.0, 4.0, -3.0, -4.0], vec![2, 2]);
-        let l2_norm_axis0 = matrix.norm(2, Some(&[0]));
+        let l2_norm_axis0 = matrix.norm(2, Some(&[0]), Some(false));
         assert_eq!(l2_norm_axis0.shape(), &[2]);
         // Column norms: sqrt(3² + (-3)²) and sqrt(4² + (-4)²)
         assert!(
@@ -2145,7 +2171,7 @@ mod tests {
         let c = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, -1.0, 1.0, 4.0], vec![2, 3]);
 
         // axis=0 (column norms)
-        let norm_axis0 = c.norm(2, Some(&[0]));
+        let norm_axis0 = c.norm(2, Some(&[0]), Some(false));
         assert_eq!(norm_axis0.shape(), &[3]);
         assert!(
             (norm_axis0.get(&[0]) - 1.41421356).abs() < 1e-5,
@@ -2156,20 +2182,20 @@ mod tests {
         assert!((norm_axis0.get(&[2]) - 5.0).abs() < 1e-5);
 
         // axis=1 (row norms)
-        let norm_axis1 = c.norm(2, Some(&[1]));
+        let norm_axis1 = c.norm(2, Some(&[1]), Some(false));
         assert_eq!(norm_axis1.shape(), &[2]);
         assert!((norm_axis1.get(&[0]) - 3.74165739).abs() < 1e-5);
         assert!((norm_axis1.get(&[1]) - 4.24264069).abs() < 1e-5);
 
         // ord=1 (sum of absolute values)
-        let l1_norm = c.norm(1, None);
+        let l1_norm = c.norm(1, None, Some(false));
         assert!((l1_norm.item() - 12.0).abs() < 1e-5);
     }
 
     #[test]
     fn test_matrix_norms() {
         let matrix = NumArrayF32::new_with_shape(vec![3.0, 4.0, 5.0, 12.0], vec![2, 2]);
-        let frobenius = matrix.norm(2, None);
+        let frobenius = matrix.norm(2, None, Some(false));
         // Correct calculation: sqrt(3² + 4² + 5² + 12²) = sqrt(9+16+25+144) = sqrt(194) ≈ 13.928388
         assert!((frobenius.item() - 13.928388).abs() < 1e-5);
     }
@@ -2178,14 +2204,60 @@ mod tests {
     fn test_edge_cases() {
         // Empty array
         let empty = NumArrayF32::new(vec![]);
-        assert_eq!(empty.norm(2, None).item(), 0.0);
+        assert_eq!(empty.norm(2, None, Some(false)).item(), 0.0);
 
         // Single element
         let single = NumArrayF32::new(vec![5.0]);
-        assert_eq!(single.norm(2, None).item(), 5.0);
+        assert_eq!(single.norm(2, None, Some(false)).item(), 5.0);
 
         // All zeros
         let zeros = NumArrayF32::new(vec![0.0; 4]);
-        assert_eq!(zeros.norm(2, None).item(), 0.0);
+        assert_eq!(zeros.norm(2, None, Some(false)).item(), 0.0);
+    }
+
+    #[test]
+    fn test_norm_keepdims_f32() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+        // 3x3 array
+        let array = NumArrayF32::new_with_shape(data, vec![3, 3]);
+        // Compute L2 norm along axis 1
+        let norms = array.norm(2, Some(&[1]), Some(true));
+        // Expected: each row norm remains as a 1-element vector, e.g. [√14, √77, √194]
+        assert_eq!(norms.shape(), &[3, 1]);
+        // Check first norm approximately
+        let norm0 = norms.get(&[0, 0]);
+        assert!((norm0 - (14.0_f32).sqrt()).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_l2_normalization() {
+        // Create a 3x3 array matching the Python test
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+        let array = NumArrayF32::new_with_shape(data, vec![3, 3]);
+
+        // Calculate L2 norms with keepdims=true
+        let norms = array.norm(2, Some(&[1]), Some(true));
+        assert_eq!(norms.shape(), &[3, 1]); // Verify norms shape
+
+        // Perform the normalization (array / norms)
+        let normalized = &array / &norms;
+
+        // Verify the normalized array maintains the original shape
+        assert_eq!(normalized.shape(), &[3, 3]);
+
+        // Verify some normalized values (comparing with NumPy results)
+        let expected_first_row = vec![
+            1.0 / (14.0_f32).sqrt(),
+            2.0 / (14.0_f32).sqrt(),
+            3.0 / (14.0_f32).sqrt(),
+        ];
+
+        for i in 0..3 {
+            assert!(
+                (normalized.get(&[0, i]) - expected_first_row[i]).abs() < 1e-5,
+                "Mismatch at position [0, {}]",
+                i
+            );
+        }
     }
 }
