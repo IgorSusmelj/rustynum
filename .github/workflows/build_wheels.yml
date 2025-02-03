@@ -48,7 +48,7 @@ jobs:
             rustup default nightly-2024-05-04
       - uses: actions/upload-artifact@v4
         with:
-          name: wheelhouse
+          name: wheelhouse-${{ matrix.os }}-py${{ matrix.python-version }}
           path: wheelhouse/*.whl
 
   build_wheels_aarch64:
@@ -68,7 +68,7 @@ jobs:
           platforms: arm64
 
       - name: Build Wheels (ARM64)
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.18
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python
@@ -80,7 +80,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheelhouse
+          name: wheelhouse-${{ matrix.os }}-py${{ matrix.python-version }}
           path: wheelhouse/*.whl
 
   build_sdist:
@@ -123,5 +123,4 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          twine upload ./artifacts/sdist/*
-          twine upload ./artifacts/wheelhouse/*
+          find ./artifacts -type f \( -name '*.whl' -o -name '*.tar.gz' \) -print0 | xargs -0 twine upload
