@@ -56,7 +56,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     concurrency:
       group: aarch64-build
-      cancel-in-progress: true
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
