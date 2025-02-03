@@ -68,7 +68,7 @@ jobs:
           platforms: arm64
 
       - name: Build Wheels (ARM64)
-        uses: pypa/cibuildwheel@v2.18.0
+        uses: pypa/cibuildwheel@v2.16.5
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python
