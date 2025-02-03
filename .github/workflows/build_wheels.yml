@@ -32,7 +32,6 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
-
           CIBW_BEFORE_BUILD_LINUX: |
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source $HOME/.cargo/env
@@ -46,6 +45,7 @@ jobs:
           CIBW_ENVIRONMENT_MACOS: PATH="$PATH:$HOME/.cargo/bin"
           CIBW_BEFORE_BUILD_WINDOWS: |
             rustup default nightly-2024-05-04
+
       - uses: actions/upload-artifact@v4
         with:
           name: wheelhouse-${{ matrix.os }}-py${{ matrix.python-version }}
@@ -54,6 +54,9 @@ jobs:
   build_wheels_aarch64:
     name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
     runs-on: ${{ matrix.os }}
+    concurrency:
+      group: aarch64-build
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
@@ -62,10 +65,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup up QEMU
+      - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
+
+      # Cache rustup toolchain to avoid repeated downloads
+      - name: Cache Rust toolchain
+        uses: actions/cache@v3
+        with:
+          path: ~/.rustup
+          key: rustup-${{ runner.os }}-nightly-2024-05-04
+          restore-keys: |
+            rustup-${{ runner.os }}-
 
       - name: Build Wheels (ARM64)
         uses: pypa/cibuildwheel@v2.16.5
