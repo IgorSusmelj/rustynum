@@ -54,9 +54,6 @@ jobs:
   build_wheels_aarch64:
     name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
     runs-on: ${{ matrix.os }}
-    concurrency:
-      group: aarch64-build
-      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
