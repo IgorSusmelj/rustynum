@@ -2,14 +2,11 @@ name: Build and Upload Wheels to PyPI
 
 on: [workflow_dispatch]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   build_wheels:
     name: py${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -19,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Wheels
-        uses: pypa/cibuildwheel@v2.18.0
+        uses: pypa/cibuildwheel@v2.21.2
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python
@@ -52,22 +49,26 @@ jobs:
           path: wheelhouse/*.whl
 
   build_wheels_aarch64:
-    name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
-    runs-on: ${{ matrix.os }}
+    name: py${{ matrix.python-version }} on aarch64
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    # Give ARM builds a unique concurrency group for each run so they won’t cancel each other.
+    concurrency:
+      group: aarch64-${{ github.run_id }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
+      max-parallel: 1 # Run each Python version one after the other.
       matrix:
-        os: [ubuntu-latest]
         python-version: [38, 39, 310, 311, 312]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup QEMU
+      - name: Setup QEMU for ARM
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
-      # Cache rustup toolchain to avoid repeated downloads
       - name: Cache Rust toolchain
         uses: actions/cache@v3
         with:
@@ -77,10 +78,11 @@ jobs:
             rustup-${{ runner.os }}-
 
       - name: Build Wheels (ARM64)
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.21.2
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python
+          build-verbosity: 3
         env:
           CIBW_BUILD: "cp${{ matrix.python-version }}-*"
           CIBW_ARCHS: "aarch64"
@@ -95,9 +97,10 @@ jobs:
   build_sdist:
     name: sdist
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: "3.9"
@@ -115,9 +118,10 @@ jobs:
     name: Upload to PyPI
     needs: [build_wheels, build_wheels_aarch64, build_sdist]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
       - name: Install twine
