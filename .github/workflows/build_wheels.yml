@@ -21,7 +21,6 @@ jobs:
           output-dir: wheelhouse
           package-dir: ./bindings/python
           build-frontend: build
-          build-verbosity: 1
         env:
           CIBW_BUILD: "cp${{ matrix.python-version }}-*"
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_i686 *-win32"
@@ -30,7 +29,9 @@ jobs:
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_BEFORE_BUILD_LINUX: |
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.sh
+            chmod +x rustup-init.sh
+            ./rustup-init.sh -y
             source $HOME/.cargo/env
             rustup default nightly-2024-05-04
             pip install setuptools setuptools_rust wheel
@@ -51,14 +52,9 @@ jobs:
   build_wheels_aarch64:
     name: py${{ matrix.python-version }} on aarch64
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    # Give ARM builds a unique concurrency group for each run so they won't cancel each other.
-    concurrency:
-      group: aarch64-${{ github.run_id }}
-      cancel-in-progress: false
+    timeout-minutes: 120
     strategy:
       fail-fast: false
-      max-parallel: 1 # Run each Python version one after the other.
       matrix:
         python-version: [38, 39, 310, 311, 312]
     steps:
@@ -77,12 +73,25 @@ jobs:
           restore-keys: |
             rustup-${{ runner.os }}-
 
+      - name: Cache Cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache Cargo build target
+        uses: actions/cache@v3
+        with:
+          path: ./bindings/python/target
+          key: cargo-target-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build Wheels (ARM64)
         uses: pypa/cibuildwheel@v2.21.2
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python
-          build-verbosity: 3
         env:
           CIBW_BUILD: "cp${{ matrix.python-version }}-*"
           CIBW_ARCHS: "aarch64"
@@ -94,8 +103,7 @@ jobs:
             rustup default nightly-2024-05-04
             rustup target add aarch64-unknown-linux-gnu
             pip install setuptools setuptools_rust wheel
-          CIBW_ENVIRONMENT_LINUX: 'PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true'
-
+          CIBW_ENVIRONMENT_LINUX: 'PATH="$PATH:$HOME/.cargo/bin" CARGO_NET_GIT_FETCH_WITH_CLI=true CARGO_INCREMENTAL=1'
       - uses: actions/upload-artifact@v4
         with:
           name: wheelhouse-aarch64-py${{ matrix.python-version }}
