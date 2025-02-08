@@ -136,7 +136,7 @@ jobs:
           python-version: "3.9"
       - name: Install twine
         run: pip install twine
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: ./artifacts
       - name: List files in the artifact directory
