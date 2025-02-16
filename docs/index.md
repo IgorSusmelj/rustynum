@@ -34,7 +34,7 @@ RustyNum is built to demonstrate the potential of **Rust's SIMD capabilities** w
 
 ### Seamless Python Integration
 - Python bindings offer a familiar interface for NumPy users.
-- Compatible with popular Python versions (3.8 - 3.12).
+- Compatible with popular Python versions (3.8 - 3.13).
 
 ### Lightweight and Portable
 - No external Rust crates used—keeping the codebase simple and transparent.

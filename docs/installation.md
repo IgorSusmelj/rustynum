@@ -7,11 +7,11 @@ Get started with RustyNum by following this installation guide. Whether you're u
 ## ✅ Supported Platforms and Versions
 
 ### Supported Python Versions
-- Python 3.8, 3.9, 3.10, 3.11, 3.12
+- Python 3.8, 3.9, 3.10, 3.11, 3.12, 3.13
 
 ### Supported Operating Systems
 - **Windows**: x86
-- **Linux**: x86
+- **Linux**: x86 & ARM
 - **MacOS**: x86 & ARM (Apple Silicon support)
 
 ---

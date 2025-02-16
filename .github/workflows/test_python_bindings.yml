@@ -2,9 +2,9 @@ name: Test Python Bindings
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -15,16 +15,18 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - version: '3.8'
-            tag: '38'
-          - version: '3.9'
-            tag: '39'
-          - version: '3.10'
-            tag: '310'
-          - version: '3.11'
-            tag: '311'
-          - version: '3.12'
-            tag: '312'
+          - version: "3.8"
+            tag: "38"
+          - version: "3.9"
+            tag: "39"
+          - version: "3.10"
+            tag: "310"
+          - version: "3.11"
+            tag: "311"
+          - version: "3.12"
+            tag: "312"
+          - version: "3.13"
+            tag: "313"
     steps:
       - uses: actions/checkout@v4
 
@@ -34,7 +36,7 @@ jobs:
           python-version: ${{ matrix.python.version }}
 
       - name: Build Wheel
-        uses: pypa/cibuildwheel@v2.18.0
+        uses: pypa/cibuildwheel@v2.21.2
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python

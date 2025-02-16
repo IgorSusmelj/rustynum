@@ -24,7 +24,7 @@ RustyNum is a high-performance numerical computation library written in Rust, cr
 
 ## Installation
 
-Supported Python versions: `3.8`, `3.9`, `3.10`, `3.11`, `3.12`
+Supported Python versions: `3.8`, `3.9`, `3.10`, `3.11`, `3.12`, `3.13`
 
 Supported operating systems: `Windows x86`, `Linux x86`, `MacOS x86 & ARM`
 
