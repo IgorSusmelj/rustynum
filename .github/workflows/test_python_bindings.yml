@@ -36,7 +36,7 @@ jobs:
           python-version: ${{ matrix.python.version }}
 
       - name: Build Wheel
-        uses: pypa/cibuildwheel@v2.18.0
+        uses: pypa/cibuildwheel@v2.21.2
         with:
           output-dir: wheelhouse
           package-dir: ./bindings/python
