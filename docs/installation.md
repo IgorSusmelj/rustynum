@@ -11,7 +11,7 @@ Get started with RustyNum by following this installation guide. Whether you're u
 
 ### Supported Operating Systems
 - **Windows**: x86
-- **Linux**: x86
+- **Linux**: x86 & ARM
 - **MacOS**: x86 & ARM (Apple Silicon support)
 
 ---
