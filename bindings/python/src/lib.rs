@@ -121,6 +121,19 @@ impl PyNumArrayF32 {
         })
     }
 
+    fn median_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+        Python::with_gil(|py| {
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.median_axis(Some(&axis_vec))
+                }
+                None => self.inner.median_axis(None),
+            };
+            Ok(PyNumArrayF32 { inner: result })
+        })
+    }
+
     fn norm(
         &self,
         p: u32,
@@ -303,6 +316,19 @@ impl PyNumArrayF64 {
                     self.inner.mean_axis(Some(&axis_vec))
                 }
                 None => self.inner.mean_axis(None),
+            };
+            Ok(result.get_data().to_object(py))
+        })
+    }
+
+    fn median_axis(&self, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let result = match axis {
+                Some(axis_list) => {
+                    let axis_vec: Vec<usize> = axis_list.extract()?;
+                    self.inner.median_axis(Some(&axis_vec))
+                }
+                None => self.inner.median_axis(None),
             };
             Ok(result.get_data().to_object(py))
         })
@@ -830,6 +856,20 @@ fn mean_f32(a: &PyNumArrayF32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32>
 }
 
 #[pyfunction]
+fn median_f32(a: &PyNumArrayF32, axis: Option<&PyList>) -> PyResult<PyNumArrayF32> {
+    Python::with_gil(|py| {
+        let result = match axis {
+            Some(axis_list) => {
+                let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+                a.inner.median_axis(Some(&axis_vec))
+            }
+            None => a.inner.median_axis(None), // Handle the case where no axis are provided
+        };
+        Ok(PyNumArrayF32 { inner: result }) // Convert the result data to a Python object
+    })
+}
+
+#[pyfunction]
 fn min_f32(a: &PyNumArrayF32) -> PyResult<f32> {
     Ok(a.inner.min())
 }
@@ -959,6 +999,20 @@ fn mean_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
 }
 
 #[pyfunction]
+fn median_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
+    Python::with_gil(|py| {
+        let result = match axis {
+            Some(axis_list) => {
+                let axis_vec: Vec<usize> = axis_list.extract()?; // Convert PyList to Vec<usize>
+                a.inner.median_axis(Some(&axis_vec))
+            }
+            None => a.inner.median_axis(None), // Handle the case where no axis are provided
+        };
+        Ok(result.get_data().to_object(py)) // Convert the result data to a Python object
+    })
+}
+
+#[pyfunction]
 fn min_f64(a: &PyNumArrayF64) -> PyResult<f64> {
     Ok(a.inner.min())
 }
@@ -1071,6 +1125,7 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(arange_f32, m)?)?;
     m.add_function(wrap_pyfunction!(linspace_f32, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f32, m)?)?;
+    m.add_function(wrap_pyfunction!(median_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_f32, m)?)?;
     m.add_function(wrap_pyfunction!(min_axis_f32, m)?)?;
     m.add_function(wrap_pyfunction!(max_f32, m)?)?;
@@ -1087,6 +1142,7 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(arange_f64, m)?)?;
     m.add_function(wrap_pyfunction!(linspace_f64, m)?)?;
     m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(median_f64, m)?)?;
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
     m.add_function(wrap_pyfunction!(max_f64, m)?)?;
     m.add_function(wrap_pyfunction!(exp_f64, m)?)?;
