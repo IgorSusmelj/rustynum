@@ -1,12 +1,10 @@
 ![RustyNum Banner](docs/assets/rustynum-banner.png?raw=true "RustyNum")
 
-
 [![PyPI python](https://img.shields.io/pypi/pyversions/rustynum)](https://pypi.org/project/rustynum)
 ![PyPI Version](https://badge.fury.io/py/rustynum.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Test Python Bindings](https://github.com/IgorSusmelj/rustynum/actions/workflows/test_python_bindings.yml/badge.svg)
 [![Documentation](https://img.shields.io/badge/docs-rustynum.com-blue)](https://rustynum.com)
-
 
 ---
 
@@ -102,6 +100,7 @@ RustyNum offers a variety of numerical operations and data types, with more feat
 | Arange           | `np.arange(start, stop, step)`  | `rnp.arange(start, stop, step)`  |
 | Linspace         | `np.linspace(start, stop, num)` | `rnp.linspace(start, stop, num)` |
 | Mean             | `np.mean(a)`                    | `rnp.mean(a)`                    |
+| Median           | `np.median(a)`                  | `rnp.median(a)`                  |
 | Min              | `np.min(a)`                     | `rnp.min(a)`                     |
 | Max              | `np.max(a)`                     | `rnp.max(a)`                     |
 | Exp              | `np.exp(a)`                     | `rnp.exp(a)`                     |
@@ -171,6 +170,15 @@ average = a.mean()
 average_axis0 = a.mean(axis=0)
 ```
 
+`median(axis: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
+
+Computes the median along specified axis.
+
+```Python
+median = a.median()
+median_axis0 = a.median(axis=0)
+```
+
 `min(axis: Union[None, int, Sequence[int]] = None) -> Union[NumArray, float]`
 
 Returns the minimum value in the array.
@@ -206,7 +214,7 @@ Planned Features:
 
 - N-dimensional arrays
   - Useful for filters, image processing, and machine learning
-- Additional operations: median, argmin, argmax, sort, std, var, zeros, cumsum, interp
+- Additional operations: argmin, argmax, sort, std, var, zeros, cumsum, interp
 - Integer support
 - Extended shaping and reshaping capabilities
 - C++ and WASM bindings
@@ -235,6 +243,7 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 | Operation                   | RustyNum (us)  | Numpy (us)     | Speedup Factor |
 | --------------------------- | -------------- | -------------- | -------------- |
 | Mean (1000 elements)        | 8.8993         | 22.6300        | 2.54x          |
+| Median (1000 elements)      | 23.6040        | 39.8451        | 1.68x          |
 | Min (1000 elements)         | 10.1423        | 28.9693        | 2.86x          |
 | Sigmoid (1000 elems)        | 10.6899        | 23.2486        | 2.17x          |
 | Dot Product (1000 elems)    | 17.0640        | 38.2958        | 2.24x          |
@@ -248,6 +257,7 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 | Operation                   | RustyNum (us)  | Numpy (us)     | Speedup Factor |
 | --------------------------- | -------------- | -------------- | -------------- |
 | Mean (1000 elements)        | 9.1026         | 24.0636        | 2.64x          |
+| Median (1000 elements)      | 24.9010        | 38.4760        | 1.54x          |
 | Min (1000 elements)         | 18.2651        | 24.8170        | 1.36x          |
 | Dot Product (1000 elems)    | 16.6583        | 38.8000        | 2.33x          |
 | Matrix-Vector (1000x1000)   | 9,941.3305     | 23,788.9570    | 2.39x          |
@@ -257,7 +267,7 @@ RustyNum leverages Rust's `portable_simd` feature to achieve significant perform
 
 #### Observations
 
-- RustyNum significantly outperforms Numpy in basic operations such as mean, min, and dot product, with speedup factors over 2x.
+- RustyNum significantly outperforms Numpy in basic operations such as mean, median, min, and dot product, with speedup factors up to and over 2x.
 - For larger operations, especially matrix-vector and matrix-matrix multiplications, Numpy currently performs better, which highlights areas for potential optimization in RustyNum.
 
 These results demonstrate RustyNum's potential for high-performance numerical computations, particularly in operations where SIMD instructions can be fully leveraged.
@@ -272,6 +282,7 @@ In addition to the Python bindings, RustyNum’s core library is implemented in 
 | ------------------------------------------- | --------- | --------- | --------- |
 | Addition (10k elements)                     | 760.53 ns | 695.73 ns | 664.29 ns |
 | Vector mean (10k elements)                  | 683.83 ns | 14.602 µs | 1.2370 µs |
+| Vector median (10k elements)                | 7.4175 µs | 6.8863 µs | 6.9970 µs |
 | Vector Dot Product (10k elements)           | 758.65 ns | 1.1843 µs | 1.1942 µs |
 | Matrix-Vector Multiplication (1k elements)  | 77.851 us | 403.39 µs | 115.75 µs |
 | Matrix-Matrix Multiplication (500 elements) | 2.5526 ms | 2.9038 ms | 2.7847 ms |
@@ -310,7 +321,7 @@ Run using
 
 ```
 
-cargo criterion
+cargo bench -- <benchmark_name>
 
 ```
 

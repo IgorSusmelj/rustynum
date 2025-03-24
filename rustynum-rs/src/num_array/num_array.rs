@@ -627,7 +627,6 @@ where
     /// ```
 
     pub fn median_axis(&self, axis: Option<&[usize]>) -> NumArray<T, Ops> {
-        // TODO_A: Improve efficiency. More in place, less copy, check SIMD
         match axis {
             Some(axis) => {
                 let mut reduced_shape = self.shape.clone();
