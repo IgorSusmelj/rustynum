@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 import rustynum as rnp
 
 

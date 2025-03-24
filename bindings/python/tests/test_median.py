@@ -1,6 +1,7 @@
 # bindings/python/tests/test_dot_product.py
 
 import numpy as np
+
 import rustynum as rnp
 
 
