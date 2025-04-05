@@ -8,6 +8,7 @@ use rustynum_rs::NumArrayF32;
 enum Operation {
     AddVectors,
     Mean,
+    Median,
     DotProduct,
     MatrixVectorMultiplication,
     MatrixMatrixMultiplication,
@@ -22,11 +23,22 @@ fn create_matrix(rows: usize, cols: usize) -> Vec<f32> {
     (0..rows * cols).map(|x| x as f32).collect()
 }
 
+fn calculate_median(values: &mut [f32]) -> f32 {
+    values.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let len = values.len();
+    if len % 2 == 0 {
+        (values[len / 2 - 1] + values[len / 2]) / 2.0
+    } else {
+        values[len / 2]
+    }
+}
+
 // Generic benchmark function for vector operations
 fn benchmark_vector_operation(c: &mut Criterion, op: Operation, sizes: &[usize]) {
     let mut group = c.benchmark_group(match op {
         Operation::AddVectors => "Vector Addition",
         Operation::Mean => "Vector Mean",
+        Operation::Median => "Vector Median",
         Operation::DotProduct => "Vector Dot Product",
         _ => "Unknown Operation",
     });
@@ -40,14 +52,14 @@ fn benchmark_vector_operation(c: &mut Criterion, op: Operation, sizes: &[usize])
             None
         };
 
-        let a_ndarray = Array1::from_vec(create_vector(size));
+        let mut a_ndarray = Array1::from_vec(create_vector(size));
         let b_ndarray = if matches!(op, Operation::AddVectors | Operation::DotProduct) {
             Some(Array1::from_vec(create_vector(size)))
         } else {
             None
         };
 
-        let a_nalgebra = DVector::from_vec(create_vector(size));
+        let mut a_nalgebra = DVector::from_vec(create_vector(size));
         let b_nalgebra = if matches!(op, Operation::AddVectors | Operation::DotProduct) {
             Some(DVector::from_vec(create_vector(size)))
         } else {
@@ -92,6 +104,27 @@ fn benchmark_vector_operation(c: &mut Criterion, op: Operation, sizes: &[usize])
                 group.bench_with_input(BenchmarkId::new("nalgebra", size), &size, |bencher, &_| {
                     bencher.iter(|| {
                         black_box(a_nalgebra.iter().sum::<f32>() / a_nalgebra.len() as f32)
+                    })
+                });
+            }
+            Operation::Median => {
+                group.bench_with_input(
+                    BenchmarkId::new("rustynum_rs", size),
+                    &size,
+                    |bencher, &_| bencher.iter(|| black_box(a_rustynum.median())),
+                );
+
+                group.bench_with_input(BenchmarkId::new("ndarray", size), &size, |bencher, &_| {
+                    bencher.iter(|| {
+                        let slice = a_ndarray.as_slice_mut().expect("Failed to get slice");
+                        black_box(calculate_median(slice));
+                    })
+                });
+
+                group.bench_with_input(BenchmarkId::new("nalgebra", size), &size, |bencher, &_| {
+                    bencher.iter(|| {
+                        let slice = a_nalgebra.as_mut_slice();
+                        black_box(calculate_median(slice));
                     })
                 });
             }
@@ -243,6 +276,7 @@ fn main_benchmark(c: &mut Criterion) {
     // Vector operations
     benchmark_vector_operation(c, Operation::AddVectors, &vector_sizes);
     benchmark_vector_operation(c, Operation::Mean, &vector_sizes);
+    benchmark_vector_operation(c, Operation::Median, &vector_sizes);
     benchmark_vector_operation(c, Operation::DotProduct, &vector_sizes);
 
     // Matrix operations

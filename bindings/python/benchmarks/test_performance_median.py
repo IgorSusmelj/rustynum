@@ -10,33 +10,33 @@ def setup_vector(dtype, size=1000):
     return a.tolist()
 
 
-# Function to perform mean using rustynum
-def mean_rustynum(a, dtype):
+# Function to perform median using rustynum
+def median_rustynum(a, dtype):
     a_rnp = rnp.NumArray(a, dtype=dtype)
-    return a_rnp.mean()
+    return a_rnp.median()
 
 
-# Function to perform mean using numpy
-def mean_numpy(a, dtype):
+# Function to perform median using numpy
+def median_numpy(a, dtype):
     a_np = np.array(a, dtype=dtype)
-    return np.mean(a_np)
+    return np.median(a_np)
 
 
 # Parametrized test function for different libraries, data types, and sizes
 @pytest.mark.parametrize(
     "func,dtype,size",
     [
-        (mean_rustynum, "float32", 1000),
-        (mean_rustynum, "float64", 1000),
-        (mean_numpy, "float32", 1000),
-        (mean_numpy, "float64", 1000),
-        (mean_rustynum, "float32", 10000),
-        (mean_rustynum, "float64", 10000),
-        (mean_numpy, "float32", 10000),
-        (mean_numpy, "float64", 10000),
+        (median_rustynum, "float32", 1000),
+        (median_rustynum, "float64", 1000),
+        (median_numpy, "float32", 1000),
+        (median_numpy, "float64", 1000),
+        (median_rustynum, "float32", 10000),
+        (median_rustynum, "float64", 10000),
+        (median_numpy, "float32", 10000),
+        (median_numpy, "float64", 10000),
     ],
 )
-def test_mean(benchmark, func, dtype, size):
+def test_median(benchmark, func, dtype, size):
     a = setup_vector(dtype, size)
     group_name = f"{dtype}"
 

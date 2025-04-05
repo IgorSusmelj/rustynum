@@ -6,3 +6,6 @@
 **.pyc
 **rustynum.egg-info
 **__pycache__
+
+# Ignore compiled shared object files
+**/*.so

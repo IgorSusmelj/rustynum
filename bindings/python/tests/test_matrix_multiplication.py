@@ -1,6 +1,7 @@
 import numpy as np
-import rustynum as rnp
 import pytest
+
+import rustynum as rnp
 
 
 def test_matmul_f32_basic():

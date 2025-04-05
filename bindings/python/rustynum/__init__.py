@@ -347,6 +347,48 @@ class NumArray:
         )
         return NumArray(result, dtype=self.dtype)
 
+    def median(
+        self, axis: Union[None, int, Sequence[int]] = None
+    ) -> Union["NumArray", float]:
+        """
+        Computes the median of the NumArray along specified axis.
+
+        Parameters:
+            axis: Optional; Axis or axis along which to compute the median. If None, the median
+                  of all elements is computed as a scalar.
+
+        Returns:
+            A new NumArray with the median values along the specified axis, or a scalar if no axis are given.
+        """
+        axis = [axis] if isinstance(axis, int) else axis
+        result = (
+            _rustynum.median_f32(self.inner, axis)
+            if self.dtype == "float32"
+            else _rustynum.median_f64(self.inner, axis)
+        )
+        return NumArray(result, dtype=self.dtype)
+
+    def median(
+        self, axis: Union[None, int, Sequence[int]] = None
+    ) -> Union["NumArray", float]:
+        """
+        Computes the median of the NumArray along specified axis.
+
+        Parameters:
+            axis: Optional; Axis or axis along which to compute the median. If None, the median
+                  of all elements is computed as a scalar.
+
+        Returns:
+            A new NumArray with the median values along the specified axis, or a scalar if no axis are given.
+        """
+        axis = [axis] if isinstance(axis, int) else axis
+        result = (
+            _rustynum.median_f32(self.inner, axis)
+            if self.dtype == "float32"
+            else _rustynum.median_f64(self.inner, axis)
+        )
+        return NumArray(result, dtype=self.dtype)
+
     def min(
         self, axis: Union[None, int, Sequence[int]] = None
     ) -> Union["NumArray", float]:
@@ -724,6 +766,17 @@ def mean(a: "NumArray") -> float:
     else:
         raise TypeError(
             "Unsupported operand type for mean: '{}'".format(type(a).__name__)
+        )
+
+
+def median(a: "NumArray") -> float:
+    if isinstance(a, NumArray):
+        return a.median()
+    elif isinstance(a, (int, float)):
+        return NumArray([a], dtype="float32").median()
+    else:
+        raise TypeError(
+            "Unsupported operand type for median: '{}'".format(type(a).__name__)
         )
 
 
