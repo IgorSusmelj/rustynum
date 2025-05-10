@@ -51,53 +51,52 @@ impl PyNumArrayF32 {
     }
 
     // Implement addition with a scalar value
-    fn add_scalar(&self, scalar: f32) -> PyResult<Py<PyAny>> {
+    fn add_scalar(&self, scalar: f32) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner + scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f32> to Python list
-        })
+            Ok(PyNumArrayF32 { inner: result })
     }
 
     // Implement addition with another NumArray
-    fn add_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<Py<PyAny>> {
+    fn add_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner + &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f32> to Python list
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
-    fn sub_scalar(&self, scalar: f32) -> PyResult<Py<PyAny>> {
+    fn sub_scalar(&self, scalar: f32) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner - scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
-    fn sub_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<Py<PyAny>> {
+    fn sub_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner - &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
-    fn mul_scalar(&self, scalar: f32) -> PyResult<Py<PyAny>> {
+    fn mul_scalar(&self, scalar: f32) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner * scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
-    fn mul_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<Py<PyAny>> {
+    fn mul_array(&self, other: PyRef<PyNumArrayF32>) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner * &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
-    fn div_scalar(&self, scalar: f32) -> PyResult<Py<PyAny>> {
+    fn div_scalar(&self, scalar: f32) -> PyResult<PyNumArrayF32> {
         Python::with_gil(|py| {
             let result = &self.inner / scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF32 { inner: result })
         })
     }
 
@@ -252,52 +251,52 @@ impl PyNumArrayF64 {
         Ok(())
     }
 
-    fn add_scalar(&self, scalar: f64) -> PyResult<Py<PyAny>> {
+    fn add_scalar(&self, scalar: f64) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner + scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn add_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<Py<PyAny>> {
+    fn add_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner + &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn sub_scalar(&self, scalar: f64) -> PyResult<Py<PyAny>> {
+    fn sub_scalar(&self, scalar: f64) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner - scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn sub_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<Py<PyAny>> {
+    fn sub_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner - &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn mul_scalar(&self, scalar: f64) -> PyResult<Py<PyAny>> {
+    fn mul_scalar(&self, scalar: f64) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner * scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn mul_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<Py<PyAny>> {
+    fn mul_array(&self, other: PyRef<PyNumArrayF64>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner * &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn div_scalar(&self, scalar: f64) -> PyResult<Py<PyAny>> {
+    fn div_scalar(&self, scalar: f64) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = &self.inner / scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<f64> to Python list
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
@@ -308,7 +307,7 @@ impl PyNumArrayF64 {
         })
     }
 
-    fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
+    fn mean_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = match axis {
                 Some(axis_list) => {
@@ -317,11 +316,11 @@ impl PyNumArrayF64 {
                 }
                 None => self.inner.mean_axis(None),
             };
-            Ok(result.get_data().to_object(py))
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
-    fn median_axis(&self, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
+    fn median_axis(&self, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
         Python::with_gil(|py| {
             let result = match axis {
                 Some(axis_list) => {
@@ -330,7 +329,7 @@ impl PyNumArrayF64 {
                 }
                 None => self.inner.median_axis(None),
             };
-            Ok(result.get_data().to_object(py))
+            Ok(PyNumArrayF64 { inner: result })
         })
     }
 
@@ -447,59 +446,59 @@ impl PyNumArrayU8 {
         PyNumArrayU8 { inner }
     }
 
-    fn add_scalar(&self, scalar: u8) -> PyResult<Py<PyAny>> {
+    fn add_scalar(&self, scalar: u8) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner + scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn add_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<Py<PyAny>> {
+    fn add_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner + &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn sub_scalar(&self, scalar: u8) -> PyResult<Py<PyAny>> {
+    fn sub_scalar(&self, scalar: u8) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner - scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn sub_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<Py<PyAny>> {
+    fn sub_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner - &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn mul_scalar(&self, scalar: u8) -> PyResult<Py<PyAny>> {
+    fn mul_scalar(&self, scalar: u8) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner * scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn mul_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<Py<PyAny>> {
+    fn mul_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner * &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn div_scalar(&self, scalar: u8) -> PyResult<Py<PyAny>> {
+    fn div_scalar(&self, scalar: u8) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner / scalar; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
-    fn div_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<Py<PyAny>> {
+    fn div_array(&self, other: PyRef<PyNumArrayU8>) -> PyResult<PyNumArrayU8> {
         Python::with_gil(|py| {
             let result = &self.inner / &other.inner; // Leveraging Rust's Add implementation
-            Ok(result.get_data().to_object(py)) // Convert Vec<u8> to Python list
+            Ok(PyNumArrayU8 { inner: result })
         })
     }
 
@@ -985,7 +984,7 @@ fn linspace_f64(start: f64, end: f64, num: usize) -> PyResult<PyNumArrayF64> {
 }
 
 #[pyfunction]
-fn mean_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
+fn mean_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
     Python::with_gil(|py| {
         let result = match axis {
             Some(axis_list) => {
@@ -994,12 +993,12 @@ fn mean_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
             }
             None => a.inner.mean_axis(None), // Handle the case where no axis are provided
         };
-        Ok(result.get_data().to_object(py)) // Convert the result data to a Python object
+        Ok(PyNumArrayF64 { inner: result })
     })
 }
 
 #[pyfunction]
-fn median_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
+fn median_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<PyNumArrayF64> {
     Python::with_gil(|py| {
         let result = match axis {
             Some(axis_list) => {
@@ -1008,7 +1007,7 @@ fn median_f64(a: &PyNumArrayF64, axis: Option<&PyList>) -> PyResult<Py<PyAny>> {
             }
             None => a.inner.median_axis(None), // Handle the case where no axis are provided
         };
-        Ok(result.get_data().to_object(py)) // Convert the result data to a Python object
+        Ok(PyNumArrayF64 { inner: result })
     })
 }
 
