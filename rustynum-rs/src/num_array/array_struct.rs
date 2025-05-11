@@ -369,43 +369,6 @@ where
         + FromUsize,
     Ops: SimdOps<T>,
 {
-    /// Creates a new 1D array with values starting from `start` to `stop` with a given `step`.
-    ///
-    /// # Parameters
-    /// * `start` - The start value of the sequence.
-    /// * `stop` - The end value of the sequence.
-    /// * `step` - The step value between each pair of consecutive values.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the specified range.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let arange_array = NumArrayF32::arange(0.0, 1.0, 0.2);
-    /// println!("Arange array: {:?}", arange_array.get_data());
-    /// ```
-    pub fn arange(start: T, stop: T, step: T) -> Self {
-        assert!(
-            step > T::default(),
-            "step must be greater than 0 for arange."
-        );
-        let mut data = Vec::new();
-        let mut current = start;
-        while current < stop {
-            data.push(current);
-            current = current + step;
-        }
-        let shape = vec![data.len()];
-        let strides = vec![1];
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
     /// Retrieves the single element of the array.
     ///
     /// # Returns
@@ -756,58 +719,6 @@ where
         + Debug,
     Ops: SimdOps<T>,
 {
-    /// Creates a new array filled with zeros.
-    ///
-    /// # Parameters
-    /// * `shape` - A vector of dimensions defining the shape of the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance filled with zeros.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let zeros_array = NumArrayF32::zeros(vec![2, 3]);
-    /// println!("Zeros array: {:?}", zeros_array.get_data());
-    /// ```
-    pub fn zeros(shape: Vec<usize>) -> Self {
-        let size = shape.iter().product();
-        let data = vec![T::default(); size];
-        let strides = Self::compute_strides(&shape);
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
-    /// Creates a new array filled with ones.
-    ///
-    /// # Parameters
-    /// * `shape` - A vector of dimensions defining the shape of the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance filled with ones.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let ones_array = NumArrayF32::ones(vec![2, 3]);
-    /// println!("Ones array: {:?}", ones_array.get_data());
-    /// ```
-    pub fn ones(shape: Vec<usize>) -> Self {
-        let size = shape.iter().product();
-        let data = vec![T::from_usize(1); size];
-        let strides = Self::compute_strides(&shape);
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
     /// Concatenates multiple `NumArray` instances along the specified axis.
     ///
     /// # Parameters
@@ -967,41 +878,6 @@ where
         } else {
             // Matrix-vector or matrix-matrix multiplication
             matrix_multiply(self, other)
-        }
-    }
-
-    /// Creates a new 1D array with linearly spaced values between `start` and `stop`.
-    ///
-    /// # Parameters
-    /// * `start` - The start value of the sequence.
-    /// * `stop` - The end value of the sequence.
-    /// * `num` - The number of values to generate.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the specified linear space.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let linspace_array = NumArrayF32::linspace(0.0, 1.0, 5);
-    /// println!("Linspace array: {:?}", linspace_array.get_data());
-    /// ```
-    pub fn linspace(start: T, stop: T, num: usize) -> Self {
-        assert!(num > 1, "num must be greater than 1 for linspace.");
-        let step = (stop - start) / T::from_usize(num - 1);
-        let mut data = Vec::with_capacity(num);
-        let mut current = start;
-        for _ in 0..num {
-            data.push(current);
-            current = current + step;
-        }
-        let shape = vec![num];
-        let strides = vec![1];
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
         }
     }
 
@@ -1572,22 +1448,6 @@ mod tests {
     }
 
     #[test]
-    fn test_zeros_array() {
-        let shape = vec![2, 3]; // 2x3 matrix
-        let zeros_array = NumArrayF32::zeros(shape.clone());
-        assert_eq!(zeros_array.shape(), shape.as_slice());
-        assert_eq!(zeros_array.get_data(), &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    }
-
-    #[test]
-    fn test_ones_array() {
-        let shape = vec![2, 3]; // 2x3 matrix
-        let ones_array = NumArrayF32::ones(shape.clone());
-        assert_eq!(ones_array.shape(), shape.as_slice());
-        assert_eq!(ones_array.get_data(), &[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
-    }
-
-    #[test]
     fn test_concatenate_1d_arrays() {
         let a = NumArrayF32::new(vec![1.0, 2.0, 3.0]);
         let b = NumArrayF32::new(vec![4.0, 5.0]);
@@ -1805,18 +1665,6 @@ mod tests {
         // [6 + 4, 0 + 12]
         assert_eq!(result.shape(), &[2, 2]);
         assert_eq!(result.get_data(), &[4.0, 6.0, 10.0, 12.0]);
-    }
-
-    #[test]
-    fn test_arange() {
-        let arange_array = NumArrayF32::arange(0.0, 1.0, 0.2);
-        assert_eq!(arange_array.get_data(), &[0.0, 0.2, 0.4, 0.6, 0.8]);
-    }
-
-    #[test]
-    fn test_linspace() {
-        let linspace_array = NumArrayF32::linspace(0.0, 1.0, 5);
-        assert_eq!(linspace_array.get_data(), &[0.0, 0.25, 0.5, 0.75, 1.0]);
     }
 
     #[test]
