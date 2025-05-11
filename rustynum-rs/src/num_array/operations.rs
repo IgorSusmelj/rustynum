@@ -1,5 +1,4 @@
-#[allow(unused_imports)]
-use super::num_array::{NumArray, NumArrayF32, NumArrayF64, NumArrayI32, NumArrayI64, NumArrayU8};
+use super::NumArray;
 use crate::simd_ops::SimdOps;
 use crate::traits::{ExpLog, FromU32, FromUsize, NumOps};
 use std::fmt::Debug;
@@ -509,6 +508,8 @@ where
 
 #[cfg(test)]
 mod tests {
+
+    use crate::{NumArrayF32, NumArrayF64, NumArrayI32, NumArrayI64, NumArrayU8};
 
     use super::*;
 

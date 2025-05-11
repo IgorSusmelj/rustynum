@@ -56,10 +56,10 @@ pub struct NumArray<T, Ops>
 where
     T: Debug,
 {
-    data: Vec<T>,
-    shape: Vec<usize>,
-    strides: Vec<usize>,
-    _ops: PhantomData<Ops>,
+    pub(crate) data: Vec<T>,
+    pub(crate) shape: Vec<usize>,
+    pub(crate) strides: Vec<usize>,
+    pub(crate) _ops: PhantomData<Ops>,
 }
 
 impl<T, Ops> NumArray<T, Ops>
@@ -72,6 +72,47 @@ where
     /// A reference to the shape vector.
     pub fn shape(&self) -> &[usize] {
         &self.shape
+    }
+
+    /// Retrieves the element strides of the array.
+    /// Strides indicate the number of elements to skip in the flat data
+    /// to move one step along each dimension.
+    ///
+    /// # Returns
+    /// A slice representing the element strides vector.
+    pub fn element_strides(&self) -> &[usize] {
+        &self.strides
+    }
+
+    /// Retrieves a slice view of the underlying data.
+    ///
+    /// # Returns
+    /// A slice `&[T]` to the array's data.
+    pub fn data_slice(&self) -> &[T] {
+        &self.data[..]
+    }
+
+    /// Retrieves the size of a single element in bytes.
+    ///
+    /// # Returns
+    /// The size of `T` in bytes.
+    pub fn item_size(&self) -> usize
+    where
+        T: Sized, // Add Sized trait bound here
+    {
+        std::mem::size_of::<T>()
+    }
+
+    /// Returns the number of dimensions of the array.
+    pub fn ndim(&self) -> usize {
+        self.shape.len()
+    }
+
+    /// Returns the total number of elements in the array.
+    pub fn len(&self) -> usize {
+        // Note: self.data.len() is also correct if data is always appropriately sized.
+        // Product of shape dimensions is more robust if data could be over-allocated (though not here).
+        self.shape.iter().product()
     }
 }
 
@@ -113,6 +154,9 @@ where
     /// # Returns
     /// A new `NumArray` instance.
     ///
+    /// # Panics
+    /// Panics if the total number of elements defined by `shape` does not match `data.len()`.
+    ///
     /// # Example
     /// ```
     /// use rustynum_rs::NumArrayF32;
@@ -120,6 +164,21 @@ where
     /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
     /// ```
     pub fn new_with_shape(data: Vec<T>, shape: Vec<usize>) -> Self {
+        let num_elements_from_shape: usize = if shape.is_empty() {
+            1 // Scalar case (0-D)
+        } else {
+            shape.iter().product() // Product of dimensions for N-D
+        };
+
+        if data.len() != num_elements_from_shape {
+            panic!(
+                "Data length ({}) does not match the number of elements required by shape {:?} ({})",
+                data.len(),
+                shape,
+                num_elements_from_shape
+            );
+        }
+
         let strides = Self::compute_strides(&shape);
         Self {
             data,
@@ -129,7 +188,8 @@ where
         }
     }
 
-    /// Computes the strides for the given shape.
+    /// Computes the strides for the given shape (C-contiguous layout).
+    /// Strides represent the number of elements to skip to get to the next element in that dimension.
     ///
     /// # Parameters
     /// * `shape` - A reference to the shape vector.
@@ -137,6 +197,9 @@ where
     /// # Returns
     /// A vector of strides.
     pub fn compute_strides(shape: &[usize]) -> Vec<usize> {
+        if shape.is_empty() {
+            return vec![];
+        }
         let mut strides = Vec::with_capacity(shape.len());
         let mut stride = 1;
         for &dim in shape.iter().rev() {
@@ -148,9 +211,11 @@ where
     }
 
     /// Transposes a 2D matrix from row-major to column-major format.
+    /// The transpose operation reorders the data into a new contiguous `Vec<T>`.
     ///
     /// # Returns
     /// A new `NumArray` instance that is the transpose of the original matrix.
+    /// with newly computed C-contiguous strides.
     pub fn transpose(&self) -> Self {
         assert!(
             self.shape.len() == 2,
@@ -176,7 +241,7 @@ where
     /// A reference to the data vector.
     #[inline]
     pub fn get_data(&self) -> &Vec<T> {
-        return &self.data;
+        &self.data
     }
 
     /// Reshapes the array to a new shape.
@@ -1204,99 +1269,6 @@ where
     }
 }
 
-impl<T, Ops> From<Vec<T>> for NumArray<T, Ops>
-where
-    T: NumOps
-        + Clone
-        + Copy
-        + Mul<Output = T>
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Div<Output = T>
-        + Sum<T>
-        + Debug,
-    Ops: SimdOps<T> + Default, // Ensure Ops can be defaulted or appropriately initialized
-{
-    /// Constructs a new `NumArray` from the given data.
-    ///
-    /// The shape of the array is assumed to be 1-dimensional based on the length of the data.
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The data to initialize the array with.
-    ///
-    /// # Returns
-    ///
-    /// A new `NumArray` with the given data.
-    fn from(data: Vec<T>) -> Self {
-        let shape = vec![data.len()]; // Assume 1D shape based on the length of the data
-        Self {
-            data,
-            shape,
-            strides: vec![1], // Stride is 1 for a 1D array
-            _ops: PhantomData,
-        }
-    }
-}
-
-impl<T, Ops> Clone for NumArray<T, Ops>
-where
-    T: Clone + Debug,
-{
-    /// Returns a new `NumArray` that is a clone of the current instance.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    ///
-    /// let arr1 = NumArrayF32::new(vec![1.0, 2.0, 3.0]);
-    /// let arr2 = arr1.clone();
-    /// ```
-    fn clone(&self) -> Self {
-        NumArray {
-            data: self.data.clone(),
-            shape: self.shape.clone(),
-            strides: self.strides.clone(),
-            _ops: PhantomData,
-        }
-    }
-}
-
-impl<'a, T, Ops> From<&'a [T]> for NumArray<T, Ops>
-where
-    T: 'a
-        + NumOps
-        + Clone
-        + Copy
-        + Mul<Output = T>
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Div<Output = T>
-        + Sum<T>
-        + Debug,
-    Ops: SimdOps<T> + Default,
-{
-    /// Creates a new `NumArray` from a slice of data.
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The slice of data to create the `NumArray` from.
-    ///
-    /// # Returns
-    ///
-    /// A new `NumArray` with the provided data.
-    fn from(data: &'a [T]) -> Self {
-        let shape = vec![data.to_vec().len()]; // Assume 1D shape based on the length of the data
-        Self {
-            data: data.to_vec(),
-            shape,
-            strides: vec![1], // Stride is 1 for a 1D array
-            _ops: PhantomData,
-        }
-    }
-}
-
 impl<T, Ops> NumArray<T, Ops>
 where
     T: Copy
@@ -1845,6 +1817,40 @@ mod tests {
     fn test_linspace() {
         let linspace_array = NumArrayF32::linspace(0.0, 1.0, 5);
         assert_eq!(linspace_array.get_data(), &[0.0, 0.25, 0.5, 0.75, 1.0]);
+    }
+
+    #[test]
+    fn test_data_slice() {
+        let data = vec![1.0, 2.0, 3.0];
+        let array = NumArrayF32::new(data.clone());
+        assert_eq!(array.data_slice(), data.as_slice());
+    }
+
+    #[test]
+    fn test_item_size() {
+        let array_f32 = NumArrayF32::new(vec![1.0]);
+        assert_eq!(array_f32.item_size(), std::mem::size_of::<f32>());
+
+        let array_f64 = NumArrayF64::new(vec![1.0]);
+        assert_eq!(array_f64.item_size(), std::mem::size_of::<f64>());
+
+        let array_u8 = NumArrayU8::new(vec![1]);
+        assert_eq!(array_u8.item_size(), std::mem::size_of::<u8>());
+    }
+
+    #[test]
+    fn test_new_with_shape_panic() {
+        let result = std::panic::catch_unwind(|| {
+            NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0], vec![2, 2])
+        });
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_strides_for_0d() {
+        let shape: Vec<usize> = vec![];
+        let strides = NumArrayF32::compute_strides(&shape);
+        assert_eq!(strides, Vec::<usize>::new());
     }
 
     #[test]

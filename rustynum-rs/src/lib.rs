@@ -14,8 +14,4 @@ pub mod simd_ops;
 
 pub mod traits;
 
-pub use num_array::num_array::NumArrayF32;
-pub use num_array::num_array::NumArrayF64;
-pub use num_array::num_array::NumArrayI32;
-pub use num_array::num_array::NumArrayI64;
-pub use num_array::num_array::NumArrayU8;
+pub use num_array::{NumArray, NumArrayF32, NumArrayF64, NumArrayI32, NumArrayI64, NumArrayU8};
