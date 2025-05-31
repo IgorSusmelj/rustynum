@@ -56,10 +56,10 @@ pub struct NumArray<T, Ops>
 where
     T: Debug,
 {
-    data: Vec<T>,
-    shape: Vec<usize>,
-    strides: Vec<usize>,
-    _ops: PhantomData<Ops>,
+    pub(crate) data: Vec<T>,
+    pub(crate) shape: Vec<usize>,
+    pub(crate) strides: Vec<usize>,
+    pub(crate) _ops: PhantomData<Ops>,
 }
 
 impl<T, Ops> NumArray<T, Ops>
@@ -72,6 +72,47 @@ where
     /// A reference to the shape vector.
     pub fn shape(&self) -> &[usize] {
         &self.shape
+    }
+
+    /// Retrieves the element strides of the array.
+    /// Strides indicate the number of elements to skip in the flat data
+    /// to move one step along each dimension.
+    ///
+    /// # Returns
+    /// A slice representing the element strides vector.
+    pub fn element_strides(&self) -> &[usize] {
+        &self.strides
+    }
+
+    /// Retrieves a slice view of the underlying data.
+    ///
+    /// # Returns
+    /// A slice `&[T]` to the array's data.
+    pub fn data_slice(&self) -> &[T] {
+        &self.data[..]
+    }
+
+    /// Retrieves the size of a single element in bytes.
+    ///
+    /// # Returns
+    /// The size of `T` in bytes.
+    pub fn item_size(&self) -> usize
+    where
+        T: Sized, // Add Sized trait bound here
+    {
+        std::mem::size_of::<T>()
+    }
+
+    /// Returns the number of dimensions of the array.
+    pub fn ndim(&self) -> usize {
+        self.shape.len()
+    }
+
+    /// Returns the total number of elements in the array.
+    pub fn len(&self) -> usize {
+        // Note: self.data.len() is also correct if data is always appropriately sized.
+        // Product of shape dimensions is more robust if data could be over-allocated (though not here).
+        self.shape.iter().product()
     }
 }
 
@@ -113,6 +154,9 @@ where
     /// # Returns
     /// A new `NumArray` instance.
     ///
+    /// # Panics
+    /// Panics if the total number of elements defined by `shape` does not match `data.len()`.
+    ///
     /// # Example
     /// ```
     /// use rustynum_rs::NumArrayF32;
@@ -120,6 +164,21 @@ where
     /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
     /// ```
     pub fn new_with_shape(data: Vec<T>, shape: Vec<usize>) -> Self {
+        let num_elements_from_shape: usize = if shape.is_empty() {
+            1 // Scalar case (0-D)
+        } else {
+            shape.iter().product() // Product of dimensions for N-D
+        };
+
+        if data.len() != num_elements_from_shape {
+            panic!(
+                "Data length ({}) does not match the number of elements required by shape {:?} ({})",
+                data.len(),
+                shape,
+                num_elements_from_shape
+            );
+        }
+
         let strides = Self::compute_strides(&shape);
         Self {
             data,
@@ -129,7 +188,8 @@ where
         }
     }
 
-    /// Computes the strides for the given shape.
+    /// Computes the strides for the given shape (C-contiguous layout).
+    /// Strides represent the number of elements to skip to get to the next element in that dimension.
     ///
     /// # Parameters
     /// * `shape` - A reference to the shape vector.
@@ -137,6 +197,9 @@ where
     /// # Returns
     /// A vector of strides.
     pub fn compute_strides(shape: &[usize]) -> Vec<usize> {
+        if shape.is_empty() {
+            return vec![];
+        }
         let mut strides = Vec::with_capacity(shape.len());
         let mut stride = 1;
         for &dim in shape.iter().rev() {
@@ -147,112 +210,13 @@ where
         strides
     }
 
-    /// Transposes a 2D matrix from row-major to column-major format.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance that is the transpose of the original matrix.
-    pub fn transpose(&self) -> Self {
-        assert!(
-            self.shape.len() == 2,
-            "Transpose is only valid for 2D matrices."
-        );
-
-        let rows = self.shape[0];
-        let cols = self.shape[1];
-        let mut transposed_data = vec![T::default(); rows * cols];
-
-        for i in 0..rows {
-            for j in 0..cols {
-                transposed_data[j * rows + i] = self.data[i * cols + j];
-            }
-        }
-
-        NumArray::new_with_shape(transposed_data, vec![cols, rows])
-    }
-
     /// Retrieves a reference to the underlying data vector.
     ///
     /// # Returns
     /// A reference to the data vector.
     #[inline]
     pub fn get_data(&self) -> &Vec<T> {
-        return &self.data;
-    }
-
-    /// Reshapes the array to a new shape.
-    ///
-    /// # Parameters
-    /// * `new_shape` - A vector of dimensions defining the new shape of the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the specified shape.
-    ///
-    /// # Panics
-    /// Panics if the new shape is not compatible with the data size.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-    /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-    /// let reshaped_array = array.reshape(&vec![3, 2]);
-    /// println!("Reshaped array: {:?}", reshaped_array.get_data());
-    /// ```
-    pub fn reshape(&self, new_shape: &Vec<usize>) -> Self {
-        let new_size: usize = new_shape.iter().product();
-        assert_eq!(
-            new_size,
-            self.data.len(),
-            "New shape must be compatible with data size."
-        );
-
-        NumArray::new_with_shape(self.data.clone(), new_shape.clone())
-    }
-
-    /// Reverses the elements along the specified axis or axis.
-    ///
-    /// # Parameters
-    /// * `axis` - An iterable of axis along which to reverse the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the array reversed along the specified axis.
-    ///
-    /// # Panics
-    /// Panics if any axis is out of bounds.
-    pub fn flip_axis<I>(&self, axis: I) -> Self
-    where
-        I: IntoIterator<Item = usize>,
-    {
-        let mut new_data = self.data.clone();
-        let new_shape = self.shape.clone();
-
-        for axis in axis {
-            assert!(
-                axis < self.shape.len(),
-                "Axis {} is out of bounds for an array with {} dimensions.",
-                axis,
-                self.shape.len()
-            );
-
-            let axis_size = self.shape[axis];
-
-            // Compute the number of "blocks" to process
-            let blocks: usize = self.shape.iter().take(axis).product();
-            let block_size: usize = self.shape.iter().skip(axis + 1).product();
-
-            for block in 0..blocks {
-                for i in 0..axis_size / 2 {
-                    let idx1 = block * axis_size * block_size + i * block_size;
-                    let idx2 = block * axis_size * block_size + (axis_size - 1 - i) * block_size;
-
-                    for k in 0..block_size {
-                        new_data.swap(idx1 + k, idx2 + k);
-                    }
-                }
-            }
-        }
-
-        Self::new_with_shape(new_data, new_shape)
+        &self.data
     }
 
     /// Calculates a reduced index for operations that collapse dimensions (like mean, min, max, norm).
@@ -263,7 +227,7 @@ where
     ///
     /// # Returns
     /// The index in the reduced array where this element contributes
-    fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
+    pub(crate) fn calculate_reduced_index(&self, index: usize, reduction_shape: &[usize]) -> usize {
         let mut reduced_index = 0;
         let mut stride = 1;
         let mut accumulated_strides = 1;
@@ -304,43 +268,6 @@ where
         + FromUsize,
     Ops: SimdOps<T>,
 {
-    /// Creates a new 1D array with values starting from `start` to `stop` with a given `step`.
-    ///
-    /// # Parameters
-    /// * `start` - The start value of the sequence.
-    /// * `stop` - The end value of the sequence.
-    /// * `step` - The step value between each pair of consecutive values.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the specified range.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let arange_array = NumArrayF32::arange(0.0, 1.0, 0.2);
-    /// println!("Arange array: {:?}", arange_array.get_data());
-    /// ```
-    pub fn arange(start: T, stop: T, step: T) -> Self {
-        assert!(
-            step > T::default(),
-            "step must be greater than 0 for arange."
-        );
-        let mut data = Vec::new();
-        let mut current = start;
-        while current < stop {
-            data.push(current);
-            current = current + step;
-        }
-        let shape = vec![data.len()];
-        let strides = vec![1];
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
     /// Retrieves the single element of the array.
     ///
     /// # Returns
@@ -360,486 +287,6 @@ where
     pub fn item(&self) -> T {
         assert_eq!(self.data.len(), 1, "Array must have exactly one element.");
         self.data[0]
-    }
-
-    /// Removes axis of length one from the array.
-    ///
-    /// # Parameters
-    /// * `axis` - Optional slice of axis to squeeze. If None, all axis of length 1 are removed.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the specified axis removed.
-    ///
-    /// # Panics
-    /// Panics if any specified axis is out of bounds or has length greater than 1.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
-    /// let squeezed = array.squeeze(None); // removes all axis of length 1
-    /// assert_eq!(squeezed.shape(), &[2]);
-    /// ```
-    pub fn squeeze(&self, axis: Option<&[usize]>) -> NumArray<T, Ops> {
-        match axis {
-            Some(specified_axis) => {
-                // Validate axis
-                for &axis in specified_axis {
-                    assert!(
-                        axis < self.shape.len(),
-                        "Axis {} is out of bounds for array of dimension {}",
-                        axis,
-                        self.shape.len()
-                    );
-                    assert!(
-                        self.shape[axis] == 1,
-                        "Cannot squeeze axis {} with size {}",
-                        axis,
-                        self.shape[axis]
-                    );
-                }
-
-                let new_shape: Vec<usize> = self
-                    .shape
-                    .iter()
-                    .enumerate()
-                    .filter(|&(i, &dim)| !specified_axis.contains(&i) || dim != 1)
-                    .map(|(_, &dim)| dim)
-                    .collect();
-
-                NumArray::new_with_shape(self.data.clone(), new_shape)
-            }
-            None => {
-                // Remove all axis of length 1
-                let new_shape: Vec<usize> = self
-                    .shape
-                    .iter()
-                    .filter(|&&dim| dim != 1)
-                    .cloned()
-                    .collect();
-
-                NumArray::new_with_shape(self.data.clone(), new_shape)
-            }
-        }
-    }
-
-    /// Creates a slice of the array.
-    ///
-    /// # Parameters
-    /// * `start` - The start index of the slice.
-    /// * `end` - The end index of the slice.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance representing the slice.
-    ///
-    /// # Panics
-    /// Panics if the start index exceeds the end index or if the end index exceeds the data length.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-    /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-    /// let sliced_array = array.slice(1, 0, 2);
-    /// println!("Sliced array: {:?}", sliced_array.get_data());
-    /// ```
-    pub fn slice(&self, axis: usize, start: usize, end: usize) -> Self {
-        assert!(axis < self.shape.len(), "Axis out of bounds");
-        assert!(start <= end, "Start index must not exceed end index.");
-        assert!(
-            end <= self.shape[axis],
-            "End index must not exceed the size of the specified axis."
-        );
-
-        let mut new_shape = self.shape.clone();
-        new_shape[axis] = end - start;
-
-        let mut new_data = Vec::with_capacity(new_shape.iter().product());
-
-        let elements_before_axis: usize = self.shape.iter().take(axis).product();
-        let elements_after_axis: usize = self.shape.iter().skip(axis + 1).product();
-        let axis_size = self.shape[axis];
-
-        for outer in 0..elements_before_axis {
-            for i in start..end {
-                let start_idx = outer * axis_size * elements_after_axis + i * elements_after_axis;
-                let end_idx = start_idx + elements_after_axis;
-                new_data.extend_from_slice(&self.data[start_idx..end_idx]);
-            }
-        }
-
-        Self {
-            data: new_data,
-            shape: new_shape.clone(),
-            strides: Self::compute_strides(&new_shape),
-            _ops: PhantomData,
-        }
-    }
-
-    /// Computes the mean of the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance containing the mean value.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![1.0, 2.0, 3.0, 4.0];
-    /// let array = NumArrayF32::new(data);
-    /// let mean_array = array.mean();
-    /// println!("Mean array: {:?}", mean_array.get_data());
-    /// ```
-    pub fn mean(&self) -> NumArray<T, Ops> {
-        let sum: T = Ops::sum(&self.data);
-        let count = T::from_u32(self.data.len() as u32);
-        let mean = sum / count;
-        NumArray::new(vec![mean])
-    }
-
-    /// Computes the mean along the specified axis.
-    ///
-    /// # Parameters
-    /// * `axis` - An optional reference to a vector of axis to compute the mean along.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance containing the mean values along the specified axis.
-    ///
-    /// # Panics
-    /// Panics if any of the specified axis is out of bounds.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-    /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-    /// let mean_array = array.mean_axis(Some(&[1]));
-    /// println!("Mean array: {:?}", mean_array.get_data());
-    /// ```
-    pub fn mean_axis(&self, axis: Option<&[usize]>) -> NumArray<T, Ops> {
-        match axis {
-            Some(axis) => {
-                for &axis in axis {
-                    assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
-                }
-
-                let mut reduced_shape = self.shape.clone();
-                let mut total_elements_to_reduce = 1;
-
-                for &axis in axis {
-                    total_elements_to_reduce *= self.shape[axis];
-                    reduced_shape[axis] = 1; // Marking this axis for reduction
-                }
-
-                let reduced_size: usize = reduced_shape.iter().product();
-                let mut reduced_data = vec![T::from_u32(0); reduced_size];
-
-                // Process each element in the data
-                for (i, &val) in self.data.iter().enumerate() {
-                    let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
-                    reduced_data[reduced_idx] = reduced_data[reduced_idx] + val;
-                }
-
-                // Divide each element in reduced_data by the number of elements that contributed to it
-                for val in reduced_data.iter_mut() {
-                    *val = *val / T::from_usize(total_elements_to_reduce);
-                }
-                // let's squeeze the reduced shape
-                reduced_shape = reduced_shape
-                    .into_iter()
-                    .filter(|&x| x != 1)
-                    .collect::<Vec<_>>();
-                NumArray::new_with_shape(reduced_data, reduced_shape)
-            }
-            None => self.mean(),
-        }
-    }
-
-    /// Sorts the array in ascending order.
-    /// The original array is not modified.
-    /// # Returns
-    /// A new `NumArray` instance containing the sorted values.
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![3.0, 1.0, 4.0, 2.0];
-    /// let array = NumArrayF32::new(data);
-    /// let sorted_array = array.sort();
-    /// println!("Sorted array: {:?}", sorted_array.get_data());
-    /// ```
-
-    pub fn sort(&self) -> NumArray<T, Ops> {
-        let mut sorted_data = self.data.clone();
-        sorted_data.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        NumArray::new(sorted_data)
-    }
-
-    fn calculate_median(values: &[T]) -> T {
-        let len = values.len();
-        if len % 2 == 0 {
-            (values[len / 2 - 1] + values[len / 2]) / T::from_u32(2)
-        } else {
-            values[len / 2]
-        }
-    }
-
-    /// Computes the median of the array.
-    /// The original array is not modified.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance containing the median value.
-    ///
-    /// # Examples
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![3.0, 1.0, 4.0, 2.0];
-    /// let array = NumArrayF32::new(data);
-    /// let median_array = array.median();
-    /// println!("Median array: {:?}", median_array.get_data());
-    /// ```
-    ///
-
-    pub fn median(&self) -> NumArray<T, Ops> {
-        let sorted_data = self.sort();
-        let median = Self::calculate_median(sorted_data.get_data());
-
-        NumArray::new(vec![median])
-    }
-
-    /// Computes the median along the specified axis.
-    /// The original array is not modified.
-    ///
-    /// # Parameters
-    /// * `axis` - An optional reference to a vector of axis to compute the median along.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance containing the median values along the specified axis.
-    ///
-    /// # Panics
-    /// Panics if any of the specified axis is out of bounds.
-    ///
-    /// # Examples
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-    /// let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-    /// let median_array = array.median_axis(Some(&[1]));
-    /// println!("Median array: {:?}", median_array.get_data());
-    /// ```
-
-    pub fn median_axis(&self, axis: Option<&[usize]>) -> NumArray<T, Ops> {
-        match axis {
-            Some(axis) => {
-                let mut reduced_shape = self.shape.clone();
-                let mut total_elements_to_reduce = 1;
-                for &axis in axis {
-                    assert!(axis < self.shape.len(), "Axis {} out of bounds.", axis);
-                    reduced_shape[axis] = 1;
-                    total_elements_to_reduce *= self.shape[axis];
-                }
-
-                let reduced_size: usize = reduced_shape.iter().product();
-                let mut reduced_data = vec![T::from_u32(0); reduced_size];
-
-                let mut accumulator = vec![T::from_u32(0); total_elements_to_reduce * reduced_size];
-
-                let mut accumulator_ptrs: Vec<&mut [T]> =
-                    accumulator.chunks_mut(total_elements_to_reduce).collect();
-                let mut counts = vec![0; accumulator_ptrs.len()];
-
-                for (i, &val) in self.data.iter().enumerate() {
-                    let reduced_idx = self.calculate_reduced_index(i, &reduced_shape);
-                    accumulator_ptrs[reduced_idx][counts[reduced_idx]] = val;
-                    counts[reduced_idx] += 1;
-                }
-
-                for (i, ptr) in accumulator_ptrs.iter_mut().enumerate() {
-                    ptr.sort_by(|a, b| a.partial_cmp(b).unwrap());
-                    reduced_data[i] = Self::calculate_median(ptr);
-                }
-
-                reduced_shape = reduced_shape
-                    .into_iter()
-                    .filter(|&x| x != 1)
-                    .collect::<Vec<_>>();
-
-                if reduced_shape.is_empty() {
-                    return NumArray::new(reduced_data);
-                } else {
-                    return NumArray::new_with_shape(reduced_data, reduced_shape);
-                }
-            }
-            None => self.median(),
-        }
-    }
-}
-
-impl<T, Ops> NumArray<T, Ops>
-where
-    T: Clone
-        + Mul<Output = T>
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Div<Output = T>
-        + Sum<T>
-        + NumOps
-        + Copy
-        + PartialOrd
-        + FromU32
-        + FromUsize
-        + ExpLog
-        + Default
-        + Debug,
-    Ops: SimdOps<T>,
-{
-    /// Creates a new array filled with zeros.
-    ///
-    /// # Parameters
-    /// * `shape` - A vector of dimensions defining the shape of the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance filled with zeros.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let zeros_array = NumArrayF32::zeros(vec![2, 3]);
-    /// println!("Zeros array: {:?}", zeros_array.get_data());
-    /// ```
-    pub fn zeros(shape: Vec<usize>) -> Self {
-        let size = shape.iter().product();
-        let data = vec![T::default(); size];
-        let strides = Self::compute_strides(&shape);
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
-    /// Creates a new array filled with ones.
-    ///
-    /// # Parameters
-    /// * `shape` - A vector of dimensions defining the shape of the array.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance filled with ones.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let ones_array = NumArrayF32::ones(vec![2, 3]);
-    /// println!("Ones array: {:?}", ones_array.get_data());
-    /// ```
-    pub fn ones(shape: Vec<usize>) -> Self {
-        let size = shape.iter().product();
-        let data = vec![T::from_usize(1); size];
-        let strides = Self::compute_strides(&shape);
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
-        }
-    }
-
-    /// Concatenates multiple `NumArray` instances along the specified axis.
-    ///
-    /// # Parameters
-    /// * `arrays` - A slice of `NumArray` instances to concatenate.
-    /// * `axis` - The axis along which to concatenate.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance resulting from the concatenation.
-    ///
-    /// # Panics
-    /// Panics if the shapes of the arrays are incompatible for concatenation along the specified axis.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    ///
-    /// let a = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0], vec![3]);
-    /// let b = NumArrayF32::new_with_shape(vec![4.0, 5.0], vec![2]);
-    /// let concatenated = NumArrayF32::concatenate(&[a, b], 0);
-    /// assert_eq!(concatenated.get_data(), &[1.0, 2.0, 3.0, 4.0, 5.0]);
-    /// ```
-    pub fn concatenate(arrays: &[Self], axis: usize) -> Self {
-        // Ensure there is at least one array to concatenate
-        assert!(
-            !arrays.is_empty(),
-            "At least one array must be provided for concatenation."
-        );
-
-        // Determine the reference shape from the first array
-        let reference_shape = arrays[0].shape();
-
-        // Validate that all arrays have the same number of dimensions
-        let ndim = reference_shape.len();
-        assert!(
-            axis < ndim,
-            "Concatenation axis {} is out of bounds for arrays with {} dimensions.",
-            axis,
-            ndim
-        );
-        for array in arrays.iter() {
-            assert!(
-                array.shape().len() == ndim,
-                "All arrays must have the same number of dimensions."
-            );
-            // Validate that shapes match on all axis except the concatenation axis
-            for (i, (&dim_ref, &dim_other)) in
-                reference_shape.iter().zip(array.shape().iter()).enumerate()
-            {
-                if i != axis {
-                    assert!(
-                        dim_ref == dim_other,
-                        "All arrays must have the same shape except along the concatenation axis. Mismatch found at axis {}.",
-                        i
-                    );
-                }
-            }
-        }
-
-        // Compute the new shape
-        let mut new_shape = reference_shape.to_vec();
-        let total_concat_dim: usize = arrays.iter().map(|array| array.shape()[axis]).sum();
-        new_shape[axis] = total_concat_dim;
-
-        // Compute elements_before_axis and elements_after_axis
-        let elements_before_axis: usize = reference_shape.iter().take(axis).product();
-        let elements_after_axis: usize = reference_shape.iter().skip(axis + 1).product();
-
-        // Initialize the new data vector with the appropriate capacity
-        let total_size: usize = new_shape.iter().product();
-        let mut concatenated_data = Vec::with_capacity(total_size);
-
-        // Iterate over each outer slice and concatenate data from all arrays
-        for outer in 0..elements_before_axis {
-            for array in arrays.iter() {
-                let axis_size = array.shape()[axis];
-                let slice_size = axis_size * elements_after_axis;
-
-                // Calculate the start and end indices for the current slice
-                let start = outer * axis_size * elements_after_axis;
-                let end = start + slice_size;
-
-                // Safety check to prevent out-of-bounds access
-                assert!(
-                    end <= array.data.len(),
-                    "Slice indices out of bounds. Attempted to access {}..{} in an array with length {}.",
-                    start,
-                    end,
-                    array.data.len()
-                );
-
-                // Append the slice to the concatenated data
-                concatenated_data.extend_from_slice(&array.data[start..end]);
-            }
-        }
-
-        // Create and return the new NumArray with the concatenated data and new shape
-        Self::new_with_shape(concatenated_data, new_shape)
     }
 }
 
@@ -902,41 +349,6 @@ where
         } else {
             // Matrix-vector or matrix-matrix multiplication
             matrix_multiply(self, other)
-        }
-    }
-
-    /// Creates a new 1D array with linearly spaced values between `start` and `stop`.
-    ///
-    /// # Parameters
-    /// * `start` - The start value of the sequence.
-    /// * `stop` - The end value of the sequence.
-    /// * `num` - The number of values to generate.
-    ///
-    /// # Returns
-    /// A new `NumArray` instance with the specified linear space.
-    ///
-    /// # Example
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    /// let linspace_array = NumArrayF32::linspace(0.0, 1.0, 5);
-    /// println!("Linspace array: {:?}", linspace_array.get_data());
-    /// ```
-    pub fn linspace(start: T, stop: T, num: usize) -> Self {
-        assert!(num > 1, "num must be greater than 1 for linspace.");
-        let step = (stop - start) / T::from_usize(num - 1);
-        let mut data = Vec::with_capacity(num);
-        let mut current = start;
-        for _ in 0..num {
-            data.push(current);
-            current = current + step;
-        }
-        let shape = vec![num];
-        let strides = vec![1];
-        Self {
-            data,
-            shape,
-            strides,
-            _ops: PhantomData,
         }
     }
 
@@ -1200,99 +612,6 @@ where
                 // If no axis are provided, return the overall max
                 NumArray::new(vec![Ops::max_simd(&self.data)])
             }
-        }
-    }
-}
-
-impl<T, Ops> From<Vec<T>> for NumArray<T, Ops>
-where
-    T: NumOps
-        + Clone
-        + Copy
-        + Mul<Output = T>
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Div<Output = T>
-        + Sum<T>
-        + Debug,
-    Ops: SimdOps<T> + Default, // Ensure Ops can be defaulted or appropriately initialized
-{
-    /// Constructs a new `NumArray` from the given data.
-    ///
-    /// The shape of the array is assumed to be 1-dimensional based on the length of the data.
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The data to initialize the array with.
-    ///
-    /// # Returns
-    ///
-    /// A new `NumArray` with the given data.
-    fn from(data: Vec<T>) -> Self {
-        let shape = vec![data.len()]; // Assume 1D shape based on the length of the data
-        Self {
-            data,
-            shape,
-            strides: vec![1], // Stride is 1 for a 1D array
-            _ops: PhantomData,
-        }
-    }
-}
-
-impl<T, Ops> Clone for NumArray<T, Ops>
-where
-    T: Clone + Debug,
-{
-    /// Returns a new `NumArray` that is a clone of the current instance.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rustynum_rs::NumArrayF32;
-    ///
-    /// let arr1 = NumArrayF32::new(vec![1.0, 2.0, 3.0]);
-    /// let arr2 = arr1.clone();
-    /// ```
-    fn clone(&self) -> Self {
-        NumArray {
-            data: self.data.clone(),
-            shape: self.shape.clone(),
-            strides: self.strides.clone(),
-            _ops: PhantomData,
-        }
-    }
-}
-
-impl<'a, T, Ops> From<&'a [T]> for NumArray<T, Ops>
-where
-    T: 'a
-        + NumOps
-        + Clone
-        + Copy
-        + Mul<Output = T>
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Div<Output = T>
-        + Sum<T>
-        + Debug,
-    Ops: SimdOps<T> + Default,
-{
-    /// Creates a new `NumArray` from a slice of data.
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The slice of data to create the `NumArray` from.
-    ///
-    /// # Returns
-    ///
-    /// A new `NumArray` with the provided data.
-    fn from(data: &'a [T]) -> Self {
-        let shape = vec![data.to_vec().len()]; // Assume 1D shape based on the length of the data
-        Self {
-            data: data.to_vec(),
-            shape,
-            strides: vec![1], // Stride is 1 for a 1D array
-            _ops: PhantomData,
         }
     }
 }
@@ -1600,22 +919,6 @@ mod tests {
     }
 
     #[test]
-    fn test_zeros_array() {
-        let shape = vec![2, 3]; // 2x3 matrix
-        let zeros_array = NumArrayF32::zeros(shape.clone());
-        assert_eq!(zeros_array.shape(), shape.as_slice());
-        assert_eq!(zeros_array.get_data(), &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    }
-
-    #[test]
-    fn test_ones_array() {
-        let shape = vec![2, 3]; // 2x3 matrix
-        let ones_array = NumArrayF32::ones(shape.clone());
-        assert_eq!(ones_array.shape(), shape.as_slice());
-        assert_eq!(ones_array.get_data(), &[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
-    }
-
-    #[test]
     fn test_concatenate_1d_arrays() {
         let a = NumArrayF32::new(vec![1.0, 2.0, 3.0]);
         let b = NumArrayF32::new(vec![4.0, 5.0]);
@@ -1716,82 +1019,6 @@ mod tests {
     }
 
     #[test]
-    fn test_matrix_transpose() {
-        let matrix = NumArrayF32::new_with_shape(
-            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-            vec![3, 3],
-        );
-
-        let transposed = matrix.transpose();
-
-        let expected_data = vec![1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0];
-
-        assert_eq!(transposed.shape(), &[3, 3]);
-        assert_eq!(transposed.get_data(), &expected_data);
-    }
-
-    #[test]
-    fn test_non_square_matrix_transpose() {
-        let matrix =
-            NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], vec![2, 4]);
-
-        let transposed = matrix.transpose();
-
-        let expected_data = vec![1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0];
-
-        assert_eq!(transposed.shape(), &[4, 2]);
-        assert_eq!(transposed.get_data(), &expected_data);
-    }
-
-    #[test]
-    fn test_reshape_successfully() {
-        let array = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-        let new_shape = vec![2, 3]; // New shape compatible with the size of data (2*3 = 6)
-        let reshaped_array = array.reshape(&new_shape.clone());
-        assert_eq!(reshaped_array.shape(), new_shape.as_slice());
-    }
-
-    #[test]
-    fn test_reshape_and_strides() {
-        let array = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
-        let new_shape = vec![2, 4]; // Reshape to a 2x4 matrix
-        let reshaped_array = array.reshape(&new_shape.clone());
-        assert_eq!(reshaped_array.shape(), new_shape.as_slice());
-        // Check strides for a 2x4 matrix
-        let expected_strides = vec![4, 1]; // Moving to the next row jumps 4 elements, column jump is 1
-        assert_eq!(reshaped_array.strides, expected_strides);
-    }
-
-    #[test]
-    fn test_flip_array() {
-        let array = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
-        let flipped_array = array.flip_axis([0]);
-        assert_eq!(flipped_array.get_data(), &[4.0, 3.0, 2.0, 1.0]);
-    }
-
-    #[test]
-    fn test_flip_array_axis1() {
-        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
-        let flipped_array = array.flip_axis([1]);
-        assert_eq!(flipped_array.get_data(), &[3.0, 2.0, 1.0, 6.0, 5.0, 4.0]);
-    }
-
-    #[test]
-    fn test_flip_array_3d() {
-        let array = NumArrayF32::new_with_shape(
-            vec![
-                1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-            ],
-            vec![2, 3, 2],
-        );
-        let flipped_array = array.flip_axis([2]);
-        assert_eq!(
-            flipped_array.get_data(),
-            &[2., 1., 4., 3., 6., 5., 8., 7., 10., 9., 12., 11.]
-        );
-    }
-
-    #[test]
     fn test_dot_product_f32() {
         let a = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
         let b = NumArrayF32::new(vec![4.0, 3.0, 2.0, 1.0]);
@@ -1836,43 +1063,30 @@ mod tests {
     }
 
     #[test]
-    fn test_arange() {
-        let arange_array = NumArrayF32::arange(0.0, 1.0, 0.2);
-        assert_eq!(arange_array.get_data(), &[0.0, 0.2, 0.4, 0.6, 0.8]);
+    fn test_item_size() {
+        let array_f32 = NumArrayF32::new(vec![1.0]);
+        assert_eq!(array_f32.item_size(), std::mem::size_of::<f32>());
+
+        let array_f64 = NumArrayF64::new(vec![1.0]);
+        assert_eq!(array_f64.item_size(), std::mem::size_of::<f64>());
+
+        let array_u8 = NumArrayU8::new(vec![1]);
+        assert_eq!(array_u8.item_size(), std::mem::size_of::<u8>());
     }
 
     #[test]
-    fn test_linspace() {
-        let linspace_array = NumArrayF32::linspace(0.0, 1.0, 5);
-        assert_eq!(linspace_array.get_data(), &[0.0, 0.25, 0.5, 0.75, 1.0]);
+    fn test_new_with_shape_panic() {
+        let result = std::panic::catch_unwind(|| {
+            NumArrayF32::new_with_shape(vec![1.0, 2.0, 3.0], vec![2, 2])
+        });
+        assert!(result.is_err());
     }
 
     #[test]
-    fn test_slicing() {
-        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let array = NumArrayF32::new(data);
-        let slice = array.slice(0, 1, 3);
-        assert_eq!(slice.get_data(), &[2.0, 3.0]);
-    }
-
-    #[test]
-    fn test_slicing_2d() {
-        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let array = NumArrayF32::new_with_shape(data.clone(), vec![2, 3]);
-        let slice = array.slice(0, 1, 2);
-        assert_eq!(slice.get_data(), &[4.0, 5.0, 6.0]);
-    }
-
-    #[test]
-    fn test_mean_f32() {
-        let a = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
-        assert_eq!(a.mean().item(), 2.5);
-    }
-
-    #[test]
-    fn test_mean_f64() {
-        let a = NumArrayF64::new(vec![1.0, 2.0, 3.0, 4.0]);
-        assert_eq!(a.mean().item(), 2.5);
+    fn test_strides_for_0d() {
+        let shape: Vec<usize> = vec![];
+        let strides = NumArrayF32::compute_strides(&shape);
+        assert_eq!(strides, Vec::<usize>::new());
     }
 
     #[test]
@@ -1970,139 +1184,6 @@ mod tests {
 
         // Fifth row of the third block
         assert_eq!(num_array.calculate_reduced_index(59, &reduction_shape), 4); // Block 2, Row 4, Column 3
-    }
-
-    #[test]
-    fn test_mean_axis_1d() {
-        let data = vec![1.0, 2.0, 3.0, 4.0];
-        let array = NumArrayF32::new_with_shape(data, vec![4]);
-        let mean_array = array.mean_axis(Some(&[0]));
-        assert_eq!(mean_array.get_data(), &vec![2.5]);
-    }
-
-    #[test]
-    fn test_mean_axis_2d() {
-        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-        let mean_array = array.mean_axis(Some(&[1]));
-
-        assert_eq!(mean_array.shape(), &[2]);
-        assert_eq!(mean_array.get_data(), &vec![2.0, 5.0]); // Mean along the second axis (columns)
-    }
-
-    #[test]
-    fn test_mean_axis_2d_column() {
-        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-        // Compute mean across columns (axis 1)
-        let mean_array = array.mean_axis(Some(&[1]));
-        assert_eq!(mean_array.get_data(), &vec![2.0, 5.0]); // Mean along the second axis (columns)
-    }
-
-    #[test]
-    fn test_mean_axis_3d() {
-        let data = vec![
-            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-        ];
-        let array = NumArrayF32::new_with_shape(data, vec![2, 2, 3]);
-        // Compute mean across the last two axis (1 and 2)
-        let mean_array = array.mean_axis(Some(&[1, 2]));
-        assert_eq!(mean_array.get_data(), &vec![3.5, 9.5]);
-    }
-
-    #[test]
-    fn test_mean_axis_invalid_axis() {
-        let data = vec![1.0, 2.0, 3.0, 4.0];
-        let array = NumArrayF32::new_with_shape(data, vec![4]);
-        // Attempt to compute mean across an invalid axis
-        let result = std::panic::catch_unwind(|| array.mean_axis(Some(&[1])));
-        assert!(result.is_err(), "Should panic due to invalid axis");
-    }
-
-    #[test]
-    fn test_sort_f32() {
-        let a = NumArrayF32::from(vec![5.0, 2.0, 3.0, 1.0, 4.0]);
-        assert_eq!(a.sort().get_data(), &[1.0, 2.0, 3.0, 4.0, 5.0]);
-    }
-
-    #[test]
-    fn test_sort_f64() {
-        let a = NumArrayF64::from(vec![5.0, 2.0, 3.0, 1.0, 4.0]);
-        assert_eq!(a.sort().get_data(), &[1.0, 2.0, 3.0, 4.0, 5.0]);
-    }
-
-    #[test]
-    fn test_median_f32_one_elem() {
-        let a = NumArrayF32::from(vec![1.0]);
-        assert_eq!(a.median().item(), 1.0);
-    }
-
-    #[test]
-    fn test_median_f32_even() {
-        let a = NumArrayF32::from(vec![2.0, 1.0, 4.0, 3.0, 6.0, 5.0]);
-        assert_eq!(a.median().item(), 3.5);
-    }
-
-    #[test]
-    fn test_median_f32_uneven() {
-        let a = NumArrayF32::from(vec![2.0, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0]);
-        assert_eq!(a.median().item(), 4.0);
-    }
-
-    #[test]
-    fn test_median_f64_uneven() {
-        let a = NumArrayF64::from(vec![1.0, 2.0, 2.0, 4.0, 5.0, 6.0, 7.0]);
-        assert_eq!(a.median().item(), 4.0);
-    }
-
-    #[test]
-    fn test_median_axis_1d_even() {
-        let data = vec![2.0, 1.0, 4.0, 3.0, 6.0, 5.0];
-        let array = NumArrayF32::new_with_shape(data, vec![6]);
-        let max_array = array.median_axis(Some(&[0]));
-        assert_eq!(max_array.get_data(), &vec![3.5]);
-    }
-
-    #[test]
-    fn test_median_axis_1d_uneven() {
-        let data = vec![2.0, 2.0, 4.0, 3.0, 6.0, 5.0, 7.0];
-        let array = NumArrayF32::new_with_shape(data, vec![7]);
-        let max_array = array.median_axis(Some(&[0]));
-        assert_eq!(max_array.get_data(), &vec![4.0]);
-    }
-
-    #[test]
-    fn test_median_axis_2d_even() {
-        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let array = NumArrayF32::new_with_shape(data, vec![2, 3]);
-        let max_array = array.median_axis(Some(&[0]));
-        assert_eq!(max_array.get_data(), &vec![2.5, 3.5, 4.5]);
-    }
-
-    #[test]
-    fn test_median_axis_2d_uneven() {
-        let data = vec![2.0, 1.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
-        let array = NumArrayF32::new_with_shape(data, vec![3, 3]);
-        let max_array = array.median_axis(Some(&[1]));
-        assert_eq!(max_array.get_data(), &vec![2.0, 5.0, 8.0]);
-    }
-
-    #[test]
-    fn test_median_axis_3d_even() {
-        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
-        let array = NumArrayF32::new_with_shape(data, vec![2, 2, 2]);
-        let max_array = array.median_axis(Some(&[0, 1]));
-        assert_eq!(max_array.get_data(), &vec![4.0, 5.0]);
-    }
-
-    #[test]
-    fn test_median_axis_3d_uneven() {
-        let data = vec![
-            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-        ];
-        let array = NumArrayF32::new_with_shape(data, vec![3, 2, 2]);
-        let max_array = array.median_axis(Some(&[0]));
-        assert_eq!(max_array.get_data(), &vec![5.0, 6.0, 7.0, 8.0]);
     }
 
     #[test]
@@ -2272,37 +1353,6 @@ mod tests {
     fn test_min_f32() {
         let array = NumArrayF32::new(vec![1.0, 2.0, 3.0, 4.0]);
         assert_eq!(array.min(), 1.0);
-    }
-
-    #[test]
-    fn test_squeeze() {
-        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
-        let squeezed = array.squeeze(None); // removes all axis of length 1
-        assert_eq!(squeezed.shape(), &[2]);
-    }
-
-    #[test]
-    fn test_squeeze_no_axis() {
-        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
-        let squeezed = array.squeeze(None);
-        assert_eq!(squeezed.shape(), &[2]);
-        assert_eq!(squeezed.get_data(), &[1.0, 2.0]);
-    }
-
-    #[test]
-    fn test_squeeze_specific_axis() {
-        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1]);
-        let squeezed = array.squeeze(Some(&[0])); // Only squeeze first axis
-        assert_eq!(squeezed.shape(), &[2, 1]);
-        assert_eq!(squeezed.get_data(), &[1.0, 2.0]);
-    }
-
-    #[test]
-    fn test_squeeze_multiple_axis() {
-        let array = NumArrayF32::new_with_shape(vec![1.0, 2.0], vec![1, 2, 1, 1]);
-        let squeezed = array.squeeze(Some(&[0, 2])); // Squeeze first and third axis
-        assert_eq!(squeezed.shape(), &[2, 1]);
-        assert_eq!(squeezed.get_data(), &[1.0, 2.0]);
     }
 
     #[test]

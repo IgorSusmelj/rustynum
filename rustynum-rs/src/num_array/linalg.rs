@@ -1,7 +1,7 @@
 //! # Linear Algebra Operations
 //!
 //! Provides operations such as matrix-vector multiplication using NumArray data structures.
-use super::num_array::NumArray;
+use super::NumArray;
 use std::iter::Sum;
 
 use crate::simd_ops::SimdOps;
