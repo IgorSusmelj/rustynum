@@ -327,7 +327,9 @@ fn _rustynum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(mean_f64, m)?)?;
     m.add_function(wrap_pyfunction!(median_f64, m)?)?;
     m.add_function(wrap_pyfunction!(min_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(min_axis_f64, m)?)?;
     m.add_function(wrap_pyfunction!(max_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(max_axis_f64, m)?)?;
     m.add_function(wrap_pyfunction!(exp_f64, m)?)?;
     m.add_function(wrap_pyfunction!(log_f64, m)?)?;
     m.add_function(wrap_pyfunction!(sigmoid_f64, m)?)?;

@@ -114,4 +114,9 @@ impl PyNumArrayU8 {
             Ok(PyNumArrayU8 { inner: result })
         })
     }
+
+    fn __imul__(&mut self, scalar: u8) -> PyResult<()> {
+        self.inner = &self.inner * scalar;
+        Ok(())
+    }
 }

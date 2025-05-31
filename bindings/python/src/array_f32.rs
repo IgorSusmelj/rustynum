@@ -22,7 +22,9 @@ impl PyNumArrayF32 {
     }
 
     fn __imul__(&mut self, scalar: f32) -> PyResult<()> {
-        ///self.inner = self.inner.scale(scalar);
+        let original_shape = self.inner.shape().to_vec();
+        let result_data: Vec<f32> = self.inner.get_data().iter().map(|&x| x * scalar).collect();
+        self.inner = NumArrayF32::new_with_shape(result_data, original_shape);
         Ok(())
     }
 
