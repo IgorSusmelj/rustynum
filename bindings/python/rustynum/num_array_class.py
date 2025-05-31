@@ -7,19 +7,50 @@ from . import _rustynum
 
 
 class NumArray:
+    """
+    A high-performance numerical array implementation backed by Rust.
+
+    Provides NumPy-like functionality with optimized operations for numerical computing.
+    Supports multiple data types including float32, float64, and uint8.
+
+    Examples:
+        >>> # Create a 2D array
+        >>> arr = NumArray([[1.0, 2.0], [3.0, 4.0]])
+        >>> print(arr.shape)
+        [2, 2]
+
+        >>> # Matrix multiplication
+        >>> result = arr @ arr
+        >>> print(result.tolist())
+        [[7.0, 10.0], [15.0, 22.0]]
+    """
+
+    # Type annotations for instance variables
+    inner: Union[
+        _rustynum.PyNumArrayF32, _rustynum.PyNumArrayF64, _rustynum.PyNumArrayU8
+    ]
+    dtype: str
+
     def __init__(
         self,
         data: Union[List[Any], "NumArray"],
-        dtype: Union[None, str] = None,
+        dtype: Optional[str] = None,
     ) -> None:
         """
-        Initializes a NumArray object with the given data and data type.
+        Initialize a NumArray with data and optional data type.
 
-        Parameters:
+        Args:
             data: Nested list of numerical data or existing NumArray.
-            dtype: Data type of the numerical data ('int32', 'int64', 'float32' or 'float64'). If None, dtype is inferred.
-        """
+            dtype: Data type ('float32', 'float64', 'uint8'). If None, dtype is inferred.
 
+        Raises:
+            ValueError: If dtype is unsupported or data is invalid.
+            NotImplementedError: If dtype is not yet implemented.
+
+        Examples:
+            >>> arr = NumArray([[1, 2], [3, 4]], dtype='float32')
+            >>> arr2 = NumArray([1.0, 2.0, 3.0])  # dtype inferred as float32
+        """
         if isinstance(data, NumArray):
             self.inner = data.inner
             self.dtype = data.dtype
@@ -161,25 +192,34 @@ class NumArray:
     @property
     def shape(self) -> List[int]:
         """
-        Returns the shape of the array as a tuple, similar to numpy.ndarray.shape.
+        Get the shape of the array.
+
+        Returns:
+            List of integers representing the dimensions of the array.
+
+        Examples:
+            >>> arr = NumArray([[1, 2, 3], [4, 5, 6]])
+            >>> arr.shape
+            [2, 3]
         """
-        # Assuming that the inner Rust object has a method to get the shape
-        # You may need to implement this method in Rust if it doesn't exist
         return self.inner.shape()
 
-    def __getitem__(
-        self, key: Union[int, slice, Tuple[Any]]
-    ) -> Union[List[Any], "NumArray"]:
+    def __getitem__(self, key: Union[int, slice, Tuple[Any, ...]]) -> "NumArray":
         """
-        Gets the item(s) at the specified index or slice.
+        Get item(s) at the specified index or slice.
 
         Supports single-axis flipping using slice with step=-1.
 
-        Parameters:
+        Args:
             key: Index, slice, or tuple of indices/slices for access.
 
         Returns:
-            Single item or a new NumArray with the sliced data.
+            New NumArray with the sliced data.
+
+        Raises:
+            IndexError: If index is out of bounds.
+            TypeError: If index type is unsupported.
+            NotImplementedError: If slice step is not supported.
         """
         # Normalize the key to a tuple for uniform processing
         if not isinstance(key, tuple):
@@ -223,64 +263,96 @@ class NumArray:
         return result
 
     def __str__(self) -> str:
+        """Return string representation of the array data."""
         return str(self.tolist())
 
     def __repr__(self) -> str:
+        """Return detailed string representation of the NumArray."""
         return f"NumArray(data={self.tolist()}, dtype={self.dtype})"
 
     def __matmul__(self, other: "NumArray") -> "NumArray":
         """
-        Implements the @ operator for matrix multiplication.
+        Matrix multiplication using @ operator.
 
-        Parameters:
-            other: Another NumArray to compute the matrix multiplication with.
+        Args:
+            other: Another NumArray for matrix multiplication.
 
         Returns:
-            A new NumArray containing the result of the matrix multiplication.
+            New NumArray containing the result of matrix multiplication.
         """
         return self.matmul(other)
 
     def __rmatmul__(self, other: "NumArray") -> "NumArray":
         """
-        Implements the @ operator for right matrix multiplication.
+        Right matrix multiplication using @ operator.
 
-        Parameters:
-            other: Another NumArray to compute the matrix multiplication with.
+        Args:
+            other: Another NumArray for matrix multiplication.
 
         Returns:
-            A new NumArray containing the result of the matrix multiplication.
+            New NumArray containing the result of matrix multiplication.
         """
         return other.matmul(self)
 
-    def item(self):
-        if len(self.tolist()) == 1:
-            return self.tolist()[0]
+    def item(self) -> Union[int, float]:
+        """
+        Extract a scalar from a single-element array.
+
+        Returns:
+            The scalar value from the array.
+
+        Raises:
+            ValueError: If array contains more than one element.
+
+        Examples:
+            >>> arr = NumArray([42.0])
+            >>> arr.item()
+            42.0
+        """
+        flat_list = self.tolist()
+        if len(flat_list) == 1:
+            return flat_list[0]
         else:
             raise ValueError("Can only convert an array of size 1 to a Python scalar")
 
     def reshape(self, shape: List[int]) -> "NumArray":
         """
-        Reshapes the NumArray to the specified shape.
+        Return a new array with the specified shape.
 
-        Parameters:
+        Args:
             shape: New shape for the NumArray.
 
         Returns:
-            A new NumArray with the reshaped data.
+            New NumArray with the reshaped data.
+
+        Examples:
+            >>> arr = NumArray([1, 2, 3, 4])
+            >>> reshaped = arr.reshape([2, 2])
+            >>> reshaped.shape
+            [2, 2]
         """
-        # Ensure reshape returns a new NumArray instance
         reshaped_inner = self.inner.reshape(shape)
         return NumArray(reshaped_inner, dtype=self.dtype)
 
     def matmul(self, other: "NumArray") -> "NumArray":
         """
-        Computes the matrix multiplication with another NumArray, similar to NumPy's matmul.
+        Compute matrix multiplication with another NumArray.
 
-        Parameters:
-            other: Another NumArray to compute the matrix multiplication with.
+        Args:
+            other: Another NumArray for matrix multiplication.
 
         Returns:
-            A new NumArray containing the result of the matrix multiplication.
+            New NumArray containing the result of matrix multiplication.
+
+        Raises:
+            ValueError: If dtypes don't match or arrays aren't 2D.
+
+        Examples:
+            >>> a = NumArray([[1, 2], [3, 4]])
+            >>> b = NumArray([[5, 6], [7, 8]])
+            >>> result = a.matmul(b)
+            >>> result.tolist()
+            [[19, 22], [43, 50]]
         """
         if self.dtype != other.dtype:
             raise ValueError("dtype mismatch between arrays")
@@ -306,13 +378,16 @@ class NumArray:
 
     def dot(self, other: "NumArray") -> "NumArray":
         """
-        Computes the dot product or matrix multiplication with another NumArray.
+        Compute dot product with another NumArray.
 
-        Parameters:
-            other: Another NumArray to compute the dot product with.
+        Args:
+            other: Another NumArray for dot product computation.
 
         Returns:
-            A new NumArray containing the result of the dot product or matrix multiplication.
+            New NumArray containing the result of the dot product.
+
+        Raises:
+            ValueError: If dtypes don't match or operation is unsupported.
         """
         if self.dtype != other.dtype:
             raise ValueError("dtype mismatch between arrays")
@@ -327,81 +402,66 @@ class NumArray:
         return NumArray(result, dtype=self.dtype)
 
     def mean(
-        self, axis: Union[None, int, Sequence[int]] = None
+        self, axis: Optional[Union[int, Sequence[int]]] = None
     ) -> Union["NumArray", float]:
         """
-        Computes the mean of the NumArray along specified axis.
+        Compute the arithmetic mean along specified axis.
 
-        Parameters:
-            axis: Optional; Axis or axis along which to compute the mean. If None, the mean
-                  of all elements is computed as a scalar.
+        Args:
+            axis: Axis or axes along which to compute the mean.
+                  If None, compute mean of all elements.
 
         Returns:
-            A new NumArray with the mean values along the specified axis, or a scalar if no axis are given.
+            NumArray with mean values along specified axis, or scalar if axis is None.
+
+        Examples:
+            >>> arr = NumArray([[1, 2], [3, 4]])
+            >>> arr.mean()  # Mean of all elements
+            2.5
+            >>> arr.mean(axis=0).tolist()  # Mean along axis 0
+            [2.0, 3.0]
         """
-        axis = [axis] if isinstance(axis, int) else axis
+        axis_list = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.mean_f32(self.inner, axis)
+            _rustynum.mean_f32(self.inner, axis_list)
             if self.dtype == "float32"
-            else _rustynum.mean_f64(self.inner, axis)
+            else _rustynum.mean_f64(self.inner, axis_list)
         )
         return NumArray(result, dtype=self.dtype)
 
     def median(
-        self, axis: Union[None, int, Sequence[int]] = None
+        self, axis: Optional[Union[int, Sequence[int]]] = None
     ) -> Union["NumArray", float]:
         """
-        Computes the median of the NumArray along specified axis.
+        Compute the median along specified axis.
 
-        Parameters:
-            axis: Optional; Axis or axis along which to compute the median. If None, the median
-                  of all elements is computed as a scalar.
-
-        Returns:
-            A new NumArray with the median values along the specified axis, or a scalar if no axis are given.
-        """
-        axis = [axis] if isinstance(axis, int) else axis
-        result = (
-            _rustynum.median_f32(self.inner, axis)
-            if self.dtype == "float32"
-            else _rustynum.median_f64(self.inner, axis)
-        )
-        return NumArray(result, dtype=self.dtype)
-
-    def median(
-        self, axis: Union[None, int, Sequence[int]] = None
-    ) -> Union["NumArray", float]:
-        """
-        Computes the median of the NumArray along specified axis.
-
-        Parameters:
-            axis: Optional; Axis or axis along which to compute the median. If None, the median
-                  of all elements is computed as a scalar.
+        Args:
+            axis: Axis or axes along which to compute the median.
+                  If None, compute median of all elements.
 
         Returns:
-            A new NumArray with the median values along the specified axis, or a scalar if no axis are given.
+            NumArray with median values along specified axis, or scalar if axis is None.
         """
-        axis = [axis] if isinstance(axis, int) else axis
+        axis_list = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.median_f32(self.inner, axis)
+            _rustynum.median_f32(self.inner, axis_list)
             if self.dtype == "float32"
-            else _rustynum.median_f64(self.inner, axis)
+            else _rustynum.median_f64(self.inner, axis_list)
         )
         return NumArray(result, dtype=self.dtype)
 
     def min(
-        self, axis: Union[None, int, Sequence[int]] = None
+        self, axis: Optional[Union[int, Sequence[int]]] = None
     ) -> Union["NumArray", float]:
         """
-        Return the minimum along the specified axis.
+        Return the minimum along specified axis.
 
-        Parameters:
-            axis: Optional; Axis or axis along which to find the minimum. If None,
-                  the minimum of all elements is computed as a scalar.
+        Args:
+            axis: Axis or axes along which to find the minimum.
+                  If None, return minimum of all elements.
 
         Returns:
-            A new NumArray with the minimum values along the specified axis,
-            or a scalar if no axis are given.
+            NumArray with minimum values along specified axis, or scalar if axis is None.
         """
         if axis is None:
             return (
@@ -410,27 +470,26 @@ class NumArray:
                 else _rustynum.min_f64(self.inner)
             )
 
-        axis = [axis] if isinstance(axis, int) else axis
+        axis_list = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.min_axis_f32(self.inner, axis)
+            _rustynum.min_axis_f32(self.inner, axis_list)
             if self.dtype == "float32"
-            else _rustynum.min_axis_f64(self.inner, axis)
+            else _rustynum.min_axis_f64(self.inner, axis_list)
         )
         return NumArray(result, dtype=self.dtype)
 
     def max(
-        self, axis: Union[None, int, Sequence[int]] = None
+        self, axis: Optional[Union[int, Sequence[int]]] = None
     ) -> Union["NumArray", float]:
         """
-        Return the maximum along the specified axis.
+        Return the maximum along specified axis.
 
-        Parameters:
-            axis: Optional; Axis or axis along which to find the maximum. If None,
-                  the maximum of all elements is computed as a scalar.
+        Args:
+            axis: Axis or axes along which to find the maximum.
+                  If None, return maximum of all elements.
 
         Returns:
-            A new NumArray with the maximum values along the specified axis,
-            or a scalar if no axis are given.
+            NumArray with maximum values along specified axis, or scalar if axis is None.
         """
         if axis is None:
             return (
@@ -439,35 +498,46 @@ class NumArray:
                 else _rustynum.max_f64(self.inner)
             )
 
-        axis = [axis] if isinstance(axis, int) else axis
+        axis_list = [axis] if isinstance(axis, int) else axis
         result = (
-            _rustynum.max_axis_f32(self.inner, axis)
+            _rustynum.max_axis_f32(self.inner, axis_list)
             if self.dtype == "float32"
-            else _rustynum.max_axis_f64(self.inner, axis)
+            else _rustynum.max_axis_f64(self.inner, axis_list)
         )
         return NumArray(result, dtype=self.dtype)
 
-    def __imul__(self, scalar: float) -> "NumArray":
+    def __imul__(self, scalar: Union[int, float]) -> "NumArray":
         """
         In-place multiplication by a scalar.
+
+        Args:
+            scalar: Scalar value to multiply by.
+
+        Returns:
+            Self (modified in-place).
         """
         self.inner.__imul__(scalar)
         return self
 
-    def __add__(self, other: Union["NumArray", float]) -> "NumArray":
+    def __add__(self, other: Union["NumArray", int, float]) -> "NumArray":
         """
-        Adds another NumArray or a scalar to the NumArray.
+        Add another NumArray or scalar to this array.
+
+        Args:
+            other: NumArray or scalar to add.
 
         Returns:
-            A new NumArray with the result of the addition.
+            New NumArray with the result of the addition.
+
+        Raises:
+            ValueError: If dtypes don't match between arrays.
+            TypeError: If operand type is unsupported.
         """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
-            # Use add_array method from bindings for NumArray addition
             return NumArray(self.inner.add_array(other.inner), dtype=self.dtype)
         elif isinstance(other, (int, float)):
-            # Use add_scalar method from bindings for scalar addition
             return NumArray(self.inner.add_scalar(other), dtype=self.dtype)
         else:
             raise TypeError(
@@ -476,20 +546,25 @@ class NumArray:
                 )
             )
 
-    def __mul__(self, other: Union["NumArray", float]) -> "NumArray":
+    def __mul__(self, other: Union["NumArray", int, float]) -> "NumArray":
         """
-        Multiplies the NumArray by another NumArray or a scalar.
+        Multiply this array by another NumArray or scalar.
+
+        Args:
+            other: NumArray or scalar to multiply by.
 
         Returns:
-            A new NumArray with the result of the multiplication.
+            New NumArray with the result of the multiplication.
+
+        Raises:
+            ValueError: If dtypes don't match between arrays.
+            TypeError: If operand type is unsupported.
         """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
-            # Use mul_array method from bindings for NumArray multiplication
             return NumArray(self.inner.mul_array(other.inner), dtype=self.dtype)
         elif isinstance(other, (int, float)):
-            # Use mul_scalar method from bindings for scalar multiplication
             return NumArray(self.inner.mul_scalar(other), dtype=self.dtype)
         else:
             raise TypeError(
@@ -498,20 +573,25 @@ class NumArray:
                 )
             )
 
-    def __sub__(self, other: Union["NumArray", float]) -> "NumArray":
+    def __sub__(self, other: Union["NumArray", int, float]) -> "NumArray":
         """
-        Subtracts another NumArray or a scalar from the NumArray.
+        Subtract another NumArray or scalar from this array.
+
+        Args:
+            other: NumArray or scalar to subtract.
 
         Returns:
-            A new NumArray with the result of the subtraction.
+            New NumArray with the result of the subtraction.
+
+        Raises:
+            ValueError: If dtypes don't match between arrays.
+            TypeError: If operand type is unsupported.
         """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
-            # Use sub_array method from bindings for NumArray subtraction
             return NumArray(self.inner.sub_array(other.inner), dtype=self.dtype)
         elif isinstance(other, (int, float)):
-            # Use sub_scalar method from bindings for scalar subtraction
             return NumArray(self.inner.sub_scalar(other), dtype=self.dtype)
         else:
             raise TypeError(
@@ -520,23 +600,26 @@ class NumArray:
                 )
             )
 
-    def __truediv__(self, other: Union["NumArray", float]) -> "NumArray":
+    def __truediv__(self, other: Union["NumArray", int, float]) -> "NumArray":
         """
-        Divides the NumArray by another NumArray or a scalar.
+        Divide this array by another NumArray or scalar.
+
+        Args:
+            other: NumArray or scalar to divide by.
 
         Returns:
-            A new NumArray with the result of the division.
+            New NumArray with the result of the division.
+
+        Raises:
+            ValueError: If dtypes don't match between arrays.
+            TypeError: If operand type is unsupported.
         """
         if isinstance(other, NumArray):
             if self.dtype != other.dtype:
                 raise ValueError("dtype mismatch between arrays")
-            # Use div_array method from bindings for NumArray division
-            # Create new NumArray with the original shape
             result = self.inner.div_array(other.inner)
-            # Important: Create NumArray with the original shape preserved
             return NumArray(result, dtype=self.dtype)
         elif isinstance(other, (int, float)):
-            # Use div_scalar method from bindings for scalar division
             return NumArray(self.inner.div_scalar(other), dtype=self.dtype)
         else:
             raise TypeError(
@@ -546,10 +629,21 @@ class NumArray:
             )
 
     def tolist(self) -> List[Any]:
+        """
+        Convert the NumArray to a nested Python list.
+
+        Returns:
+            Nested list representation of the array data.
+
+        Examples:
+            >>> arr = NumArray([[1, 2], [3, 4]])
+            >>> arr.tolist()
+            [[1.0, 2.0], [3.0, 4.0]]
+        """
         flat_list = self.inner.tolist()
         shape = self.shape
 
-        def build_nested(flat, shape):
+        def build_nested(flat: List[Any], shape: List[int]) -> List[Any]:
             if not shape:
                 raise ValueError("Shape cannot be empty")
             if len(shape) == 1:
@@ -565,41 +659,52 @@ class NumArray:
 
     def exp(self) -> "NumArray":
         """
-        Computes the exponential of all elements in the NumArray.
+        Compute the exponential of all elements.
 
         Returns:
-            A new NumArray with the exponential of all elements.
+            New NumArray with exponential of all elements.
+
+        Examples:
+            >>> arr = NumArray([0, 1, 2])
+            >>> result = arr.exp()
+            >>> # result contains [1.0, 2.718..., 7.389...]
         """
         return NumArray(self.inner.exp(), dtype=self.dtype)
 
     def log(self) -> "NumArray":
         """
-        Computes the natural logarithm of all elements in the NumArray.
+        Compute the natural logarithm of all elements.
 
         Returns:
-            A new NumArray with the natural logarithm of all elements.
+            New NumArray with natural logarithm of all elements.
         """
         return NumArray(self.inner.log(), dtype=self.dtype)
 
     def sigmoid(self) -> "NumArray":
         """
-        Computes the sigmoid of all elements in the NumArray.
+        Compute the sigmoid function of all elements.
 
         Returns:
-            A new NumArray with the sigmoid of all elements.
+            New NumArray with sigmoid of all elements.
+
+        Note:
+            Sigmoid function: 1 / (1 + exp(-x))
         """
         return NumArray(self.inner.sigmoid(), dtype=self.dtype)
 
     def concatenate(self, other: "NumArray", axis: int) -> "NumArray":
         """
-        Concatenates the NumArray with another NumArray along the specified axis.
+        Concatenate with another NumArray along specified axis.
 
-        Parameters:
+        Args:
             other: Another NumArray to concatenate with.
             axis: Axis along which to concatenate.
 
         Returns:
-            A new NumArray containing the concatenated data.
+            New NumArray containing the concatenated data.
+
+        Raises:
+            ValueError: If dtypes don't match or shapes are incompatible.
         """
         if self.dtype != other.dtype:
             raise ValueError("dtype mismatch between arrays")
@@ -617,13 +722,16 @@ class NumArray:
 
     def flip(self, axis: Union[int, Sequence[int]]) -> "NumArray":
         """
-        Flips the NumArray along the specified axis.
+        Flip the array along specified axis or axes.
 
-        Parameters:
-            axis: Axis to flip along.
+        Args:
+            axis: Axis or axes to flip along.
 
         Returns:
-            A new NumArray with the flipped data.
+            New NumArray with flipped data.
+
+        Raises:
+            TypeError: If axis type is invalid.
         """
         if isinstance(axis, int):
             result = self.inner.flip_axis([axis])
@@ -633,19 +741,17 @@ class NumArray:
             raise TypeError("axis must be an integer or a sequence of integers")
         return NumArray(result, dtype=self.dtype)
 
-    def slice(
-        self, axis: int, start: Union[int, None], stop: Union[int, None]
-    ) -> "NumArray":
+    def slice(self, axis: int, start: Optional[int], stop: Optional[int]) -> "NumArray":
         """
-        Slices the NumArray along a specified axis.
+        Slice the array along a specified axis.
 
-        Parameters:
-            axis: Axis to slice.
-            start: Starting index of the slice.
-            stop: Stopping index of the slice.
+        Args:
+            axis: Axis to slice along.
+            start: Starting index of the slice (None for beginning).
+            stop: Stopping index of the slice (None for end).
 
         Returns:
-            A new NumArray with the sliced data.
+            New NumArray with sliced data.
         """
         # Handle None values by setting defaults
         if start is None:
@@ -664,6 +770,20 @@ class NumArray:
     def norm(
         self, p: int = 2, axis: Optional[List[int]] = None, keepdims: bool = False
     ) -> "NumArray":
+        """
+        Compute the matrix or vector norm.
+
+        Args:
+            p: Order of the norm (default: 2 for Euclidean norm).
+            axis: Axis or axes along which to compute the norm.
+            keepdims: Whether to keep dimensions in the result.
+
+        Returns:
+            New NumArray containing the computed norm.
+
+        Raises:
+            ValueError: If dtype is unsupported for norm computation.
+        """
         if self.dtype == "float32":
             return NumArray(
                 _rustynum.norm_f32(self.inner, p, axis, keepdims), dtype="float32"
