@@ -1,4 +1,24 @@
-![RustyNum Banner](assets/rustynum-banner.png?raw=true "RustyNum")
+---
+title: RustyNum a fast NumPy alternative written in Rust
+description: RustyNum is a SIMD accelerated numerical library for Python with a NumPy like API. Learn what it is, why it is fast, and how to use it in Python.
+---
+![RustyNum logo and wordmark](assets/rustynum-banner.png?raw=true "RustyNum")
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "RustyNum",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Windows, Linux, macOS",
+  "softwareVersion": "latest",
+  "url": "https://rustynum.com",
+  "downloadUrl": "https://pypi.org/project/rustynum/",
+  "programmingLanguage": "Python, Rust",
+  "license": "https://opensource.org/licenses/MIT",
+  "description": "SIMD accelerated numerical library for Python with a NumPy like interface."
+}
+</script>
 
 # Welcome to RustyNum!
 
@@ -48,8 +68,8 @@ Ready to explore RustyNum? Here’s how you can dive in:
 
 1. **[Installation](installation.md)**: Install RustyNum with a single `pip` command.
 2. **[Quick Start](quick-start.md)**: Learn the basics of using RustyNum.
-3. **[Tutorials](tutorials/)**: Explore real-world examples and advanced guides.
-4. **[API Reference](api/)**: Dive deep into RustyNum’s Python API.
+3. **[Tutorials](tutorials/index.md)**: Explore real-world examples and advanced guides.
+4. **[API Reference](api/index.md)**: Dive deep into RustyNum's Python API.
 
 ---
 

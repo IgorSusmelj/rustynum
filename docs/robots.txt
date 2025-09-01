@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rustynum.com/sitemap.xml

@@ -1,3 +1,7 @@
+---
+title: RustyNum Python API reference
+description: Full Python API reference for RustyNum. Classes, functions, and examples.
+---
 # Python API Reference
 
 ## Classes

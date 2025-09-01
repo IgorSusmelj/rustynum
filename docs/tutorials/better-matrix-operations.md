@@ -1,3 +1,7 @@
+---
+title: Matrix multiplication in Python faster with RustyNum vs NumPy
+description: Learn matrix vector and matrix matrix multiplication in Python using RustyNum, compare with NumPy, and measure runtime.
+---
 # Getting Better Matrix Operations with RustyNum
 
 Matrix operations are at the core of many data science and engineering workflows. When performance matters, switching from traditional Python solutions to RustyNum can be a great move. In this tutorial, you’ll learn how to perform matrix-vector and matrix-matrix operations with RustyNum, compare them to NumPy, and see how SIMD acceleration can improve efficiency.
@@ -183,8 +187,12 @@ While timing results can vary based on hardware and environment, RustyNum may of
 
 ## Next Steps
 
-- Check out the [API Reference](../../api/) for a complete list of functions and classes.
-- Explore more advanced examples in the upcoming [Tutorials](../).
+- Check out the [API Reference](../api/index.md) for a complete list of functions and classes.
+- Explore more advanced examples in the upcoming [Tutorials](../index.md).
 - Contribute your own ideas or ask questions on [GitHub](https://github.com/IgorSusmelj/rustynum).
 
 Matrix operations are a cornerstone of computational tasks, and RustyNum offers a Python-friendly path to faster, more efficient code. By tapping into Rust’s low-level optimizations, you can scale your projects without changing your entire workflow.
+
+---
+
+**Further reading**: [Installation](../installation.md), [Quick Start](../quick-start.md), [API Reference](../api/index.md).

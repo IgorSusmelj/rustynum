@@ -12,6 +12,8 @@
 
 # RustyNum
 
+RustyNum is a NumPy compatible array library for Python that uses Rust SIMD to accelerate common operations.
+
 RustyNum is a high-performance numerical computation library written in Rust, created to demonstrate the potential of Rust's SIMD (Single Instruction, Multiple Data) capabilities using the nightly `portable_simd` feature, and serving as a fast alternative to Numpy.
 
 ## Key Features

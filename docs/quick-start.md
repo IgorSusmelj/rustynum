@@ -1,6 +1,12 @@
+---
+title: Quick start with RustyNum in Python
+description: Create arrays, compute means and dot products, and compare RustyNum with NumPy. Copy ready examples for Python.
+---
 # Getting Started with RustyNum
 
 Welcome to RustyNum! This guide will help you quickly get up and running with RustyNum, from basic operations to a comparison with NumPy. If you're familiar with NumPy, you'll feel right at home.
+
+RustyNum is a NumPy compatible array library for Python that uses Rust SIMD to accelerate common operations.
 
 ---
 
@@ -123,7 +129,10 @@ print(dot_product)
 Once you’re comfortable with the basics, dive deeper into RustyNum with these resources:
 
 - **[Tutorials](tutorials/index.md)**: Explore real-world applications of RustyNum.
-- **[API Reference](../api/)**: Detailed documentation of RustyNum’s Python bindings.
+- **[API Reference](api/index.md)**: Detailed documentation of RustyNum's Python bindings.
+
+
+For larger arrays and timings, see the comparison in [RustyNum vs NumPy performance](benchmarks/rustynum-vs-numpy.md).
 
 ---
 
@@ -134,6 +143,6 @@ If you have any questions, check out the [GitHub Discussions](https://github.com
 ---
 
 <div style="text-align: center;">
-    <a href="../tutorials/" class="md-button md-button--primary">Explore Tutorials</a>
-    <a href="../api/" class="md-button">View API Reference</a>
+    <a href="tutorials/index.md" class="md-button md-button--primary">Explore Tutorials</a>
+    <a href="api/index.md" class="md-button">View API Reference</a>
 </div>

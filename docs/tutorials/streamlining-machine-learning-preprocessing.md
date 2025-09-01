@@ -1,3 +1,7 @@
+---
+title: Scale normalize and concatenate features in Python with RustyNum
+description: Faster preprocessing for ML in Python. Min max scaling L2 normalization concatenation and scikit learn integration.
+---
 # Streamlining Machine Learning Preprocessing with RustyNum
 
 Data preprocessing is a key step in machine learning. Whether you're prepping large datasets for neural networks or just cleaning up smaller ones, RustyNum can help speed up vectorized operations and transformations. In this tutorial, we'll explore how to use RustyNum for several preprocessing tasks, then show how to integrate your processed data with popular Python ML libraries.
@@ -210,8 +214,12 @@ print("Matrix multiplication result:", product.tolist())
 
 ## Next Steps
 
-- Check out the other [Tutorials](../) for deeper dives into RustyNum's capabilities.  
-- Review the [API Reference](../api/) for more advanced methods.  
+- Check out the other [Tutorials](../index.md) for deeper dives into RustyNum's capabilities.  
+- Review the [API Reference](../api/index.md) for more advanced methods.  
 - Join the community on [GitHub Discussions](https://github.com/IgorSusmelj/rustynum/discussions) to share ideas or ask questions.
 
 Preprocessing data can be a bottleneck in many ML pipelines. By harnessing RustyNum, you might reduce that overhead while still benefiting from a Python-friendly workflow. Give these techniques a try in your own projects and see how RustyNum fits into your machine learning stack!
+
+---
+
+**Further reading**: [Installation](../installation.md), [Quick Start](../quick-start.md), [API Reference](../api/index.md).

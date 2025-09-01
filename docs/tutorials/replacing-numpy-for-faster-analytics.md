@@ -1,3 +1,7 @@
+---
+title: Replace selected NumPy calls to speed up analytics
+description: Speed up mean min and dot product in Python by swapping NumPy with RustyNum. Includes timing code and results.
+---
 # Replacing Core NumPy Calls for Faster Analytics
 
 Many developers rely on NumPy for array operations, statistical calculations, and linear algebra. RustyNum offers an alternative for several common NumPy routines, potentially speeding up your Python analytics. In this tutorial, you’ll see how to replace selected NumPy calls with RustyNum equivalents, measure performance differences, and integrate RustyNum into existing data workflows.
@@ -194,6 +198,10 @@ Speedup:       3.79x
 
 ## Next Steps
 
-- Check out the [API Reference](../../api/) for a complete list of functions and classes.
-- Explore more advanced examples in the upcoming [Tutorials](../).
+- Check out the [API Reference](../api/index.md) for a complete list of functions and classes.
+- Explore more advanced examples in the upcoming [Tutorials](../index.md).
 - Contribute your own ideas or ask questions on [GitHub](https://github.com/IgorSusmelj/rustynum).
+
+---
+
+**Further reading**: [Installation](../installation.md), [Quick Start](../quick-start.md), [API Reference](../api/index.md).

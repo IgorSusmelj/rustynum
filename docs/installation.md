@@ -1,3 +1,7 @@
+---
+title: Install RustyNum on macOS Linux and Windows for Python 3.8 to 3.13
+description: Step by step install guide for RustyNum on Apple Silicon Intel Linux and Windows. Verify the install and fix common issues.
+---
 # Installation Guide
 
 Get started with RustyNum by following this installation guide. Whether you're using Python for data analysis or contributing to the core library, this page covers everything you need.

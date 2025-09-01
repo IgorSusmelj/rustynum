@@ -9,3 +9,5 @@
 
 # Ignore compiled shared object files
 **/*.so
+site/
+**/.DS_Store
