@@ -13,10 +13,10 @@ RustyNum is a NumPy compatible array library for Python that uses Rust SIMD to a
 
 ## What we measure
 
-- Mean over large vectors  
-- Minimum over large vectors  
-- Dot product of a matrix and a vector  
-- Matrix multiplication of two square matrices  
+- Mean over large vectors
+- Minimum over large vectors
+- Dot product of a matrix and a vector
+- Matrix multiplication of two square matrices
 
 These cases map to common data tasks and machine learning preprocessing on a single CPU.
 
@@ -26,14 +26,14 @@ These cases map to common data tasks and machine learning preprocessing on a sin
 
 Install the packages.
 
-``` bash
+```bash
 python -V
 pip install -U rustynum numpy
 ```
 
 Record your environment when you share results.
 
-``` python
+```python
 import numpy as np, platform, sys, rustynum as rnp
 print("Python", sys.version.split()[0])
 print("NumPy", np.__version__)
@@ -50,7 +50,7 @@ NumPy performance depends on the BLAS that ships with your wheel. OpenBLAS or MK
 
 The script below times four operations. It warms up first and reports medians. Sizes are modest so it runs fast during local testing.
 
-``` python
+```python
 import time, math, numpy as np
 import rustynum as rnp
 from statistics import median
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
 Run the file.
 
-``` bash
+```bash
 python benchmarks.py
 ```
 
@@ -127,9 +127,9 @@ python benchmarks.py
 
 ## Reading the results
 
-- Mean and minimum are memory bound. RustyNum often does well due to SIMD friendly loops.  
-- Matrix vector speed depends on memory access and BLAS.  
-- Matrix matrix can favor NumPy on large sizes with tuned BLAS. RustyNum can be close on medium sizes.  
+- Mean and minimum are memory bound. RustyNum often does well due to SIMD friendly loops.
+- Matrix vector speed depends on memory access and BLAS.
+- Matrix matrix can favor NumPy on large sizes with tuned BLAS. RustyNum can be close on medium sizes.
 
 Small numeric differences are normal in floating point code.
 
@@ -137,14 +137,14 @@ Small numeric differences are normal in floating point code.
 
 ## Example results
 
-These numbers show one run on an Apple M1 Pro laptop with float32 inputs.
+These numbers show benchmark results from RustyNum 0.1.4 vs NumPy 1.24.4 on an Apple M1 Pro laptop with float32 inputs.
 
-| Operation         | Size          | RustyNum s | NumPy s | Speedup NumPy over RustyNum |
-| ----------------- | ------------- | ---------- | ------- | ---------------------------- |
-| mean              | 1e6           | 0.000017   | 0.000048| 2.8x                         |
-| min               | 1e5           | 0.000010   | 0.000033| 3.3x                         |
-| matrix@vector     | 1000x1000     | 0.010      | 0.025   | 2.5x                         |
-| matrix@matrix     | 500x500       | 0.007      | 0.015   | 2.1x                         |
+| Operation     | Size      | RustyNum us | NumPy us    | Speedup NumPy over RustyNum |
+| ------------- | --------- | ----------- | ----------- | --------------------------- |
+| mean          | 1e3       | 8.8993      | 22.6300     | 2.54x                       |
+| min           | 1e3       | 10.1423     | 28.9693     | 2.86x                       |
+| matrix@vector | 1000x1000 | 10,041.6093 | 24,990.2646 | 2.49x                       |
+| matrix@matrix | 500x500   | 7,010.6638  | 14,878.9556 | 2.12x                       |
 
 Your machine will differ. Use the runner above to collect your own data.
 
@@ -152,32 +152,32 @@ Your machine will differ. Use the runner above to collect your own data.
 
 ## Tips for fair runs
 
-- Stick to float32 or float64 and be consistent.  
-- Avoid Python loops in the hot path.  
-- Warm up first and report medians.  
-- Share CPU model, versions, and BLAS choice.  
+- Stick to float32 or float64 and be consistent.
+- Avoid Python loops in the hot path.
+- Warm up first and report medians.
+- Share CPU model, versions, and BLAS choice.
 
 ---
 
 ## When to pick RustyNum
 
-- You want fast reductions or transforms with a small wheel.  
-- You need a compact dependency for packaging on servers or edge.  
-- You want SIMD backed methods without heavy external libraries.  
+- You want fast reductions or transforms with a small wheel.
+- You need a compact dependency for packaging on servers or edge.
+- You want SIMD backed methods without heavy external libraries.
 
 ## When to stay with NumPy
 
-- You run heavy dense linear algebra that benefits from a tuned BLAS.  
-- You need a very wide API that RustyNum does not cover yet.  
+- You run heavy dense linear algebra that benefits from a tuned BLAS.
+- You need a very wide API that RustyNum does not cover yet.
 
 ---
 
 ## Next steps
 
-- Start with the [Quick Start](../quick-start.md).  
-- Try the tutorial on [Replacing Core NumPy Calls](../tutorials/replacing-numpy-for-faster-analytics.md).  
-- Learn matrix math in [Getting Better Matrix Operations](../tutorials/better-matrix-operations.md).  
-- Install or upgrade with the [Installation Guide](../installation.md).  
+- Start with the [Quick Start](../quick-start.md).
+- Try the tutorial on [Replacing Core NumPy Calls](../tutorials/replacing-numpy-for-faster-analytics.md).
+- Learn matrix math in [Getting Better Matrix Operations](../tutorials/better-matrix-operations.md).
+- Install or upgrade with the [Installation Guide](../installation.md).
 
 ---
 
